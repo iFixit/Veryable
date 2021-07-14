@@ -86,6 +86,7 @@ const GET_OPEN_PULLS = (repo, owner, limitsize) => `
 // Automatically run script repeatedly
 (async () => {
   main();
+  setInterval(main, 60 * 1000); //Run every 60 seconds
 })();
 
 async function main() {
@@ -122,6 +123,7 @@ async function main() {
 
 function parsePulls(github_pulls) {
   let current_repo_pulls = 0;
+  console.log(github_pulls);
   for (const pull of github_pulls) {
     current_repo_pulls += isQAReady(pull);
   }
