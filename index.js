@@ -1,11 +1,13 @@
-const { graphql } = require("@octokit/graphql");
-const ProgressBar = require("progress");
-const date = require("date-and-time");
+import { graphql } from "@octokit/graphql";
+import ProgressBar from "progress";
+import { subtract } from "date-and-time";
+
+import csv from "csv";
 
 require("dotenv").config();
 
-const repos = require("./config.json").repos;
-const signatures = require("./config.json").signatures;
+import { repos } from "./config.json";
+import { signatures } from "./config.json";
 
 // This is to add some flare and show the rate of which we are iterating through repos
 const bar = new ProgressBar("repos parsed [:bar] :percent", {
@@ -125,7 +127,7 @@ function getTags(pull) {
   for (comment of pull.comments.nodes) {
     let comment_date = new Date(comment.createdAt);
     // Only get tags associated with the latest commit
-    if (date.subtract(latest_commit_date, comment_date).toDays() <= 0) {
+    if (subtract(latest_commit_date, comment_date).toDays() <= 0) {
       hasTags(comment.bodyText, current_tags);
     }
   }
