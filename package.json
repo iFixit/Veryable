@@ -1,0 +1,18 @@
+{
+  "name": "qa-metrics",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@octokit/graphql": "^4.6.4",
+    "date-and-time": "^1.0.1",
+    "dotenv": "^10.0.0",
+    "progress": "^2.0.3"
+  }
+}
