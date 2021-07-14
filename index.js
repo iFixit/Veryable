@@ -27,7 +27,26 @@ const ghqlAuthed = graphql.defaults({
   },
 });
 
+/* Strucutre
+ * @state => Pull Status (OPEN, CLOSED, MERGED)
+ * @bodyText => Pull Description (Holds the qa_req_# argument)
+ * @commits => Pull commits array (has date commit was made and build status--i.e. CI status)
+ * @comments => Pull comments array (has up to the latest 50 comments from a pull)
+ */
+
 const PULL_INFO = `
+    state,
+    bodyText,
+    commits(last: 1){
+        nodes{
+            commit{
+                pushedDate,
+                status{
+                    state
+                }
+            }
+        }
+    },
     comments(last:50){
         nodes{
             bodyText,
@@ -40,7 +59,6 @@ const GET_OPEN_PULLS = (repo, owner, limitsize) => `
     {
         repository(name: "${repo}", owner: "${owner}") {
             pullRequests(states: OPEN, first: ${limitsize}, orderBy: {field: CREATED_AT, direction: DESC} ) {
-                totalCount
                 nodes {
                    ${PULL_INFO}
                 }
@@ -106,6 +124,7 @@ function getTags(pull) {
 
   for (comment of pull.comments.nodes) {
     let comment_date = new Date(comment.createdAt);
+    // Only get tags associated with the latest commit
     if (date.subtract(latest_commit_date, comment_date).toDays() <= 0) {
       hasTags(comment.bodyText, current_tags);
     }
