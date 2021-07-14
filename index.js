@@ -76,6 +76,9 @@ const GET_OPEN_PULLS = (repo, owner, limitsize) => `
 })();
 
 async function main() {
+  let previous_pull_total = 0;
+  let running_pull_total = 0;
+  let day_pull_count = 0;
   console.log("Running script...");
 
   // Iterate through the list of repos declared in the config.json file
@@ -84,39 +87,47 @@ async function main() {
     const all_open_pulls = await ghqlAuthed(
       GET_OPEN_PULLS(repo.name, repo.owner, 50) //Limiting it to 50 open pulls
     );
-    await parsePulls(all_open_pulls.repository.pullRequests.nodes);
+    running_pull_total += parsePulls(
+      all_open_pulls.repository.pullRequests.nodes
+    );
   }
+
+  day_pull_count += abs(running_pull_total - previous_pull_total);
+  previous_pull_total = running_pull_total;
   console.log("Finished script...");
 }
 
-async function parsePulls(github_pulls) {
+function parsePulls(github_pulls) {
+  let current_repo_pulls = 0;
   for (pull of github_pulls) {
-    getBaseProperties(pull);
+    current_repo_pulls += isQAReady(pull);
   }
+  return current_repo_pulls;
 }
 
 // Iteratres through the Pull Object and retrieves the appropriate base properties
-function getBaseProperties(pull) {
+function isQAReady(pull) {
   let build_status = pull.commits.nodes[0].commit.status
     ? pull.commits.nodes[0].commit.status.state
     : "EXPECTED";
 
   // Want to skip pulls that are failing CI
   if (build_status !== "EXPECTED" || build_status !== "SUCCESS") {
-    return;
+    return 0;
   }
 
   // Want to skip pulls that are dev_block and already QA'd
   let tags = getTags(pull);
   if (tags.includes("dev_block") || tags.includes("QA")) {
-    return;
+    return 0;
   }
 
   // Want to skip pulls that are marked as qa_req_0
   let qa_req = qaRequired(pull);
   if (!qa_req) {
-    return;
+    return 0;
   }
+  return 1;
 }
 
 // Get Signaturse/Stamps
