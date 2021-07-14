@@ -86,9 +86,9 @@ function getBaseProperties(pull) {
     return;
   }
 
-  // Want to skip pulls that are dev_block
+  // Want to skip pulls that are dev_block and already QA'd
   let tags = getTags(pull);
-  if (tags.includes("dev_block")) {
+  if (tags.includes("dev_block") || tags.includes("QA")) {
     return;
   }
 
