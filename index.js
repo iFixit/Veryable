@@ -1,11 +1,25 @@
+require("dotenv").config();
+
 import { graphql } from "@octokit/graphql";
 import ProgressBar from "progress";
 import { subtract } from "date-and-time";
-
-require("dotenv").config();
+import { join } from "path";
+import { Low, JSONFile } from "lowdb";
 
 import { repos } from "./config.json";
 import { signatures } from "./config.json";
+
+const file = path.join(__dirname, "db.json");
+const adapter = new JSONFile(file);
+const db = new Low(adapter);
+
+// Initialize JSON Database
+await db.read();
+db.data ||= [];
+
+// Get Today's date
+let today = date.format(new Date(), "MM-DD-YYYY");
+let yesterday = date.addDays(today, -1);
 
 // This is to add some flare and show the rate of which we are iterating through repos
 const bar = new ProgressBar("repos parsed [:bar] :percent", {
@@ -74,7 +88,7 @@ const GET_OPEN_PULLS = (repo, owner, limitsize) => `
 })();
 
 async function main() {
-  let previous_pull_total = 0;
+  let previous_pull_total = db.data[today] || db.data[yesterday] || 0;
   let running_pull_total = 0;
   let day_pull_count = 0;
   console.log("Running script...");
