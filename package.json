@@ -11,9 +11,9 @@
   "license": "ISC",
   "dependencies": {
     "@octokit/graphql": "^4.6.4",
-    "csv": "^5.5.0",
     "date-and-time": "^1.0.1",
     "dotenv": "^10.0.0",
+    "lowdb": "^2.1.0",
     "progress": "^2.0.3"
   }
 }

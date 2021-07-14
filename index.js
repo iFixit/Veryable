@@ -2,8 +2,6 @@ import { graphql } from "@octokit/graphql";
 import ProgressBar from "progress";
 import { subtract } from "date-and-time";
 
-import csv from "csv";
-
 require("dotenv").config();
 
 import { repos } from "./config.json";
