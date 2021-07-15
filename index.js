@@ -122,6 +122,7 @@ async function main() {
         day_total: running_pull_total,
         pulls_added: day_pull_count,
     };
+    console.log(db.data);
     await db.write();
     console.log("Finished script...");
 }
