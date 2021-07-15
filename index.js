@@ -38,9 +38,9 @@ let yesterday = date.addDays(new Date(), -1);
 
 // Sets Auth token for all future requests
 const ghqlAuthed = graphql.defaults({
-  headers: {
-    authorization: `token ${process.env.GITHUB_TOKEN}`,
-  },
+    headers: {
+        authorization: `token ${process.env.GITHUB_TOKEN}`,
+    },
 });
 
 /* Strucutre
@@ -52,6 +52,8 @@ const ghqlAuthed = graphql.defaults({
 
 const PULL_INFO = `
     state,
+    title,
+    number,
     bodyText,
     commits(last: 1){
         nodes{
@@ -75,6 +77,7 @@ const GET_OPEN_PULLS = (repo, owner, limitsize) => `
     {
         repository(name: "${repo}", owner: "${owner}") {
             pullRequests(states: OPEN, first: ${limitsize}, orderBy: {field: CREATED_AT, direction: DESC} ) {
+                totalCount,
                 nodes {
                    ${PULL_INFO}
                 }
@@ -85,108 +88,126 @@ const GET_OPEN_PULLS = (repo, owner, limitsize) => `
 
 // Automatically run script repeatedly
 (async () => {
-  main();
-  setInterval(main, 60 * 1000); //Run every 60 seconds
+    main();
+    setInterval(main, 60 * 1000); //Run every 60 seconds
 })();
 
 async function main() {
-  let previous_pull_total =
-    db.data[today].day_total || db.data[yesterday].day_total || 0;
-  let running_pull_total = 0;
-  let day_pull_count = db.data[today] ? db.data[today].pulls_added : 0;
-  console.log("Running script...");
-  console.log("Previous Pull Total: " + previous_pull_total);
-  console.log("Repos in the list");
-  console.log(repos);
+    let previous_pull_total = db.data[today]
+        ? db.data[today].day_total || db.data[yesterday]
+            ? db.data[yesterday].day_total
+            : 0
+        : 0;
+    let running_pull_total = 0;
+    let day_pull_count = db.data[today] ? db.data[today].pulls_added : 0;
+    console.log("Running script...");
+    console.log("Previous Pull Total: " + previous_pull_total);
 
-  // Iterate through the list of repos declared in the config.json file
-  for (const repo of repos) {
-    const all_open_pulls = await ghqlAuthed(
-      GET_OPEN_PULLS(repo.name, repo.owner, 50) //Limiting it to 50 open pulls
-    );
-    running_pull_total += parsePulls(
-      all_open_pulls.repository.pullRequests.nodes
-    );
-  }
-  console.log("Running Total: " + running_pull_total);
+    // Iterate through the list of repos declared in the config.json file
+    for (const repo of repos) {
+        const all_open_pulls = await ghqlAuthed(
+            GET_OPEN_PULLS(repo.name, repo.owner, 50) //Limiting it to 50 open pulls
+        );
+        console.log("Total Pulls: " + all_open_pulls.repository.pullRequests.totalCount)
+        running_pull_total += parsePulls(
+            all_open_pulls.repository.pullRequests.nodes
+        );
+    }
+    console.log("Running Total: " + running_pull_total);
 
-  let difference = running_pull_total - previous_pull_total;
-  day_pull_count += difference > 0 ? difference : 0;
-  console.log("New pulls added: " + day_pull_count);
-  db.data[today] = {
-    day_total: running_pull_total,
-    pulls_added: day_pull_count,
-  };
-  db.write();
-  console.log("Finished script...");
+    let difference = running_pull_total - previous_pull_total;
+    day_pull_count += difference > 0 ? difference : 0;
+    console.log("New pulls added: " + day_pull_count);
+    db.data[today] = {
+        day_total: running_pull_total,
+        pulls_added: day_pull_count,
+    };
+    await db.write();
+    console.log("Finished script...");
 }
 
 function parsePulls(github_pulls) {
-  let current_repo_pulls = 0;
-  console.log(github_pulls);
-  for (const pull of github_pulls) {
-    current_repo_pulls += isQAReady(pull);
-  }
-  return current_repo_pulls;
+    let current_repo_pulls = 0;
+    for (const pull of github_pulls) {
+        current_repo_pulls += isQAReady(pull);
+    }
+    return current_repo_pulls;
 }
 
 // Iteratres through the Pull Object and retrieves the appropriate base properties
 function isQAReady(pull) {
-  let build_status = pull.commits.nodes[0].commit.status
-    ? pull.commits.nodes[0].commit.status.state
-    : "EXPECTED";
+    let title = pull.title;
+    let pr_number = pull.number;
+    let build_status = pull.commits.nodes[0].commit.status
+        ? pull.commits.nodes[0].commit.status.state
+        : "EXPECTED";
 
-  // Want to skip pulls that are failing CI
-  if (build_status !== "SUCCESS" && build_status !== "EXPECTED") {
-    console.log("CI is failing...returning 0");
-    return 0;
-  }
+    // Want to skip pulls that are failing CI
+    if (build_status !== "SUCCESS" && build_status !== "EXPECTED") {
+        console.log("Pull " + title + " # " + pr_number + " is failing CI");
+        return 0;
+    }
 
-  // Want to skip pulls that are dev_block and already QA'd
-  let tags = getTags(pull);
-  if (tags.includes("dev_block") || tags.includes("QA")) {
-    console.log("dev_blocked or QA'd already...returning 0");
-    return 0;
-  }
+    // Want to skip pulls that are dev_block and already QA'd
+    let tags = getTags(pull);
+    if (tags["dev_block"] || tags["QA"]) {
+        console.log(
+            "Pull " + title + " # " + pr_number + " is dev blocked or already QA"
+        );
 
-  // Want to skip pulls that are marked as qa_req_0
-  let qa_req = qaRequired(pull);
-  if (!qa_req) {
-    console.log("Does not require QA...returning 0");
-    return 0;
-  }
-  console.log("Returning 1");
-  return 1;
+        return 0;
+    }
+
+    // Want to skip pulls that are marked as qa_req_0
+    let qa_req = qaRequired(pull);
+    if (qa_req) {
+        console.log("Pull " + title + " # " + pr_number + " is QA Req 0");
+
+        return 0;
+    }
+    console.log("Returning 1 for " + "Pull " + title + " # " + pr_number);
+    return 1;
 }
 
 // Get Signaturse/Stamps
 function getTags(pull) {
-  let latest_commit_date = new Date(pull.commits.nodes[0].commit.pushedDate);
-  let current_tags = [];
+    let latest_commit_date = new Date(pull.commits.nodes[0].commit.pushedDate);
+    let current_tags = {};
 
-  for (const comment of pull.comments.nodes) {
-    let comment_date = new Date(comment.createdAt);
-    // Only get tags associated with the latest commit
-    if (date.subtract(latest_commit_date, comment_date).toDays() <= 0) {
-      hasTags(comment.bodyText, current_tags);
+    for (const comment of pull.comments.nodes) {
+        let comment_date = new Date(comment.createdAt);
+        if (hasQATag(comment.bodyText)) {
+            if (date.subtract(latest_commit_date, comment_date).toDays() <= 0) {
+                current_tags["QA"] = true;
+            }
+        } else {
+            hasTags(comment.bodyText, current_tags);
+        }
     }
-  }
-  return current_tags;
+
+    return current_tags;
+}
+
+function hasQATag(comment) {
+    let regex = new RegExp(signatures.QA + signatures.emoji, "i");
+    return regex.test(comment)
 }
 
 function hasTags(comment, tags) {
-  signatures.tags.forEach((tag) => {
-    let regex = new RegExp(tag.regex + signatures.emoji, "i");
-    if (regex.test(comment)) {
-      tags.push(tag.name);
-    }
-  });
+    signatures.tags.forEach((tag) => {
+        let regex = new RegExp(tag.regex + signatures.emoji, "i");
+        if (regex.test(comment)) {
+            tags["dev_block"] = tag.state
+        }
+    });
 }
 
 // Check if the Pull requires QAing
 function qaRequired(pull) {
-  let body = pull.bodyText;
-  let qa_regex = new RegExp(signatures.qa_req, "i");
-
-  return qa_regex.test(body);
+    let body = pull.bodyText;
+    let qa_regex = new RegExp(signatures.qa_req, "i");
+    console.group("QA Req");
+    console.log(qa_regex.test(body) + " for " + body);
+    console.groupEnd();
+    return qa_regex.test(body);
 }
