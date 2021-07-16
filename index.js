@@ -17,7 +17,7 @@ const db = new Low(adapter);
 
 // Initialize JSON Database
 await db.read();
-db.data || (db.data = []);
+db.data || (db.data = {});
 
 // Get Today's date
 let today = date.format(new Date(), "MM-DD-YYYY");
@@ -92,14 +92,25 @@ const GET_OPEN_PULLS = (repo, owner, limitsize) => `
     setInterval(main, 60 * 1000); //Run every 60 seconds
 })();
 
+function initializeCounts() {
+    let pull_total, day_total = 0;
+    if (db.data[today] && db.data[today].day_total) {
+        pull_total = db.data[today].day_total;
+    }
+    else if (db.data[yesterday] && db.data[yesterday].day_total) {
+        pull_total = db.data[yesterday].day_total;
+    }
+
+    if (db.data[today] && db.data[today].pulls_added) {
+        day_total = db.data[today].pulls_added;
+    }
+    return [pull_total, day_total];
+}
+
 async function main() {
-    let previous_pull_total = db.data[today]
-        ? db.data[today].day_total || db.data[yesterday]
-            ? db.data[yesterday].day_total
-            : 0
-        : 0;
+
+    let [previous_pull_total, day_pull_count] = initializeCounts();
     let running_pull_total = 0;
-    let day_pull_count = db.data[today] ? db.data[today].pulls_added : 0;
     console.log("Running script...");
     console.log("Previous Pull Total: " + previous_pull_total);
 
@@ -207,8 +218,5 @@ function hasTags(comment, tags) {
 function qaRequired(pull) {
     let body = pull.bodyText;
     let qa_regex = new RegExp(signatures.qa_req, "i");
-    console.group("QA Req");
-    console.log(qa_regex.test(body) + " for " + body);
-    console.groupEnd();
     return qa_regex.test(body);
 }
