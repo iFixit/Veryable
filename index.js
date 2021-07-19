@@ -1,15 +1,15 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { graphql } from "@octokit/graphql";
-import ProgressBar from "progress";
 import date from "date-and-time";
 import path from "path";
 import { Low, JSONFile } from "lowdb";
 
-import config from "./config.js";
+import config from "./config/config.js";
 const repos = config.repos;
 const signatures = config.signatures;
+
+import queryGitHub from "./ghgraphql.js";
 
 const file = path.resolve( "./db.json" );
 const adapter = new JSONFile( file );
@@ -22,57 +22,6 @@ db.data || ( db.data = {} );
 // Get Today's date
 let today = date.format( new Date(), "MM-DD-YYYY" );
 let yesterday = date.addDays( new Date(), -1 );
-
-
-// Sets Auth token for all future requests
-const ghqlAuthed = graphql.defaults( {
-    headers: {
-        authorization: `token ${ process.env.GITHUB_TOKEN }`,
-    },
-} );
-
-/* Strucutre
- * @state => Pull Status (OPEN, CLOSED, MERGED)
- * @bodyText => Pull Description (Holds the qa_req_# argument)
- * @commits => Pull commits array (has date commit was made and build status--i.e. CI status)
- * @comments => Pull comments array (has up to the latest 50 comments from a pull)
- */
-
-const PULL_INFO = `
-    state,
-    title,
-    number,
-    bodyText,
-    commits(last: 1){
-        nodes{
-            commit{
-                pushedDate,
-                status{
-                    state
-                }
-            }
-        }
-    },
-    comments(last:50){
-        nodes{
-            bodyText,
-            createdAt
-        }
-    },
-`;
-
-const GET_OPEN_PULLS = ( repo, owner, limitsize ) => `
-    {
-        repository(name: "${ repo }", owner: "${ owner }") {
-            pullRequests(states: OPEN, first: ${ limitsize }, orderBy: {field: CREATED_AT, direction: DESC} ) {
-                totalCount,
-                nodes {
-                   ${ PULL_INFO }
-                }
-            }
-        }
-    }
-`;
 
 // Automatically run script repeatedly
 ( async () =>
@@ -111,9 +60,7 @@ async function main()
     // Iterate through the list of repos declared in the config.json file
     for ( const repo of repos )
     {
-        const all_open_pulls = await ghqlAuthed(
-            GET_OPEN_PULLS( repo.name, repo.owner, 50 ) //Limiting it to 50 open pulls
-        );
+        const all_open_pulls = await queryGitHub( repo );
         console.log( "Total Pulls: " + all_open_pulls.repository.pullRequests.totalCount );
         running_pull_total += parsePulls(
             all_open_pulls.repository.pullRequests.nodes
