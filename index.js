@@ -21,7 +21,7 @@ db.data || ( db.data = {} );
 
 // Get Today's date
 let today = date.format( new Date(), "MM-DD-YYYY" );
-let yesterday = date.addDays( new Date(), -1 );
+let yesterday = date.format( date.addDays( new Date(), -1 ), "MM-DD-YYYY" );
 
 // Automatically run script repeatedly
 ( async () =>
@@ -32,7 +32,7 @@ let yesterday = date.addDays( new Date(), -1 );
 
 function initializeCounts()
 {
-    let pull_total, day_total = 0;
+    let pull_total = 0, day_total = 0;
     if ( db.data[ today ] && db.data[ today ].day_total )
     {
         pull_total = db.data[ today ].day_total;
@@ -46,6 +46,7 @@ function initializeCounts()
     {
         day_total = db.data[ today ].pulls_added;
     }
+
     return [ pull_total, day_total ];
 }
 
