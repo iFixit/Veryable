@@ -2,26 +2,13 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import date from "date-and-time";
-import path from "path";
-import { Low, JSONFile } from "lowdb";
 
 import config from "./config/config.js";
 const repos = config.repos;
 const signatures = config.signatures;
 
 import queryGitHub from "./ghgraphql.js";
-
-const file = path.resolve( "./db.json" );
-const adapter = new JSONFile( file );
-const db = new Low( adapter );
-
-// Initialize JSON Database
-await db.read();
-db.data || ( db.data = {} );
-
-// Get Today's date
-let today = date.format( new Date(), "MM-DD-YYYY" );
-let yesterday = date.format( date.addDays( new Date(), -1 ), "MM-DD-YYYY" );
+import Day from "./db_day.js";
 
 // Automatically run script repeatedly
 ( async () =>
@@ -30,30 +17,11 @@ let yesterday = date.format( date.addDays( new Date(), -1 ), "MM-DD-YYYY" );
     setInterval( main, 60 * 1000 ); //Run every 60 seconds
 } )();
 
-function initializeCounts()
-{
-    let pull_total = 0, day_total = 0;
-    if ( db.data[ today ] && db.data[ today ].day_total )
-    {
-        pull_total = db.data[ today ].day_total;
-    }
-    else if ( db.data[ yesterday ] && db.data[ yesterday ].day_total )
-    {
-        pull_total = db.data[ yesterday ].day_total;
-    }
-
-    if ( db.data[ today ] && db.data[ today ].pulls_added )
-    {
-        day_total = db.data[ today ].pulls_added;
-    }
-
-    return [ pull_total, day_total ];
-}
-
 async function main()
 {
 
-    let [ previous_pull_total, day_pull_count ] = initializeCounts();
+    // let [ previous_pull_total, day_pull_count ] = await Day.getDayValues();
+    console.log( await Day.getPullsAdded() );
     let running_pull_total = 0;
     console.log( "Running script..." );
     console.log( "Previous Pull Total: " + previous_pull_total );

@@ -12,12 +12,9 @@
   "license": "ISC",
   "dependencies": {
     "@octokit/graphql": "^4.6.4",
-    "@types/date-and-time": "^0.13.0",
     "date-and-time": "^1.0.1",
     "dotenv": "^10.0.0",
-    "lowdb": "^2.1.0",
-    "mysql2": "^2.2.5",
-    "progress": "^2.0.3",
-    "sequelize": "^6.6.5"
+    "knex": "^0.95.7",
+    "mysql2": "^2.2.5"
   }
 }
