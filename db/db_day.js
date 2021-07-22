@@ -10,9 +10,9 @@ class Day
   {
     this.PullCount = 0;
     this.PullsAdded = 0;
-    this.init();
   }
 
+  // Initial the day
   async init()
   {
     let day = await db( 'qa_metrics' ).first().where( { "Date": today } ).orWhere( { "Date": yesterday } );
@@ -28,8 +28,15 @@ class Day
     }
   };
 
+  // Insert the new Day in the table and if it exists Update the values accordingly
   async save()
   {
+    if ( today !== date.format( new Date(), "YYYY-MM-DD" ) )
+    {
+      yesterday = today;
+      today = date.format( new Date(), "YYYY-MM-DD" );
+      this.setPullsAdded( 0 );
+    }
     try
     {
       await db( 'qa_metrics' )
@@ -39,6 +46,11 @@ class Day
     {
       console.error( "Failed to save Day " + e.message );
     }
+  }
+
+  getDayValues()
+  {
+    return [ this.getPullCount(), this.getPullsAdded() ];
   }
 
   getPullCount()
@@ -63,6 +75,7 @@ class Day
 
 }
 
-let day = new Day();
 
-setTimeout( () => console.log( day ), 1000 );
+let day = new Day();
+await day.init();
+export default day;

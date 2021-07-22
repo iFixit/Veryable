@@ -8,7 +8,7 @@ const repos = config.repos;
 const signatures = config.signatures;
 
 import queryGitHub from "./ghgraphql.js";
-import Day from "./db_day.js";
+import Day from "./db/db_day.js";
 
 // Automatically run script repeatedly
 ( async () =>
@@ -20,9 +20,9 @@ import Day from "./db_day.js";
 async function main()
 {
 
-    // let [ previous_pull_total, day_pull_count ] = await Day.getDayValues();
-    console.log( await Day.getPullsAdded() );
+    let [ previous_pull_total, pulls_added ] = Day.getDayValues();
     let running_pull_total = 0;
+
     console.log( "Running script..." );
     console.log( "Previous Pull Total: " + previous_pull_total );
 
@@ -30,23 +30,23 @@ async function main()
     for ( const repo of repos )
     {
         const all_open_pulls = await queryGitHub( repo );
-        console.log( "Total Pulls: " + all_open_pulls.repository.pullRequests.totalCount );
         running_pull_total += parsePulls(
             all_open_pulls.repository.pullRequests.nodes
         );
-        console.log( running_pull_total );
     }
+
     console.log( "Running Total: " + running_pull_total );
 
     let difference = running_pull_total - previous_pull_total;
-    day_pull_count += difference > 0 ? difference : 0;
-    console.log( "New pulls added: " + day_pull_count );
-    db.data[ today ] = {
-        day_total: running_pull_total,
-        pulls_added: day_pull_count,
-    };
-    console.log( db.data );
-    await db.write();
+
+    pulls_added += difference > 0 ? difference : 0;
+
+    console.log( "New pulls added: " + pulls_added );
+
+    Day.setPullCount( running_pull_total );
+    Day.setPullsAdded( pulls_added );
+
+    await Day.save();
     console.log( "Finished script..." );
 }
 
