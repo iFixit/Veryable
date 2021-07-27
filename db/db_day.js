@@ -24,7 +24,7 @@ class Day
     if ( day )
     {
       this.dayMetrics.PullCount = day.PullCount;
-      this.dayMetrics.PullsAdded = day.Date === today ? day.PullsAdded : 0;
+      this.dayMetrics.PullsAdded = date.subtract( day.Date, new Date( today ) ).toDays() !== 0 && day.PullsAdded !== 0 ? day.PullsAdded : 0;
     }
     else
     {
@@ -42,7 +42,6 @@ class Day
       this.setPullsAdded( 0 );
     }
     this.dayMetrics = newMetrics ? newMetrics : this.dayMetrics;
-    console.log( this.dayMetrics );
     try
     {
       await db( 'qa_metrics' )

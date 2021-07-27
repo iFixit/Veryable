@@ -11,7 +11,7 @@ let db = knex( {
     password: process.env.MYSQL_PASSWORD,
     database: 'metrics_dummy'
   },
-  debug: true,
+  // debug: true,
 } );
 
 try

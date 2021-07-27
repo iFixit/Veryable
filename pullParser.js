@@ -13,29 +13,28 @@ export default function parsePull( github_pull, db_pull = null )
     db_pull.gitInit( github_pull );
   }
   const data = { ...db_pull.data };
-  console.log( 'Initial data structure' );
-  console.log( data );
+
   updateDates( data, github_pull );
-  console.log( 'After Date Updates:' );
-  console.log( data );
   updateValues( data, github_pull );
-  console.log( 'After value updates' );
-  console.log( data );
 
   db_pull.setNewValues( data );
 }
 
 function updateDates( db_pull_data, github_pull )
 {
-  db_pull_data.UpdatedAt = new Date( github_pull.updatedAt ).getTime() / 1000;
-  db_pull_data.ClosedAt = new Date( github_pull.closedAt ).getTime() / 1000;
-  db_pull_data.MergedAt = new Date( github_pull.mergedAt ).getTime() / 1000;
+  db_pull_data.UpdatedAt = formatGHDate( github_pull.updatedAt );
+  db_pull_data.ClosedAt = formatGHDate( github_pull.closedAt );
+  db_pull_data.MergedAt = formatGHDate( github_pull.mergedAt );
+}
+
+function formatGHDate( date )
+{
+  return Math.floor( new Date( date ).getTime() / 1000 );
 }
 
 function updateValues( db_pull_data, github_pull )
 {
-  console.log( "Entered updateValues" );
-  console.log( db_pull_data );
+
   db_pull_data.HeadRef = github_pull.headRefOid;
   db_pull_data.State = github_pull.state;
 
@@ -51,6 +50,7 @@ function closesDeclared( pull )
   let closes_regex = new RegExp( SIGNATURES.closes, 'i' );
   let closesPull = null;
   let __close;
+
   if ( ( __close = body.match( closes_regex ) ) !== null )
   {
     closesPull = parseInt( __close.groups.closes );
@@ -61,7 +61,7 @@ function closesDeclared( pull )
 function qaReadyAndInteracted( db_pull_data, github_pull )
 {
   let [ qaReady, qaInteracted ] = isQAReadyAndInteracted( db_pull_data, github_pull );
-  console.log( `Returned QA Ready: ${ qaReady }, Current QA Ready: ${ db_pull_data.QAReady }, Current QA Count: ${ db_pull_data.QAReadyCount },` );
+  // console.log( `For ${ db_pull_data.Title } #${ db_pull_data.pullNumber } Returned QA Ready: ${ qaReady }, Current QA Ready: ${ db_pull_data.QAReady }, Current QA Count: ${ db_pull_data.QAReadyCount },` );
 
   db_pull_data.QAReadyCount += !db_pull_data.QAReady && qaReady ? 1 : 0;
   db_pull_data.QAReady = qaReady;
@@ -120,7 +120,7 @@ function getTagsAndInteracted( github_pull )
       hasTags( comment.bodyText, current_tags );
     }
 
-    if ( QA_TEAM.includes( comment.author.login ) && date.subtract( latest_commit_date, comment_date ).toDays() <= 0 )
+    if ( QA_TEAM.includes( comment.author.login ) && date.subtract( latest_commit_date, comment_date ).toDays() <= 0 && date.isSameDay( comment_date, new Date() ) )
     {
       interacted = true;
     }
@@ -153,4 +153,4 @@ function qaRequired( pull )
   let body = pull.bodyText;
   let qa_regex = new RegExp( SIGNATURES.qa_req, "i" );
   return qa_regex.test( body );
-}
+};

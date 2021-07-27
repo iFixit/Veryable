@@ -77,7 +77,6 @@ export default class Pull
 
   async setNewValues( data )
   {
-    console.log( { ...data } );
     this.data = { ...data };
     await this.save();
   }
@@ -109,17 +108,19 @@ export default class Pull
 
   static async getQAReadyUniquePullCount()
   {
-    let today = new Date().getTime() / 1000;
+    let today = new Date();
+    today.setUTCHours( 0, 0, 0, 0 );
+    today = Math.floor( today.getTime() / 1000 );
     let result = await db( 'mod_pulls' ).count( 'QAReadyCount as runningUniquePullTotal' ).where( 'QAReadyCount', '>', 0 ).andWhere( 'CreatedAt', '>=', today );
     return result[ 0 ].runningUniquePullTotal;
   }
 
   static async getInteractionsCount()
   {
-    let today = new Date().getTime() / 1000;
-    console.log( today );
+    let today = new Date();
+    today.setUTCHours( 0, 0, 0, 0 );
+    today = Math.floor( today.getTime() / 1000 );
     let result = await db( 'mod_pulls' ).count( 'Interacted as Interactions' ).where( { 'Interacted': true } ).andWhere( 'UpdatedAt', '>=', today );
-    console.log( result );
     return result[ 0 ].Interactions;
   }
 
