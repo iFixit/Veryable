@@ -9,6 +9,9 @@ const DB_PULLS = await Pull.getDBPulls();
 
 import parsePull from "./pullParser.js";
 
+import parentLogger from "./logger.js";
+const logger = parentLogger( 'test-app' );
+
 // Automatically run script repeatedly
 ( async () =>
 {
@@ -18,7 +21,7 @@ import parsePull from "./pullParser.js";
 
 async function main()
 {
-    console.log( "Running script..." );
+    logger.info( "Running script..." );
 
     // Iterate through the list of repos declared in the config.json file
     for ( const repo of REPOS )
@@ -30,7 +33,7 @@ async function main()
     }
 
     await updateDayMetrics();
-    console.log( "Finished script..." );
+    logger.info( "Finished script..." );
 }
 
 function parsePulls( github_pulls )
@@ -50,19 +53,19 @@ async function updateDayMetrics()
 {
     let currentMetrics = Day.getDayValues();
 
-    console.log( "Previous Pull Total: " + currentMetrics.PullCount );
+    logger.info( "Previous Pull Total: " + currentMetrics.PullCount );
     let runningPullTotal = await Pull.getQAReadyPullCount();
-    console.log( "Running Total: " + runningPullTotal );
+    logger.info( "Running Total: " + runningPullTotal );
     let difference = runningPullTotal - currentMetrics.PullCount;
-    console.log( "Difference: " + difference );
-    console.log( "Previous Pulls Added: " + currentMetrics.PullsAdded );
+    logger.info( "Difference: " + difference );
+    logger.info( "Previous Pulls Added: " + currentMetrics.PullsAdded );
     currentMetrics.PullsAdded += difference > 0 ? difference : 0;
     currentMetrics.PullCount = runningPullTotal;
 
     currentMetrics.UniquePullsAdded = await Pull.getQAReadyUniquePullCount();
     currentMetrics.Interactions = await Pull.getInteractionsCount();
-    console.log( "Interactions Today: " + currentMetrics.Interactions );
-    console.log( "Time Pulls Added Today: " + runningPullTotal );
-    console.log( "Unique Pulls Added Today: " + currentMetrics.UniquePullsAdded );
+    logger.info( "Interactions Today: " + currentMetrics.Interactions );
+    logger.info( "Time Pulls Added Today: " + runningPullTotal );
+    logger.info( "Unique Pulls Added Today: " + currentMetrics.UniquePullsAdded );
     await Day.save( currentMetrics );
 }

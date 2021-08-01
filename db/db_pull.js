@@ -1,5 +1,4 @@
 import db from "./db_manager.js";
-import date from 'date-and-time';
 
 const defaultData = {
   Repo: '',
@@ -43,8 +42,6 @@ export default class Pull
     this.data.CreatedAt = new Date( github_pull.createdAt ).getTime() / 1000;
     this.data.State = github_pull.state;
   }
-
-
 
   // Retrieves the Repo and Pull Number in a formatted string 
   getUniqueID()

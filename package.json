@@ -1,9 +1,9 @@
 {
   "name": "qa-metrics",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,9 +12,12 @@
   "license": "ISC",
   "dependencies": {
     "@octokit/graphql": "^4.6.4",
+    "babel": "^6.23.0",
+    "babel-core": "^6.26.3",
     "date-and-time": "^1.0.1",
     "dotenv": "^10.0.0",
     "knex": "^0.95.7",
-    "mysql2": "^2.2.5"
+    "mysql2": "^2.2.5",
+    "winston": "^3.3.3"
   }
 }
