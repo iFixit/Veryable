@@ -16,8 +16,7 @@ for ( let issue of issues.repository.issues.nodes )
 
 function parseIssue( issue )
 {
-  let today = new Date();
-  today.setUTCHours( 0, 0, 0, 0 );
+  let today = Math.floor( new Date().setHours( 0, 0, 0, 0 ) / 1000 );
   console.log( today.toDateString() );
   console.log( new Date( issue.createdAt ).toDateString() );
   let createdToday = date.isSameDay( new Date( issue.createdAt ), today );

@@ -5,7 +5,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "start": "node index.js",
+    "debug": "NODE_ENV=debug node index.js"
   },
   "keywords": [],
   "author": "",
@@ -19,5 +21,8 @@
     "knex": "^0.95.7",
     "mysql2": "^2.2.5",
     "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "jest": "^27.0.6"
   }
 }

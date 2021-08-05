@@ -5,12 +5,13 @@ import { queryOpenPulls } from "./ghgraphql.js";
 
 import Day from "./db/db_day.js";
 import Pull from "./db/db_pull.js";
+
 const DB_PULLS = await Pull.getDBPulls();
 
 import parsePull from "./pullParser.js";
 
-import parentLogger from "./logger.js";
-const logger = parentLogger( 'test-app' );
+import logger from "./logger.js";
+const log = logger( 'main' );
 
 // Automatically run script repeatedly
 ( async () =>
@@ -21,11 +22,12 @@ const logger = parentLogger( 'test-app' );
 
 async function main()
 {
-    logger.info( "Running script..." );
+    log.info( "Running script...\n" );
 
     // Iterate through the list of repos declared in the config.json file
     for ( const repo of REPOS )
     {
+        log.data( `Parsing pulls for repo: ${ JSON.stringify( repo ) }` );
         const all_open_pulls = await queryOpenPulls( repo );
         parsePulls(
             all_open_pulls.repository.pullRequests.nodes
@@ -33,7 +35,7 @@ async function main()
     }
 
     await updateDayMetrics();
-    logger.info( "Finished script..." );
+    log.info( "Finished script...\n" );
 }
 
 function parsePulls( github_pulls )
@@ -45,27 +47,32 @@ function parsePulls( github_pulls )
         {
             return db_pull.getUniqueID();
         } ).indexOf( `${ pull.headRepository.nameWithOwner } #${ pull.number }` );
+
         parsePull( pull, __FOUND >= 0 ? DB_PULLS[ __FOUND ] : null );
     }
 }
 
 async function updateDayMetrics()
 {
-    let currentMetrics = Day.getDayValues();
+    let current_metrics = Day.getDayValues();
+    let running_pull_total = await Pull.getQAReadyPullCount();
+    let difference = running_pull_total - current_metrics.pull_count;
 
-    logger.info( "Previous Pull Total: " + currentMetrics.PullCount );
-    let runningPullTotal = await Pull.getQAReadyPullCount();
-    logger.info( "Running Total: " + runningPullTotal );
-    let difference = runningPullTotal - currentMetrics.PullCount;
-    logger.info( "Difference: " + difference );
-    logger.info( "Previous Pulls Added: " + currentMetrics.PullsAdded );
-    currentMetrics.PullsAdded += difference > 0 ? difference : 0;
-    currentMetrics.PullCount = runningPullTotal;
+    log.data( "Previous Pull Total: " + current_metrics.pull_count );
+    log.data( "Running Total: " + running_pull_total );
+    log.data( "Difference: " + difference );
+    log.data( "Previous Pulls Added: " + current_metrics.pulls_added );
 
-    currentMetrics.UniquePullsAdded = await Pull.getQAReadyUniquePullCount();
-    currentMetrics.Interactions = await Pull.getInteractionsCount();
-    logger.info( "Interactions Today: " + currentMetrics.Interactions );
-    logger.info( "Time Pulls Added Today: " + runningPullTotal );
-    logger.info( "Unique Pulls Added Today: " + currentMetrics.UniquePullsAdded );
-    await Day.save( currentMetrics );
+    current_metrics.pulls_added += difference > 0 ? difference : 0;
+    current_metrics.pull_count = running_pull_total;
+
+    current_metrics.unique_pulls_added = await Pull.getQAReadyUniquePullCount();
+    current_metrics.pulls_interacted = await Pull.getInteractionsCount();
+
+    log.info( "Current Pulls Today: " + current_metrics.pull_count );
+    log.info( "Interactions Today: " + current_metrics.pulls_interacted );
+    log.info( "Pulls Added Today: " + current_metrics.pulls_added );
+    log.info( "Unique Pulls Added Today: " + current_metrics.unique_pulls_added + "\n" );
+
+    await Day.save( current_metrics );
 }

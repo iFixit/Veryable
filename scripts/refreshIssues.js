@@ -1,41 +1,90 @@
 // Plan is to run this once to update all Issues current in the DB and append the labels as well as author to them
 import Issue from '../db/db_issue.js';
-import { queryIssue } from "../ghgraphql.js";
+import { queryIssues } from "../ghgraphql.js";
+
+import config from "../config/config.js";
+const REPOS = config.repos;
+
+import logger from "../logger.js";
+const log = logger( 'refreshIssues' );
 
 const DB_ISSUES = await Issue.getAllDBIssues();
 
-for ( let db_issue of DB_ISSUES )
-{
 
-  try
-  {
-    const github_issue = await queryIssue( ...db_issue.getGraphQLValues() );
-    parseIssue( github_issue.repository.issue, db_issue );
-  } catch ( e )
-  {
-    console.error( "Failed to Retrieve and Parse " + JSON.stringify( db_issue.getGraphQLValues() ) + "\n" + e );
-  }
+log.info( "Running script...\n" );
+
+for (const repo of REPOS) {
+// log.data( `Parsing Issues for repo: ${ JSON.stringify( repo ) }` );
+let issues = await queryIssues(repo);
+let endCursor = issues.repository.issues.pageInfo.endCursor;
+let hasNextPage = issues.repository.issues.pageInfo.hasNextPage;
+let all_issues = issues.repository.issues.nodes;
+log.info( `Has next is ${ hasNextPage }` );
+log.data( `Current issues: ${ JSON.stringify( all_issues,null,2 )  }` );
+await parseIssues( all_issues );
+
+while ( hasNextPage )
+{
+  log.info( `Iterating... ${endCursor}` );
+  issues = await queryIssues( repo, endCursor );
+  endCursor = issues.repository.issues.pageInfo.endCursor;
+  hasNextPage = issues.repository.issues.pageInfo.hasNextPage;
+  all_issues = issues.repository.issues.nodes;
+  await parseIssues( all_issues );
 }
 
-function parseIssue( github_issue, db_issue )
+log.data( `Returned issues: ${ JSON.stringify( all_issues, null, 2) }` );
+
+log.info( "Finished script...\n" );
+}
+
+
+
+async function parseIssues( github_issues )
 {
+  log.info( 'Parsing Issues' );
+  for ( const issue of github_issues )
+  {
+    const __FOUND = DB_ISSUES.map( db_issue =>
+    {
+      return db_issue.getUniqueID();
+    } ).indexOf( `${issue.repo} #${ issue.number }` );
+    log.data( `Issue ${ issue.title } was found: ${ __FOUND }` );
+    await parseIssue( issue, __FOUND >= 0 ? DB_ISSUES[ __FOUND ] : null );
+  }
+};
+
+async function parseIssue( github_issue, db_issue )
+{
+  log.info( `Parsing Issue ${ github_issue.title }` );
+  if ( db_issue === null )
+  {
+    db_issue = new Issue();
+    db_issue.gitInit(github_issue)
+  }
   const data = { ...db_issue.data };
   updateDates( data, github_issue );
   updateValues( data, github_issue );
-  db_issue.setNewValues( data );
+  await db_issue.setNewValues( data );
 }
 
 function updateDates( issue_data, github_issue )
 {
-  issue_data.CreatedAt = new Date( github_issue.createdAt ).getTime() / 1000;
-  issue_data.ClosedAt = new Date( github_issue.closedAt ).getTime() / 1000;
+  issue_data.created_at = new Date( github_issue.createdAt ).getTime() / 1000;
+  issue_data.closed_at = new Date( github_issue.closedAt ).getTime() / 1000;
 }
 
 function updateValues( issue_data, github_issue )
 {
-  issue_data.Author = github_issue.author === null ? "ghost" : github_issue.author.login;
-  issue_data.State = github_issue.state;
-  issue_data.Labels = getGHLabels( github_issue.labels );
+  try
+  {
+    issue_data.author = github_issue.author === null ? "ghost" : github_issue.author.login;
+    issue_data.state = github_issue.state;
+    issue_data.labels = getGHLabels( github_issue.labels );
+  } catch ( e )
+  {
+    log.error( new Error( e ) );
+  }
 }
 
 function getGHLabels( github_issue_labels )

@@ -1,9 +1,10 @@
 import { graphql } from "@octokit/graphql";
-import config from "./config/config.js";
+import config from "./config/graphql_config.js";
 const get_open_pulls = config.GET_OPEN_PULLS;
 const get_pull = config.GET_PULL;
 const get_issue = config.GET_ISSUE;
 const get_day_issues = config.GET_DAY_ISSUES;
+const get_issues = config.GET_ISSUES;
 
 export async function queryPull( repo, pullNumber )
 {
@@ -31,9 +32,7 @@ export async function queryIssue( repo, issueNumber )
 
 export async function queryDayIssues( repo )
 {
-  let today = new Date();
-  today.setUTCHours( 0, 0, 0, 0 );
-  console.log( today );
+  let today = new Date().setHours( 0, 0, 0, 0 );
 
   return await graphql(
     get_day_issues( repo.name, repo.owner, 50, today.toISOString() ),
@@ -44,6 +43,18 @@ export async function queryDayIssues( repo )
     }
   );
 };
+
+export async function queryIssues( repo, cursor = null )
+{
+  return await graphql(
+    get_issues( repo.name, repo.owner, cursor ),
+    {
+      headers: {
+        authorization: `token ${ process.env.GITHUB_TOKEN }`,
+      }
+    },
+  );
+}
 
 export async function queryOpenPulls( repo )
 {

@@ -2,6 +2,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import knex from 'knex';
+import logger from '../logger.js';
+const log = logger( 'db_manager' );
 
 let db = knex( {
   client: 'mysql2',
@@ -11,16 +13,16 @@ let db = knex( {
     password: process.env.MYSQL_PASSWORD,
     database: 'metrics_dummy'
   },
-  // debug: true,
+  debug: process.env.NODE_ENV === 'db_debug' ? true : false,
 } );
 
 try
 {
   await db.raw( 'Select 1+1 as result' );
-  console.log( "Successfully connected to database" );
+  log.info( "Successfully connected to database" );
 } catch ( e )
 {
-  console.error( "Error connection to database: " + e.message );
+  log.error( "Error connection to database: " + e.message );
 }
 
 export default db;

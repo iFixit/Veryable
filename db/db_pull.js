@@ -1,21 +1,24 @@
 import db from "./db_manager.js";
 
+import logger from "../logger.js";
+const log = logger( 'db_pull' );
+
 const defaultData = {
-  Repo: '',
-  PullNumber: 0,
-  State: '',
-  Title: '',
-  HeadRef: '',
-  QAReq: 1,
-  CreatedAt: 0,
-  UpdatedAt: 0,
-  ClosedAt: 0,
-  MergedAt: 0,
-  Closes: null,
-  Interacted: false,
-  QAReady: false,
-  QAReadyCount: 0,
-  InteractedCount: 0
+  repo: '',
+  pull_number: 0,
+  state: '',
+  title: '',
+  head_ref: '',
+  qa_req: 1,
+  created_at: 0,
+  updated_at: 0,
+  closed_at: 0,
+  merged_at: 0,
+  closes: null,
+  interacted: false,
+  interacted_count: 0,
+  qa_ready: false,
+  qa_ready_count: 0,
 };
 
 export default class Pull
@@ -35,29 +38,29 @@ export default class Pull
 
   gitInit( github_pull )
   {
-    this.data.Repo = github_pull.headRepository.nameWithOwner;
-    this.data.PullNumber = github_pull.number;
-    this.data.Title = github_pull.title;
-    this.data.HeadRef = github_pull.headRefOid;
-    this.data.CreatedAt = new Date( github_pull.createdAt ).getTime() / 1000;
-    this.data.State = github_pull.state;
+    this.data.repo = github_pull.headRepository.nameWithOwner;
+    this.data.pull_number = github_pull.number;
+    this.data.title = github_pull.title;
+    this.data.head_ref = github_pull.headRefOid;
+    this.data.created_at = new Date( github_pull.createdAt ).getTime() / 1000;
+    this.data.state = github_pull.state;
   }
 
   // Retrieves the Repo and Pull Number in a formatted string 
   getUniqueID()
   {
-    return `${ this.data.Repo } #${ this.data.PullNumber }`;
+    return `${ this.data.repo } #${ this.data.pull_number }`;
   }
 
   // Retrieves the Repo Owner, Repo Name, and Pull Number
   getGraphQLValues()
   {
-    let split = this.data.Repo.split( '/' );
+    let split = this.data.repo.split( '/' );
     let repo = {
       name: split[ 1 ],
       owner: split[ 0 ]
     };
-    return [ repo, this.data.PullNumber ];
+    return [ repo, this.data.pull_number ];
   }
 
 
@@ -65,10 +68,10 @@ export default class Pull
   {
     try
     {
-      await db( 'mod_pulls' ).insert( { ...this.data } ).onConflict( "Repo", "PullNumber" ).merge();
+      await db( 'qa_pulls' ).insert( { ...this.data } ).onConflict( "repo", "pull_number" ).merge();
     } catch ( e )
     {
-      console.error( "Failed to save Pull '%s %d: %s", this.data.Title, this.data.PullNumber, e.message );
+      log.error( "Failed to save Pull #%d '%s\n\t%s", this.data.pull_number, this.data.title, new Error( e.message ) );
     }
   }
 
@@ -80,14 +83,14 @@ export default class Pull
 
   static async getDBPulls()
   {
-    const rows = await db( 'mod_pulls' ).select().where( { State: "OPEN" } );
+    const rows = await db( 'qa_pulls' ).select().where( { state: "OPEN" } );
     const db_pulls = [];
 
     for ( let row of rows )
     {
       db_pulls.push( new Pull( row ) );
     }
-    // console.log( JSON.stringify( db_pulls, null, 2 ) );
+    // log.data( "Pulls in the database: " + JSON.stringify( db_pulls, null, 2 ) );
 
     return db_pulls;
   }
@@ -99,26 +102,23 @@ export default class Pull
 
   static async getQAReadyPullCount()
   {
-    let result = await db( 'mod_pulls' ).count( 'QAReady as runningPullTotal' ).where( { 'QAReady': true } );
-    return result[ 0 ].runningPullTotal;
+    let result = await db( 'qa_pulls' ).count( 'qa_ready as running_pull_total' ).where( { 'qa_ready': true } );
+    return result[ 0 ].running_pull_total;
   }
 
   static async getQAReadyUniquePullCount()
   {
-    let today = new Date();
-    today.setUTCHours( 0, 0, 0, 0 );
-    today = Math.floor( today.getTime() / 1000 );
-    let result = await db( 'mod_pulls' ).count( 'QAReadyCount as runningUniquePullTotal' ).where( 'QAReadyCount', '>', 0 ).andWhere( 'CreatedAt', '>=', today );
-    return result[ 0 ].runningUniquePullTotal;
+    let today = Math.floor( new Date().setHours( 0, 0, 0, 0 ) / 1000 );
+    let result = await db( 'qa_pulls' ).count( 'qa_ready_count as unique_pulls_added' ).where( 'qa_ready_count', '>', 0 ).andWhere( 'created_at', '>=', today );
+    log.data( 'Get Unique Pull Count Today\'s value: ' + today );
+    return result[ 0 ].unique_pulls_added;
   }
 
   static async getInteractionsCount()
   {
-    let today = new Date();
-    today.setUTCHours( 0, 0, 0, 0 );
-    today = Math.floor( today.getTime() / 1000 );
-    let result = await db( 'mod_pulls' ).count( 'Interacted as Interactions' ).where( { 'Interacted': true } ).andWhere( 'UpdatedAt', '>=', today );
-    return result[ 0 ].Interactions;
+    let today = Math.floor( new Date().setHours( 0, 0, 0, 0 ) / 1000 );
+    let result = await db( 'qa_pulls' ).count( 'interacted as pulls_interacted' ).where( { 'interacted': true } ).andWhere( 'updated_at', '>=', today );
+    return result[ 0 ].pulls_interacted;
   }
 
 }

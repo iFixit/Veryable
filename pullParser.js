@@ -5,8 +5,12 @@ import config from "./config/config.js";
 const SIGNATURES = config.signatures;
 const QA_TEAM = config.qa_team;
 
+import logger from "./logger.js";
+const log = logger( 'pullParser' );
+
 export default function parsePull( github_pull, db_pull = null )
 {
+  log.data( `Parsing Pull #${ github_pull.number } ${ github_pull.title }` );
   if ( db_pull === null )
   {
     db_pull = new Pull();
@@ -22,9 +26,9 @@ export default function parsePull( github_pull, db_pull = null )
 
 function updateDates( db_pull_data, github_pull )
 {
-  db_pull_data.UpdatedAt = formatGHDate( github_pull.updatedAt );
-  db_pull_data.ClosedAt = formatGHDate( github_pull.closedAt );
-  db_pull_data.MergedAt = formatGHDate( github_pull.mergedAt );
+  db_pull_data.updated_at = formatGHDate( github_pull.updatedAt );
+  db_pull_data.closed_at = formatGHDate( github_pull.closedAt );
+  db_pull_data.merged_at = formatGHDate( github_pull.mergedAt );
 }
 
 function formatGHDate( date )
@@ -35,10 +39,10 @@ function formatGHDate( date )
 function updateValues( db_pull_data, github_pull )
 {
 
-  db_pull_data.HeadRef = github_pull.headRefOid;
-  db_pull_data.State = github_pull.state;
+  db_pull_data.head_ref = github_pull.headRefOid;
+  db_pull_data.state = github_pull.state;
 
-  db_pull_data.Closes = closesDeclared( github_pull );
+  db_pull_data.closes = closesDeclared( github_pull );
 
   qaReadyAndInteracted( db_pull_data, github_pull );
 }
@@ -48,26 +52,26 @@ function closesDeclared( pull )
 {
   let body = pull.bodyText;
   let closes_regex = new RegExp( SIGNATURES.closes, 'i' );
-  let closesPull = null;
-  let __close;
+  let closes_pull = null;
+  let __CLOSE;
 
-  if ( ( __close = body.match( closes_regex ) ) !== null )
+  if ( ( __CLOSE = body.match( closes_regex ) ) !== null )
   {
-    closesPull = parseInt( __close.groups.closes );
+    closes_pull = parseInt( __CLOSE.groups.closes );
   }
-  return closesPull;
+  return closes_pull;
 }
 
 function qaReadyAndInteracted( db_pull_data, github_pull )
 {
-  let [ qaReady, qaInteracted ] = isQAReadyAndInteracted( db_pull_data, github_pull );
-  // console.log( `For ${ db_pull_data.Title } #${ db_pull_data.pullNumber } Returned QA Ready: ${ qaReady }, Current QA Ready: ${ db_pull_data.QAReady }, Current QA Count: ${ db_pull_data.QAReadyCount },` );
+  let [ qa_ready, qa_interacted ] = isQAReadyAndInteracted( db_pull_data, github_pull );
+  log.data( `For Pull #${ db_pull_data.pull_number } ${ db_pull_data.title } Returned QA Ready: ${ qa_ready }, Current QA Ready: ${ db_pull_data.qa_ready }, Current QA Count: ${ db_pull_data.qa_ready_count },` );
 
-  db_pull_data.QAReadyCount += !db_pull_data.QAReady && qaReady ? 1 : 0;
-  db_pull_data.QAReady = qaReady;
+  db_pull_data.qa_ready_count += !db_pull_data.qa_ready && qa_ready ? 1 : 0;
+  db_pull_data.qa_ready = qa_ready;
 
-  db_pull_data.InteractedCount += !db_pull_data.Interacted & qaInteracted ? 1 : 0;
-  db_pull_data.Interacted = qaInteracted;
+  db_pull_data.interacted_count += !db_pull_data.interacted & qa_interacted ? 1 : 0;
+  db_pull_data.interacted = qa_interacted;
 }
 
 // Iteratres through the Pull Object and retrieves the appropriate base properties
@@ -77,29 +81,29 @@ function isQAReadyAndInteracted( db_pull_data, github_pull )
     ? github_pull.commits.nodes[ 0 ].commit.status.state
     : "EXPECTED";
 
-  let qaReady = true;
+  let qa_ready = true;
   // Want to skip pulls that are marked as qa_req_0
   let qa_req = qaRequired( github_pull );
   if ( qa_req )
   {
-    qaReady = false;
-    db_pull_data.QAReq = false;
+    qa_ready = false;
+    db_pull_data.qa_req = false;
   }
 
   // Want to skip pulls that are failing CI
   if ( build_status !== "SUCCESS" && build_status !== "EXPECTED" )
   {
-    qaReady = false;
+    qa_ready = false;
   }
 
   // Want to skip pulls that are dev_block and already QA'd
-  let [ tags, qaInteracted ] = getTagsAndInteracted( github_pull );
+  let [ tags, qa_interacted ] = getTagsAndInteracted( github_pull );
   if ( tags[ "dev_block" ] || tags[ "QA" ] )
   {
-    qaReady = false;
+    qa_ready = false;
   }
 
-  return [ qaReady, qaInteracted ];
+  return [ qa_ready, qa_interacted ];
 }
 
 // Get Signaturse/Stamps
