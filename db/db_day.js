@@ -7,7 +7,7 @@ const log = logger( 'db_day' );
 let [ today, yesterday ] = getDates();
 const TWENTY_FOUR_HOURS = 86400;
 
-class Day
+export default class Day
 {
   constructor()
   {
@@ -23,16 +23,17 @@ class Day
   // Initial the day
   async init()
   {
-    let day = await db( 'qa_metrics' ).first().where( { "date": today } ).orWhere({"date": yesterday}).orderBy("date","desc");
+    let day = await db( 'qa_metrics' ).first().where( { "date": today } ).orWhere( { "date": yesterday } ).orderBy( "date", "desc" );
 
-    log.data(`Day Data ${JSON.stringify(day,null,2)}`);
+    log.data( `Day Data ${ JSON.stringify( day, null, 2 ) }` );
 
     if ( day )
     {
       this.dayMetrics.pull_count = day.pull_count;
       log.data( ` Today's date and yesterday's date ${ today } , ${ day.date }` );
-      log.data(` Value for Pulls added is ${today - day.date === TWENTY_FOUR_HOURS ? 0 : day.pulls_added } `);
-      if(today - day.date !== TWENTY_FOUR_HOURS){
+      log.data( ` Value for Pulls added is ${ today - day.date === TWENTY_FOUR_HOURS ? 0 : day.pulls_added } ` );
+      if ( today - day.date !== TWENTY_FOUR_HOURS )
+      {
         this.dayMetrics.pulls_added = day.pulls_added;
       }
     }
@@ -75,7 +76,6 @@ class Day
 
   setPullCount( value )
   {
-    console.log( this.dayMetrics );
     this.dayMetrtics.pull_count = value;
   }
 
@@ -116,7 +116,3 @@ function getDates()
   let yesterday = Math.floor( date.addDays( new Date(), -1 ).setHours( 0, 0, 0, 0 ) / 1000 );
   return [ today, yesterday ];
 }
-
-let day = new Day();
-await day.init();
-export default day;

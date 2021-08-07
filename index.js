@@ -4,7 +4,11 @@ const REPOS = config.repos;
 import { queryOpenPulls } from "./ghgraphql.js";
 
 import Day from "./db/db_day.js";
+const DAY = new Day();
+await DAY.init();
+
 import Pull from "./db/db_pull.js";
+
 
 const DB_PULLS = await Pull.getDBPulls();
 
@@ -54,7 +58,7 @@ function parsePulls( github_pulls )
 
 async function updateDayMetrics()
 {
-    let current_metrics = Day.getDayValues();
+    let current_metrics = DAY.getDayValues();
     let running_pull_total = await Pull.getQAReadyPullCount();
     let difference = running_pull_total - current_metrics.pull_count;
 
@@ -74,5 +78,5 @@ async function updateDayMetrics()
     log.info( "Pulls Added Today: " + current_metrics.pulls_added );
     log.info( "Unique Pulls Added Today: " + current_metrics.unique_pulls_added + "\n" );
 
-    await Day.save( current_metrics );
+    await DAY.save( current_metrics );
 }
