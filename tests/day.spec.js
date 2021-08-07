@@ -23,6 +23,7 @@ describe( "The Day class", () =>
     };
     let DAY = new Day();
     await DAY.init();
+    console.log( DAY );
     expect( DAY ).toEqual( newDay );
   } );
 
