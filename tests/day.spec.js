@@ -6,16 +6,10 @@ describe( "The Day class", () =>
 {
   test( "connection to test database is established", async () =>
   {
-    expect.assertions( 1 );
-    try
-    {
-      await db.raw( 'Select 1+1 as result' );
-    } catch ( e )
-    {
-      expect( e ).toEqual( {
-        error: "Error connection to database",
-      } );
-    }
+    let data = await db.raw( 'Select 1+1 as result' );
+    console.log( data );
+    expect( 0 ).toEqual( 0 );
+
   } );
 
   test( "confirm all values are set to 0", async () =>
