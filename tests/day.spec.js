@@ -7,8 +7,7 @@ describe( "The Day class", () =>
   test( "connection to test database is established", async () =>
   {
     let data = await db.raw( 'Select 1+1 as result' );
-    console.log( data );
-    expect( 0 ).toEqual( 0 );
+    expect( data[ 0 ] ).toContainEqual( { result: 2 } );
 
   } );
 
