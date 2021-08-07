@@ -5,9 +5,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/.bin/jest --forceExit",
-    "start": "node index.js",
-    "debug": "DEBUG=true node index.js"
+    "test": "NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest --forceExit",
+    "start": "NODE_ENV=dev node index.js",
+    "debug": "NODE_ENV=dev DEBUG=true node index.js"
   },
   "keywords": [],
   "author": "",

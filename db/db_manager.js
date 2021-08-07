@@ -1,8 +1,10 @@
+import path from 'path';
 import dotenv from "dotenv";
-dotenv.config( { path: path.join( __dirname, `.env.${ process.env.NODE_ENV }` ) } );
+dotenv.config( { path: path.resolve( `.env.${ process.env.NODE_ENV ?? 'dev' }` ) } );
 
 import knex from 'knex';
 import logger from '../logger.js';
+
 const log = logger( 'db_manager' );
 
 let db = knex( {

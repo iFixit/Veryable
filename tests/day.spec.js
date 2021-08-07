@@ -1,13 +1,24 @@
 import Day from "../db/db_day.js";
 import db from "../db/db_manager.js";
 
-import { jest } from '@jest/globals';
-
-jest.mock( '../db_manger.js' );
 
 describe( "The Day class", () =>
 {
-  test( "confirm all values are set to 0", () =>
+  test( "connection to test database is established", async () =>
+  {
+    expect.assertions( 1 );
+    try
+    {
+      await db.raw( 'Select 1+1 as result' );
+    } catch ( e )
+    {
+      expect( e ).toEqual( {
+        error: "Error connection to database",
+      } );
+    }
+  } );
+
+  test( "confirm all values are set to 0", async () =>
   {
     let newDay = {
       dayMetrics: {
@@ -17,12 +28,9 @@ describe( "The Day class", () =>
         unique_pulls_added: 0
       }
     };
-    expect( Day ).toEqual( newDay );
-  } );
-
-  test( "validate initing", () =>
-  {
-    db( 'qa_metrics' ).first().where( { "date": today } ).orWhere( { "date": yesterday } ).orderBy( "date", "desc" ).mockResolvedValue( day );
+    let DAY = new Day();
+    await DAY.init();
+    expect( DAY ).toEqual( newDay );
   } );
 
 } );
