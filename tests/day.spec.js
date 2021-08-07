@@ -1,5 +1,7 @@
 import Day from "../db/db_day.js";
-import db from "../db_manager.js";
+import db from "../db/db_manager.js";
+
+import { jest } from '@jest/globals';
 
 jest.mock( '../db_manger.js' );
 

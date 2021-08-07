@@ -5,9 +5,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --forceExit",
     "start": "node index.js",
-    "debug": "NODE_ENV=debug node index.js"
+    "debug": "DEBUG=true node index.js"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +24,6 @@
   },
   "devDependencies": {
     "jest": "^27.0.6",
-    "jest-mysql": "^1.1.5"
+    "rewire": "^5.0.0"
   }
 }

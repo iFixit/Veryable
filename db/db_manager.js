@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config( { path: path.join( __dirname, `.env.${ process.env.NODE_ENV }` ) } );
 
 import knex from 'knex';
 import logger from '../logger.js';
@@ -8,12 +8,12 @@ const log = logger( 'db_manager' );
 let db = knex( {
   client: 'mysql2',
   connection: {
-    host: 'localhost',
+    host: process.env.MYSQL_HOST,
     user: process.env.MYSQL_USER,
     password: process.env.MYSQL_PASSWORD,
-    database: 'metrics_dummy'
+    database: process.env.MYSQL_DATABASE,
   },
-  debug: process.env.NODE_ENV === 'db_debug' ? true : false,
+  debug: process.env.DEBUG ?? false,
 } );
 
 try
