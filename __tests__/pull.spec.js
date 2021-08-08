@@ -357,13 +357,50 @@ describe('Pull Class', () => {
           qa_ready: 0,
           qa_ready_count: 4,
         },
+        {
+          repo: 'iFixit/ifixit',
+          pull_number: 38997,
+          state: 'OPEN',
+          title: 'Correctly delete work log handoffs before deleting work logs',
+          head_ref: 'e8f3e4a340d28a0c1e4bd4c786879acf440bcabc',
+          qa_req: 1,
+          created_at: 1628021200,
+          updated_at: 1628120634,
+          closed_at: 0,
+          merged_at: 0,
+          closes: null,
+          interacted: 0,
+          interacted_count: 0,
+          qa_ready: 1,
+          qa_ready_count: 1,
+        },
+        {
+          repo: 'iFixit/valkyrie',
+          pull_number: 532,
+          state: 'OPEN',
+          title: 'Fix translation strings for all categories',
+          head_ref: '7ed298440cba90fb4055027feb661d9fa5401c75',
+          qa_req: 1,
+          created_at: 1628023766,
+          updated_at: 1628024709,
+          closed_at: 0,
+          merged_at: 0,
+          closes: 531,
+          interacted: 0,
+          interacted_count: 0,
+          qa_ready: 1,
+          qa_ready_count: 1,
+        },
       ])
     })
     test('getDBPulls retrieves all OPEN pulls from database as Pull[]', async () => {
       let data = await Pull.getDBPulls()
-      expect(data.length).toBe(1)
-      expect(data[0]).toBeInstanceOf(Pull)
-      expect(data[0].data.state).toBe('OPEN')
+      expect(data.length).toBe(3)
+
+      data.forEach(pull => {
+        expect(pull).toBeInstanceOf(Pull)
+        expect(pull.data.state).toBe('OPEN')
+      })
     })
     test('getSchemaJSON returns ORM in JSON', () => {
       let mockPullData = {
@@ -406,8 +443,13 @@ describe('Pull Class', () => {
         qa_ready_count: expect.any(Number),
       })
     })
-    test.todo('Confirm getQAReadyPullCount works')
-    test.todo('Confirm getQAReadyUniquePullCount works')
-    test.todo('Confirm getInteractionsCount works')
+    test('getQAReadyPullCount returns sum of all pulls who have QA Ready to 1||true', async () => {
+      let data = await Pull.getQAReadyPullCount()
+      expect(data).toBe(2)
+    })
+    test.todo('getInteractionsCount returns sum of all pulls interacted for the day')
+    test.todo(
+      'getQAReadyUniquePullCount returns sum of all pulls only added to QA column for the day'
+    )
   })
 })

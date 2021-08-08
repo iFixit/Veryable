@@ -21,6 +21,7 @@ const defaultData = {
   qa_ready_count: 0,
 }
 
+//TODO: move to actual ORM like Prisma for easier model configuration and declaration
 export default class Pull {
   constructor(data) {
     // Data passed is a GitHub Pull Object
@@ -89,10 +90,13 @@ export default class Pull {
     return defaultData
   }
 
+  //TODO: Only return QA_ready pulls on pulls that are still open
+  // Case is where the qa_ready value does not change but the state does
   static async getQAReadyPullCount() {
     let result = await db('qa_pulls')
       .count('qa_ready as running_pull_total')
-      .where({ qa_ready: true })
+      .where({ qa_ready: 1 })
+      .andWhere({ state: 'OPEN' })
     return result[0].running_pull_total
   }
 
@@ -110,7 +114,7 @@ export default class Pull {
     let today = Math.floor(new Date().setHours(0, 0, 0, 0) / 1000)
     let result = await db('qa_pulls')
       .count('interacted as pulls_interacted')
-      .where({ interacted: true })
+      .where({ interacted: 1 })
       .andWhere('updated_at', '>=', today)
     return result[0].pulls_interacted
   }
