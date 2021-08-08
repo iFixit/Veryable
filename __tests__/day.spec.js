@@ -97,25 +97,6 @@ describe( "Day Class", () =>
         // Mocking the dates it will be set to for today and yesteday; returning [Wed Aug 04 00:00:00 -0700 2021, Tue Aug 03 00:00:00 -0700 2021]
         jest.spyOn( Day.prototype, "getDates" ).mockImplementation( () => [ 1628060400, 1627974000 ] );
 
-        // Mocking save since it checks today against a dynamic value 
-        // jest.spyOn( Day.prototype, "save" ).mockImplementation( ( newMetrics ) =>
-        // {
-        //   // if ( today !== Math.floor( new Date().setHours( 0, 0, 0, 0 ) / 1000 ) )
-        //   // {
-        //   //   [ today, yesterday ] = getDates();
-        //   //   this.setPullsAdded( 0 );
-        //   // }
-        //   this.dayMetrics = newMetrics ? newMetrics : this.dayMetrics;
-        //   try
-        //   {
-        //     await db( 'qa_metrics' )
-        //       .insert( { "date": today, ...this.dayMetrics } )
-        //       .onConflict( "date" ).merge();
-        //   } catch ( e )
-        //   {
-        //     log.error( "Failed to save Day " + e.message );
-        //   }
-        // } );
       } );
 
       afterEach( () =>
@@ -157,22 +138,92 @@ describe( "Day Class", () =>
         await DAY.init();
         let dayValues = DAY.getDayValues();
         expect( dayValues ).toMatchObject( newDayWithYesterday );
-        console.log( DAY );
         await DAY.save();
 
         let data = await db( 'qa_metrics' ).select().orderBy( 'date', 'desc' );
         //Should not have saved a new row to the database just yet
-        console.log( data );
-
         expect( data.length ).toBe( 2 );
-        console.log( data );
-        // expect.toMatchObject( newDayWithYesterday );
+        expect( data ).toMatchObject( [ {
+          date: '1628060400',
+          pull_count: 12,
+          pulls_added: 0,
+          pulls_interacted: 0,
+          unique_pulls_added: 0
+        }, {
+          date: '1627974000',
+          pull_count: 12,
+          pulls_added: 49,
+          pulls_interacted: 15,
+          unique_pulls_added: 4
+        } ] );
 
       } );
     } );
     describe( "'today' and 'yesterday' are in the database", () =>
     {
-      test.todo( "it should init with today's date and all values from today's row in the database" );
+      beforeEach( async () =>
+      {
+        await db( 'qa_metrics' ).del();
+        await db( 'qa_metrics' ).insert( [
+          {
+            "date": 1628060400,
+            "pull_count": 15,
+            "pulls_added": 3,
+            "pulls_interacted": 2,
+            "unique_pulls_added": 3
+          },
+          {
+            "date": 1627974000, //Tue Aug 03 00:00:00 -0700 2021
+            "pull_count": 12,
+            "pulls_added": 49,
+            "pulls_interacted": 15,
+            "unique_pulls_added": 4
+          }
+        ] );
+        // Mocking the dates it will be set to for today and yesteday; returning [Wed Aug 04 00:00:00 -0700 2021, Tue Aug 03 00:00:00 -0700 2021]
+        jest.spyOn( Day.prototype, "getDates" ).mockImplementation( () => [ 1628060400, 1627974000 ] );
+
+      } );
+
+      afterEach( () =>
+      {
+        jest.restoreAllMocks();
+      } );
+      test( "should init with today's date and all values from today's row in the database", async () =>
+      {
+        let newDay = {
+          pull_count: 15,
+          pulls_added: 3,
+          pulls_interacted: 2,
+          unique_pulls_added: 3
+        };
+        let DAY = new Day();
+        let spy = jest.spyOn( DAY, 'save' ).mockImplementation( () => { 'Saving to DB'; } );
+
+        await DAY.init();
+        let dayValues = DAY.getDayValues();
+        expect( dayValues ).toMatchObject( newDay );
+
+        expect( spy ).toHaveBeenCalledTimes( 0 );
+
+        let data = await db( 'qa_metrics' ).select().orderBy( 'date', 'desc' );
+        //Should not have saved to the database just yet
+        expect( data.length ).toBe( 2 );
+        expect( data ).toMatchObject( [ {
+          date: '1628060400',
+          pull_count: 15,
+          pulls_added: 3,
+          pulls_interacted: 2,
+          unique_pulls_added: 3
+        }, {
+          date: '1627974000',
+          pull_count: 12,
+          pulls_added: 49,
+          pulls_interacted: 15,
+          unique_pulls_added: 4
+        } ] );
+        spy.mockRestore();
+      } );
       test.todo( "it should not creae a new entry in the database" );
       test.todo( "it should not update the database when initing" );
     } );

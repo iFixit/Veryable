@@ -39,6 +39,8 @@ export default class Day
       if ( this.today - day.date !== TWENTY_FOUR_HOURS )
       {
         this.dayMetrics.pulls_added = day.pulls_added;
+        this.dayMetrics.pulls_interacted = day.pulls_interacted;
+        this.dayMetrics.unique_pulls_added = day.unique_pulls_added;
       }
     }
     else
