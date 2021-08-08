@@ -90,7 +90,6 @@ export default class Pull
     {
       db_pulls.push( new Pull( row ) );
     }
-    // log.data( "Pulls in the database: " + JSON.stringify( db_pulls, null, 2 ) );
 
     return db_pulls;
   }
