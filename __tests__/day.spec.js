@@ -17,6 +17,11 @@ beforeAll( async () =>
   await db( 'qa_metrics' ).del();
 } );
 
+afterAll( async () =>
+{
+  await db.destroy();
+} );
+
 describe( "Day Class", () =>
 {
   test( "Connection Established", async () =>
@@ -224,22 +229,27 @@ describe( "Day Class", () =>
         } ] );
         spy.mockRestore();
       } );
-      test.todo( "it should not creae a new entry in the database" );
-      test.todo( "it should not update the database when initing" );
+      test( "should not update the database when initing", async () =>
+      {
+        let newDay = {
+          pull_count: 15,
+          pulls_added: 3,
+          pulls_interacted: 2,
+          unique_pulls_added: 3
+        };
+
+        let dataBefore = await db( 'qa_metrics' ).select().orderBy( 'date', 'desc' );
+
+        let DAY = new Day();
+
+        await DAY.init();
+        let dayValues = DAY.getDayValues();
+        expect( dayValues ).toMatchObject( newDay );
+
+
+        let dataAfter = await db( 'qa_metrics' ).select().orderBy( 'date', 'desc' );
+        expect( dataAfter ).toMatchObject( dataBefore );
+      } );
     } );
   } );
-  // test( "confirm all values are set to 0", async () =>
-  // {
-  //   let newDay = {
-  //     dayMetrics: {
-  //       pull_count: 0,
-  //       pulls_added: 0,
-  //       pulls_interacted: 0,
-  //       unique_pulls_added: 0
-  //     }
-  //   };
-  //   let DAY = new Day();
-  //   await DAY.init();
-  //   console.log( mockSave.mock );
-  // } );
 } );
