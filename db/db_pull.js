@@ -22,6 +22,8 @@ const defaultData = {
 }
 
 //TODO: move to actual ORM like Prisma for easier model configuration and declaration
+//TODO: Bug where headRepository is not the same as base repository https://github.com/danielbeardsley/cimpler/pull/119
+// Saves the pull with different repo name
 export default class Pull {
   constructor(data) {
     // Data passed is a GitHub Pull Object

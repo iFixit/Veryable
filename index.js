@@ -48,6 +48,7 @@ function parsePulls(github_pulls) {
 async function updateDayMetrics() {
   let current_metrics = DAY.getDayValues()
   let running_pull_total = await Pull.getQAReadyPullCount()
+  //TODO: Fix bugwhen there is no yesterday so the difference is the entire qa ready total
   let difference = running_pull_total - current_metrics.pull_count
 
   log.data('Previous Pull Total: ' + current_metrics.pull_count)
