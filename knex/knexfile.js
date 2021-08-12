@@ -1,9 +1,9 @@
-import path from "path";
-import dotenv from "dotenv";
-dotenv.config( { path: path.resolve( `.env.${ process.env.NODE_ENV || 'dev' }` ) } );
+import path from 'path'
+import dotenv from 'dotenv'
+dotenv.config({ path: path.resolve(`.env.${process.env.NODE_ENV || 'dev'}`) })
 
 export default {
-  client: 'mysql2',
+  client: 'mysql',
   connection: {
     host: process.env.MYSQL_HOST,
     user: process.env.MYSQL_USER,
@@ -12,7 +12,7 @@ export default {
   },
   migrations: {
     directory: './migrations',
-    tableName: 'qa_pulls'
+    tableName: 'qa_pulls',
   },
-  debug: process.env.DEBUG ?? false
-};
+  debug: process.env.DEBUG ?? false,
+}
