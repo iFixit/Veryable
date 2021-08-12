@@ -5,9 +5,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
-    "start": "node index.js",
-    "debug": "NODE_ENV=debug node index.js"
+    "test": "NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest --runInBand",
+    "start": "NODE_ENV=dev node index.js",
+    "debug": "NODE_ENV=dev DEBUG=true node index.js"
   },
   "keywords": [],
   "author": "",
@@ -18,11 +18,13 @@
     "babel-core": "^6.26.3",
     "date-and-time": "^1.0.1",
     "dotenv": "^10.0.0",
-    "knex": "^0.95.7",
+    "knex": "^0.21.20",
+    "mysql": "^2.18.1",
     "mysql2": "^2.2.5",
     "winston": "^3.3.3"
   },
   "devDependencies": {
-    "jest": "^27.0.6"
+    "jest": "^27.0.6",
+    "rewire": "^5.0.0"
   }
 }

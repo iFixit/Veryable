@@ -1,5 +1,6 @@
 import winston from "winston";
 
+// TODO: Create conditional to log when running tests
 const config = {
   levels: {
     error: 0,
@@ -24,7 +25,6 @@ const config = {
     return `${ timestamp }\t ${ level.toUpperCase() } [${ label }] : ${ message }`;
   } )
 };
-
 
 export default function ( moduleName )
 {
