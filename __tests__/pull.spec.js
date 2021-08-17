@@ -1,0 +1,455 @@
+import { jest } from '@jest/globals'
+import Pull from '../db/db_pull.js'
+import db from '../db/db_manager.js'
+
+beforeAll(async () => {
+  await db.schema.dropTableIfExists('qa_pulls').createTable('qa_pulls', table => {
+    table.string('repo', 100).notNullable()
+    table.integer('pull_number').notNullable()
+    table.enum('state', ['OPEN', 'CLOSED', 'MERGED']).notNullable()
+    table.string('title', 255).notNullable()
+    table.string('head_ref', 40).notNullable()
+    table.integer('qa_req', 1).defaultTo(1).notNullable()
+    table.integer('created_at').nullable()
+    table.integer('updated_at').nullable()
+    table.integer('closed_at').nullable()
+    table.integer('merged_at').nullable()
+    table.integer('closes').nullable()
+    table.integer('interacted', 1).defaultTo(0).notNullable()
+    table.integer('interacted_count').defaultTo(0).nullable()
+    table.integer('qa_ready', 1).defaultTo(0).notNullable()
+    table.integer('qa_ready_count').defaultTo(0).nullable()
+    table.primary(['repo', 'pull_number'])
+  })
+  await db('qa_pulls').del()
+})
+
+afterAll(async () => {
+  await db.destroy()
+})
+
+describe('Pull Class', () => {
+  test('Connection Established', async () => {
+    let data = await db.raw('Select 1+1 as result')
+    expect(data[0]).toContainEqual({
+      result: 2,
+    })
+  })
+  describe('Initialization', () => {
+    test('Empty constructor inits with default values', () => {
+      let defaultData = {
+        repo: '',
+        pull_number: 0,
+        state: '',
+        title: '',
+        head_ref: '',
+        qa_req: 1,
+        created_at: 0,
+        updated_at: 0,
+        closed_at: 0,
+        merged_at: 0,
+        closes: null,
+        interacted: 0,
+        interacted_count: 0,
+        qa_ready: 0,
+        qa_ready_count: 0,
+      }
+
+      let testPull = new Pull()
+      expect(testPull.data).toMatchObject(defaultData)
+    })
+    test('Init with data passed to constructor', () => {
+      let mockPullData = {
+        repo: 'iFixit/ifixit',
+        pull_number: 35524,
+        state: 'MERGED',
+        title: 'PHP-Webdriver: Upgrade for Chrome tests only',
+        head_ref: '4c763380b8a34be7d3e78fcee935ef2058a76b45',
+        qa_req: 0,
+        created_at: 1608168616,
+        updated_at: 1610040334,
+        closed_at: 1610040333,
+        merged_at: 1610040333,
+        closes: null,
+        interacted: 0,
+        interacted_count: 0,
+        qa_ready: 0,
+        qa_ready_count: 0,
+      }
+
+      let testPull = new Pull(mockPullData)
+      expect(testPull.data).toMatchObject(mockPullData)
+    })
+    test('Init with GitHub Pull data', () => {
+      let mockGitHubData = {
+        closedAt: null,
+        createdAt: '2021-08-07T19:00:00Z',
+        headRefOid: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
+        headRepository: {
+          nameWithOwner: 'iFixit/ifixit',
+        },
+        number: 39126,
+        state: 'OPEN',
+        title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
+      }
+
+      let expectedPullData = {
+        repo: 'iFixit/ifixit',
+        pull_number: 39126,
+        state: 'OPEN',
+        title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
+        head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
+        qa_req: 1,
+        created_at: 1628362800,
+        updated_at: 0,
+        closed_at: 0,
+        merged_at: 0,
+        closes: null,
+        interacted: 0,
+        interacted_count: 0,
+        qa_ready: 0,
+        qa_ready_count: 0,
+      }
+
+      let testPull = new Pull(mockGitHubData)
+
+      expect(testPull.data).toMatchObject(expectedPullData)
+    })
+  })
+  describe('Instance Methods', () => {
+    test('getUniqueID returns "repo owner/name #pull number" ', () => {
+      let mockPullData = {
+        repo: 'iFixit/ifixit',
+        pull_number: 39126,
+        state: 'OPEN',
+        title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
+        head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
+        qa_req: 1,
+        created_at: 1628362800,
+        updated_at: 0,
+        closed_at: 0,
+        merged_at: 0,
+        closes: null,
+        interacted: 0,
+        interacted_count: 0,
+        qa_ready: 0,
+        qa_ready_count: 0,
+      }
+
+      let testPull = new Pull(mockPullData)
+      let expectedUniqueID = 'iFixit/ifixit #39126'
+      expect(testPull.getUniqueID()).toBe(expectedUniqueID)
+    })
+    test('getGraphQLValues returns repo{ name, owner} pull number', () => {
+      let mockPullData = {
+        repo: 'iFixit/ifixit',
+        pull_number: 39126,
+        state: 'OPEN',
+        title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
+        head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
+        qa_req: 1,
+        created_at: 1628362800,
+        updated_at: 0,
+        closed_at: 0,
+        merged_at: 0,
+        closes: null,
+        interacted: 0,
+        interacted_count: 0,
+        qa_ready: 0,
+        qa_ready_count: 0,
+      }
+
+      let testPull = new Pull(mockPullData)
+      let expectedGraphQLValues = [{ name: 'ifixit', owner: 'iFixit' }, 39126]
+      expect(testPull.getGraphQLValues()).toMatchObject(expectedGraphQLValues)
+    })
+    test('setNewValues changes Pull data', async () => {
+      let mockPullData = {
+        repo: 'iFixit/ifixit',
+        pull_number: 39126,
+        state: 'OPEN',
+        title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
+        head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
+        qa_req: 1,
+        created_at: 1628362800,
+        updated_at: 1628363900,
+        closed_at: 0,
+        merged_at: 0,
+        closes: null,
+        interacted: true,
+        interacted_count: 2,
+        qa_ready: true,
+        qa_ready_count: 3,
+      }
+      let defaultData = {
+        repo: '',
+        pull_number: 0,
+        state: '',
+        title: '',
+        head_ref: '',
+        qa_req: 1,
+        created_at: 0,
+        updated_at: 0,
+        closed_at: 0,
+        merged_at: 0,
+        closes: null,
+        interacted: 0,
+        interacted_count: 0,
+        qa_ready: 0,
+        qa_ready_count: 0,
+      }
+
+      let testPull = new Pull()
+      let spy = jest.spyOn(testPull, 'save').mockImplementation(() => {
+        'Saving to DB'
+      })
+
+      expect(testPull.data).toMatchObject(defaultData)
+
+      testPull.setNewValues(mockPullData)
+      expect(testPull.data).toMatchObject(mockPullData)
+      expect(spy).toHaveBeenCalledTimes(1)
+    })
+    describe('Saving Pull data', () => {
+      beforeEach(async () => {
+        await db('qa_pulls').del()
+      })
+      test('Setting values on new Pull creates new row ', async () => {
+        let dataBefore = await db('qa_pulls').select()
+        expect(dataBefore.length).toBe(0)
+        let mockPullData = {
+          repo: 'iFixit/ifixit',
+          pull_number: 39126,
+          state: 'OPEN',
+          title:
+            'Shopify Hotfix: Add order method to get customer email and use it in return emails',
+          head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
+          qa_req: 1,
+          created_at: 1628362800,
+          updated_at: 1628363900,
+          closed_at: 0,
+          merged_at: 0,
+          closes: null,
+          interacted: 1,
+          interacted_count: 2,
+          qa_ready: 1,
+          qa_ready_count: 3,
+        }
+        let testPull = new Pull()
+        await testPull.setNewValues(mockPullData)
+        expect(testPull.data).toMatchObject(mockPullData)
+        let dataAfter = await db('qa_pulls').select()
+        expect(dataAfter.length).toBe(1)
+
+        expect(dataAfter[0]).toMatchObject(testPull.data)
+      })
+      test('Setting new values on existing Pull updates row', async () => {
+        let dataBefore = await db('qa_pulls').select()
+        expect(dataBefore.length).toBe(0)
+
+        let rowData = {
+          repo: 'iFixit/ifixit',
+          pull_number: 39126,
+          state: 'OPEN',
+          title:
+            'Shopify Hotfix: Add order method to get customer email and use it in return emails',
+          head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
+          qa_req: 1,
+          created_at: 1628362800,
+          updated_at: 1628363900,
+          closed_at: 0,
+          merged_at: 0,
+          closes: null,
+          interacted: 1,
+          interacted_count: 2,
+          qa_ready: 1,
+          qa_ready_count: 3,
+        }
+
+        await db('qa_pulls').insert(rowData)
+        let mockUpdatePullData = {
+          repo: 'iFixit/ifixit',
+          pull_number: 39126,
+          state: 'CLOSED',
+          title:
+            'Shopify Hotfix: Add order method to get customer email and use it in return emails',
+          head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
+          qa_req: 1,
+          created_at: 1628362800,
+          updated_at: 1628363900,
+          closed_at: 1628363900,
+          merged_at: 1628363900,
+          closes: null,
+          interacted: 1,
+          interacted_count: 3,
+          qa_ready: 1,
+          qa_ready_count: 5,
+        }
+        let newData = await db('qa_pulls').select()
+        expect(newData.length).toBe(1)
+        expect(newData[0]).toMatchObject(rowData)
+
+        let testPull = new Pull(newData[0])
+
+        testPull.setNewValues(mockUpdatePullData)
+        expect(testPull.data).toMatchObject(mockUpdatePullData)
+
+        let dataAfter = await db('qa_pulls').select()
+        expect(dataAfter.length).toBe(1)
+        expect(dataAfter[0]).toMatchObject(testPull.data)
+        expect(dataAfter[0]).toMatchObject(mockUpdatePullData)
+      })
+    })
+  })
+  describe('Static Methods', () => {
+    beforeEach(async () => {
+      await db('qa_pulls').del()
+      await db('qa_pulls').insert([
+        {
+          repo: 'iFixit/ifixit',
+          pull_number: 39126,
+          state: 'CLOSED',
+          title:
+            'Shopify Hotfix: Add order method to get customer email and use it in return emails',
+          head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
+          qa_req: 1,
+          created_at: 1628362800,
+          updated_at: 1628363900,
+          closed_at: 1628363900,
+          merged_at: 1628363900,
+          closes: null,
+          interacted: 1,
+          interacted_count: 3,
+          qa_ready: 1,
+          qa_ready_count: 5,
+        },
+        {
+          repo: 'iFixit/ifixit',
+          pull_number: 35543,
+          state: 'MERGED',
+          title: 'Stores: extract list provider',
+          head_ref: '39f17dd5b7401541bbb98a302787324c3a1b3d3f',
+          qa_req: 0,
+          created_at: 1608252518,
+          updated_at: 1609271709,
+          closed_at: 1609271707,
+          merged_at: 1609271707,
+          closes: null,
+          interacted: 0,
+          interacted_count: 0,
+          qa_ready: 0,
+          qa_ready_count: 0,
+        },
+        {
+          repo: 'iFixit/ifixit',
+          pull_number: 38898,
+          state: 'OPEN',
+          title: 'Polish Community Landing Page',
+          head_ref: '718a7bbba843149d06e864d6b9e9b2e89f13100b',
+          qa_req: 1,
+          created_at: 1627508542,
+          updated_at: 1628028686,
+          closed_at: 0,
+          merged_at: 0,
+          closes: null,
+          interacted: 1,
+          interacted_count: 2,
+          qa_ready: 0,
+          qa_ready_count: 4,
+        },
+        {
+          repo: 'iFixit/ifixit',
+          pull_number: 38997,
+          state: 'OPEN',
+          title: 'Correctly delete work log handoffs before deleting work logs',
+          head_ref: 'e8f3e4a340d28a0c1e4bd4c786879acf440bcabc',
+          qa_req: 1,
+          created_at: 1628021200,
+          updated_at: 1628120634,
+          closed_at: 0,
+          merged_at: 0,
+          closes: null,
+          interacted: 0,
+          interacted_count: 0,
+          qa_ready: 1,
+          qa_ready_count: 1,
+        },
+        {
+          repo: 'iFixit/valkyrie',
+          pull_number: 532,
+          state: 'OPEN',
+          title: 'Fix translation strings for all categories',
+          head_ref: '7ed298440cba90fb4055027feb661d9fa5401c75',
+          qa_req: 1,
+          created_at: 1628023766,
+          updated_at: 1628024709,
+          closed_at: 0,
+          merged_at: 0,
+          closes: 531,
+          interacted: 0,
+          interacted_count: 0,
+          qa_ready: 1,
+          qa_ready_count: 1,
+        },
+      ])
+    })
+    test('getDBPulls retrieves all OPEN pulls from database as Pull[]', async () => {
+      let data = await Pull.getDBPulls()
+      expect(data.length).toBe(3)
+
+      data.forEach(pull => {
+        expect(pull).toBeInstanceOf(Pull)
+        expect(pull.data.state).toBe('OPEN')
+      })
+    })
+    test('getSchemaJSON returns ORM in JSON', () => {
+      let mockPullData = {
+        repo: 'iFixit/ifixit',
+        pull_number: 39126,
+        state: 'OPEN',
+        title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
+        head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
+        qa_req: 1,
+        created_at: 1628362800,
+        updated_at: 1628363900,
+        closed_at: 0,
+        merged_at: 0,
+        closes: null,
+        interacted: 1,
+        interacted_count: 2,
+        qa_ready: 1,
+        qa_ready_count: 3,
+      }
+      let keys = Object.keys(mockPullData)
+      let pullSchema = Pull.getSchemaJSON()
+      keys.forEach(key => {
+        expect(pullSchema).toHaveProperty(key)
+      })
+      expect(pullSchema).toMatchObject({
+        repo: expect.any(String),
+        pull_number: expect.any(Number),
+        state: expect.any(String),
+        title: expect.any(String),
+        head_ref: expect.any(String),
+        qa_req: expect.any(Number),
+        created_at: expect.any(Number),
+        updated_at: expect.any(Number),
+        closed_at: expect.any(Number),
+        merged_at: expect.any(Number),
+        closes: null,
+        interacted: expect.any(Number),
+        interacted_count: expect.any(Number),
+        qa_ready: expect.any(Number),
+        qa_ready_count: expect.any(Number),
+      })
+    })
+    test('getQAReadyPullCount returns sum of all pulls who have QA Ready to 1||true', async () => {
+      let data = await Pull.getQAReadyPullCount()
+      expect(data).toBe(2)
+    })
+    test.todo('getInteractionsCount returns sum of all pulls interacted for the day')
+    test.todo(
+      'getQAReadyUniquePullCount returns sum of all pulls only added to QA column for the day'
+    )
+  })
+})

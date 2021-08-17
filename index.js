@@ -1,0 +1,71 @@
+import config from './config/config.js'
+const REPOS = config.repos
+
+import { queryOpenPulls } from './ghgraphql.js'
+
+import Day from './db/db_day.js'
+const DAY = new Day()
+await DAY.init()
+
+import Pull from './db/db_pull.js'
+const DB_PULLS = await Pull.getDBPulls()
+
+import parsePull from './pullParser.js'
+
+import logger from './logger.js'
+const log = logger('main')
+
+// Automatically run script repeatedly
+;(async () => {
+  main()
+  setInterval(main, 60 * 1000) //Run every 60 seconds
+})()
+
+async function main() {
+  log.info('Running script...\n')
+
+  // Iterate through the list of repos declared in the config.json file
+  for (const repo of REPOS) {
+    log.data(`Parsing pulls for repo: ${JSON.stringify(repo)}`)
+    const all_open_pulls = await queryOpenPulls(repo)
+    parsePulls(all_open_pulls.repository.pullRequests.nodes)
+  }
+
+  await updateDayMetrics()
+  log.info('Finished script...\n')
+}
+
+function parsePulls(github_pulls) {
+  for (const pull of github_pulls) {
+    const __FOUND = DB_PULLS.map(db_pull => {
+      return db_pull.getUniqueID()
+    }).indexOf(`${pull.headRepository.nameWithOwner} #${pull.number}`)
+
+    parsePull(pull, __FOUND >= 0 ? DB_PULLS[__FOUND] : null)
+  }
+}
+
+async function updateDayMetrics() {
+  let current_metrics = DAY.getDayValues()
+  let running_pull_total = await Pull.getQAReadyPullCount()
+  //TODO: Fix bugwhen there is no yesterday so the difference is the entire qa ready total
+  let difference = running_pull_total - current_metrics.pull_count
+
+  log.data('Previous Pull Total: ' + current_metrics.pull_count)
+  log.data('Running Total: ' + running_pull_total)
+  log.data('Difference: ' + difference)
+  log.data('Previous Pulls Added: ' + current_metrics.pulls_added)
+
+  current_metrics.pulls_added += difference > 0 ? difference : 0
+  current_metrics.pull_count = running_pull_total
+
+  current_metrics.unique_pulls_added = await Pull.getQAReadyUniquePullCount()
+  current_metrics.pulls_interacted = await Pull.getInteractionsCount()
+
+  log.info('Current Pulls Today: ' + current_metrics.pull_count)
+  log.info('Interactions Today: ' + current_metrics.pulls_interacted)
+  log.info('Pulls Added Today: ' + current_metrics.pulls_added)
+  log.info('Unique Pulls Added Today: ' + current_metrics.unique_pulls_added + '\n')
+
+  await DAY.save(current_metrics)
+}
