@@ -36,11 +36,11 @@ async function main() {
 }
 
 function parsePulls(github_pulls) {
+  const unique_id_pulls = DB_PULLS.map(db_pull => {
+    return db_pull.getUniqueID()
+  })
   for (const pull of github_pulls) {
-    const __FOUND = DB_PULLS.map(db_pull => {
-      return db_pull.getUniqueID()
-    }).indexOf(`${pull.baseRepository.nameWithOwner} #${pull.number}`)
-
+    const __FOUND = unique_id_pulls.indexOf(`${pull.baseRepository.nameWithOwner} #${pull.number}`)
     parsePull(pull, __FOUND >= 0 ? DB_PULLS[__FOUND] : null)
   }
 }
