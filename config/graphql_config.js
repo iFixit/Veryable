@@ -36,7 +36,8 @@ export default {
   GET_ISSUES: ( repo, owner, cursor = null ) => `
   {
     repository(name: "${ repo }", owner: "${ owner }") {
-      issues(first: 100,  orderBy: { field: CREATED_AT, direction: DESC }, ${ cursor !== null ? 'after:"' + cursor + '"' : '' }) {
+      issues(first: 100,  orderBy: { field: CREATED_AT, direction: DESC }, ${ cursor !== null ? 'after:"' + cursor + '"' : ''
+    }) {
         pageInfo{
           endCursor
           hasNextPage
@@ -56,10 +57,8 @@ export default {
     }
   }
 }
-`
-
+`,
 };
-
 
 /* Strucutre
  * @state => Pull Status (OPEN, CLOSED, MERGED)
@@ -69,22 +68,22 @@ export default {
  */
 const PULL_INFO = `
 state,
-  title,
-  number,
-  headRepository{
+title,
+number,
+baseRepository{
   nameWithOwner
 }
 headRefOid,
-  bodyText,
-  createdAt,
-  updatedAt
+bodyText,
+createdAt,
+updatedAt
 closedAt,
-  mergedAt,
-  commits( last: 1 ){
+mergedAt,
+commits( last: 1 ){
   nodes{
     commit{
       pushedDate,
-        status{
+      status{
         state
       }
     }
@@ -92,11 +91,10 @@ closedAt,
 },
 comments( last: 50 ){
   nodes{
-          ...commentFields
+    ...commentFields
   }
 },
 `;
-
 
 const ISSUE_INFO = `
 state
