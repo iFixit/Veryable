@@ -10,8 +10,12 @@ import logger from '../logger.js'
 const log = logger('refreshPull')
 
 for (let db_pull of DB_PULLS) {
-  const github_pull = await queryPull(...db_pull.getGraphQLValues())
-  parsePull(github_pull.repository.pullRequest, db_pull)
+  try {
+    const github_pull = await queryPull(...db_pull.getGraphQLValues())
+    parsePull(github_pull.repository.pullRequest, db_pull)
+  } catch (e) {
+    log.error(`Failed to parse ${db_pull.getUniqueID()}\n ${e.message}`)
+  }
 }
 
 log.info('Done refreshing Pulls')
