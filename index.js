@@ -14,7 +14,6 @@ const DB_PULLS = await Pull.getDBPulls()
 import parsePull from './pullParser.js'
 
 import logger from './logger.js'
-import { callbackify } from 'util'
 const log = logger('main')
 
 // Automatically run script repeatedly
