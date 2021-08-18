@@ -85,7 +85,7 @@ describe('Pull Class', () => {
         closedAt: null,
         createdAt: '2021-08-07T19:00:00Z',
         headRefOid: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
-        headRepository: {
+        baseRepository: {
           nameWithOwner: 'iFixit/ifixit',
         },
         number: 39126,
