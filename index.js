@@ -1,3 +1,4 @@
+import { execSync } from 'child_process'
 import config from './config/config.js'
 const REPOS = config.repos
 
@@ -13,10 +14,15 @@ const DB_PULLS = await Pull.getDBPulls()
 import parsePull from './pullParser.js'
 
 import logger from './logger.js'
+import { callbackify } from 'util'
 const log = logger('main')
 
 // Automatically run script repeatedly
 ;(async () => {
+  log.info('Will now refresh current open pulls in DB')
+  // Refresh any open pulls since last start up and block code until done
+  execSync('node ./scripts/refreshPulls.js')
+  log.info('Done refreshing pulls')
   main()
   setInterval(main, 60 * 1000) //Run every 60 seconds
 })()
