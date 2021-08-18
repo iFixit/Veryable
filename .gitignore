@@ -2,5 +2,6 @@
 node_modules
 config.js
 /logs/*
-coverage
+coverage/*
 /knex/seeds/
+*.code-workspace

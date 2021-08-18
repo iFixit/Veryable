@@ -94,7 +94,7 @@ function isQAReadyAndInteracted(db_pull_data, github_pull) {
   return [qa_ready, qa_interacted]
 }
 
-// Get Signaturse/Stamps
+// Get Signatures/Stamps
 function getTagsAndInteracted(github_pull) {
   let latest_commit_date = new Date(github_pull.commits.nodes[0].commit.pushedDate)
   let current_tags = {}

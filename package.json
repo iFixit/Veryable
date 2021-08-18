@@ -20,7 +20,6 @@
     "dotenv": "^10.0.0",
     "knex": "^0.21.20",
     "mysql": "^2.18.1",
-    "mysql2": "^2.2.5",
     "winston": "^3.3.3"
   },
   "devDependencies": {
