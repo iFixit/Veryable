@@ -45,8 +45,8 @@ function parsePulls(github_pulls) {
     return db_pull.getUniqueID()
   })
   for (const pull of github_pulls) {
-    const found = unique_id_pulls.indexOf(`${pull.baseRepository.nameWithOwner} #${pull.number}`)
-    parsePull(pull, found >= 0 ? DB_PULLS[found] : null)
+    const __FOUND = unique_id_pulls.indexOf(`${pull.baseRepository.nameWithOwner} #${pull.number}`)
+    parsePull(pull, __FOUND >= 0 ? DB_PULLS[__FOUND] : null)
   }
 }
 
