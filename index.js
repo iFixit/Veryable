@@ -1,3 +1,4 @@
+import { execSync } from 'child_process'
 import config from './config/config.js'
 const REPOS = config.repos
 
@@ -17,6 +18,10 @@ const log = logger('main')
 
 // Automatically run script repeatedly
 ;(async () => {
+  log.info('Will now refresh current open pulls in DB')
+  // Refresh any open pulls since last start up and block code until done
+  execSync('node ./scripts/refreshPulls.js')
+  log.info('Done refreshing pulls')
   main()
   setInterval(main, 60 * 1000) //Run every 60 seconds
 })()
@@ -36,12 +41,12 @@ async function main() {
 }
 
 function parsePulls(github_pulls) {
+  const unique_id_pulls = DB_PULLS.map(db_pull => {
+    return db_pull.getUniqueID()
+  })
   for (const pull of github_pulls) {
-    const __FOUND = DB_PULLS.map(db_pull => {
-      return db_pull.getUniqueID()
-    }).indexOf(`${pull.headRepository.nameWithOwner} #${pull.number}`)
-
-    parsePull(pull, __FOUND >= 0 ? DB_PULLS[__FOUND] : null)
+    const found = unique_id_pulls.indexOf(`${pull.baseRepository.nameWithOwner} #${pull.number}`)
+    parsePull(pull, found >= 0 ? DB_PULLS[found] : null)
   }
 }
 
