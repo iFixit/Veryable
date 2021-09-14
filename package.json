@@ -1,12 +1,11 @@
 {
   "name": "qa-metrics",
   "version": "1.0.0",
-  "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest --runInBand",
-    "start": "NODE_ENV=dev node ./src/index.js",
+    "start": "tsc -p . && NODE_ENV=dev node ./out/src/index",
     "debug": "NODE_ENV=dev DEBUG=true node ./src/index.js",
     "lint:types": "tsc --noEmit -p ."
   },

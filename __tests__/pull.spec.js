@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 import Pull from '../db/db_pull.js'
-import db from '../knex/knex.js'
+import db from '../knex/knex'
 
 beforeAll(async () => {
   await db.schema.dropTableIfExists('qa_pulls').createTable('qa_pulls', table => {
