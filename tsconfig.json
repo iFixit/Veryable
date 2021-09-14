@@ -4,5 +4,7 @@
     "allowJs": true,
     "removeComments": true, /* Remove comments */
     "sourceMap": true,
-  }
+    "outDir": "out"
+  },
+  "exclude": ["./out/**/*"],
 }
