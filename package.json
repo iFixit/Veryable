@@ -7,7 +7,8 @@
   "scripts": {
     "test": "NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest --runInBand",
     "start": "NODE_ENV=dev node index.js",
-    "debug": "NODE_ENV=dev DEBUG=true node index.js"
+    "debug": "NODE_ENV=dev DEBUG=true node index.js",
+    "lint:types": "tsc --noEmit -p ."
   },
   "keywords": [],
   "author": "",
