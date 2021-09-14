@@ -1,4 +1,4 @@
-import db from './db_manager.js'
+import db from '../knex/knex.js'
 
 import logger from '../src/logger.js'
 const log = logger('db_pull')
