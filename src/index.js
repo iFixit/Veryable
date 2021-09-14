@@ -1,14 +1,14 @@
 import { execSync } from 'child_process'
-import config from './config/config.js'
+import config from '../config/config.js'
 const REPOS = config.repos
 
 import { queryOpenPulls } from './ghgraphql.js'
 
-import Day from './db/db_day.js'
+import Day from '../db/db_day.js'
 const DAY = new Day()
 await DAY.init()
 
-import Pull from './db/db_pull.js'
+import Pull from '../db/db_pull.js'
 const DB_PULLS = await Pull.getDBPulls()
 
 import parsePull from './pullParser.js'

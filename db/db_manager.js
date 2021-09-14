@@ -1,5 +1,5 @@
 import knex from '../knex/knex.js';
-import logger from '../logger.js';
+import logger from '../src/logger.js';
 const log = logger( 'db_manager' );
 
 let db = knex;

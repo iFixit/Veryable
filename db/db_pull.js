@@ -1,6 +1,6 @@
 import db from './db_manager.js'
 
-import logger from '../logger.js'
+import logger from '../src/logger.js'
 const log = logger('db_pull')
 
 const defaultData = {

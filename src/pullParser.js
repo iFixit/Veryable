@@ -1,7 +1,7 @@
 import date from 'date-and-time'
-import Pull from './db/db_pull.js'
+import Pull from '../db/db_pull.js'
 
-import config from './config/config.js'
+import config from '../config/config.js'
 const SIGNATURES = config.signatures
 const QA_TEAM = config.qa_team
 
