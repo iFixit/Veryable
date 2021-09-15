@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: path.resolve(`.env.${process.env.NODE_ENV || 'dev'}`) });
 
-const config = {
+const config: knex.Config = {
   client: 'mysql',
   connection: {
     host: process.env.MYSQL_HOST,
