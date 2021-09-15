@@ -1,20 +1,20 @@
-import config from '../config/config.js'
+import config from '../config/config'
 const REPOS = config.repos
 
 import refreshPulls from '../scripts/refreshPulls';
 
-import { queryOpenPulls } from './ghgraphql.js'
+import { queryOpenPulls } from './ghgraphql'
 
-import Day from '../db/db_day.js'
+import Day from '../db/db_day'
 const DAY = new Day()
 await DAY.init()
 
-import Pull from '../db/db_pull.js'
+import Pull from '../db/db_pull'
 const DB_PULLS = await Pull.getDBPulls()
 
-import parsePull from './pullParser.js'
+import parsePull from './pullParser'
 
-import logger from './logger.js'
+import logger from './logger'
 const log = logger('main')
 
 // Automatically run script repeatedly
