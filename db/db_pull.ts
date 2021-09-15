@@ -113,6 +113,24 @@ export default class Pull {
     }
   }
 
+  updateDates(db_pull_data, github_pull) {
+    db_pull_data.updated_at = formatGHDate(github_pull.updatedAt)
+    db_pull_data.closed_at = formatGHDate(github_pull.closedAt)
+    db_pull_data.merged_at = formatGHDate(github_pull.mergedAt)
+  }
+
+
+  updateValues(db_pull_data, github_pull) {
+    db_pull_data.head_ref = github_pull.headRefOid
+    db_pull_data.state = github_pull.state
+
+    db_pull_data.closes = closesDeclared(github_pull)
+
+    qaReadyAndInteracted(db_pull_data, github_pull)
+  }
+
+
+
   async setNewValues(data: PullRequest): Promise<void> {
     this.data = { ...data }
     await this.save()
