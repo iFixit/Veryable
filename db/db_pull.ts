@@ -113,20 +113,20 @@ export default class Pull {
     }
   }
 
-  updateDates(db_pull_data, github_pull) {
-    db_pull_data.updated_at = formatGHDate(github_pull.updatedAt)
-    db_pull_data.closed_at = formatGHDate(github_pull.closedAt)
-    db_pull_data.merged_at = formatGHDate(github_pull.mergedAt)
+  updateDates(github_pull: GitHubPullRequest): void {
+    this.data.closed_at = formatGHDate(github_pull.closedAt);
+    this.data.created_at = formatGHDate(github_pull.createdAt);
+    this.data.updated_at = formatGHDate(github_pull.updatedAt);
+    this.data.merged_at = formatGHDate(github_pull.mergedAt);
   }
 
 
-  updateValues(db_pull_data, github_pull) {
-    db_pull_data.head_ref = github_pull.headRefOid
-    db_pull_data.state = github_pull.state
-
-    db_pull_data.closes = closesDeclared(github_pull)
-
-    qaReadyAndInteracted(db_pull_data, github_pull)
+  updateValues(github_pull: GitHubPullRequest): void {
+    this.data.head_ref = github_pull.headRefOid;
+    this.data.state = github_pull.state;
+    this.data.closes = closesDeclared(github_pull);
+    this.updateDates(github_pull);
+    this.qaReadyAndInteracted(github_pull);
   }
 
 
