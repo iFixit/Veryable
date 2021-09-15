@@ -1,5 +1,5 @@
 import { graphql } from '@octokit/graphql'
-import config from '../config/graphql_config.js'
+import config from '../config/graphql_config'
 const get_open_pulls = config.GET_OPEN_PULLS
 const get_pull = config.GET_PULL
 const get_issue = config.GET_ISSUE
@@ -23,7 +23,8 @@ export async function queryIssue(repo, issueNumber) {
 }
 
 export async function queryDayIssues(repo) {
-  let today = new Date().setHours(0, 0, 0, 0)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
   return await graphql(get_day_issues(repo.name, repo.owner, 50, today.toISOString()), {
     headers: {
