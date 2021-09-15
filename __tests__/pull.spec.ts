@@ -30,6 +30,24 @@ afterAll(async () => {
   await db.destroy()
 })
 
+const defaultData = {
+  repo: '',
+  pull_number: 0,
+  state: '',
+  title: '',
+  head_ref: '',
+  qa_req: 1,
+  created_at: 0,
+  updated_at: 0,
+  closed_at: 0,
+  merged_at: 0,
+  closes: null,
+  interacted: 0,
+  interacted_count: 0,
+  qa_ready: 0,
+  qa_ready_count: 0,
+}
+
 describe('Pull Class', () => {
   test('Connection Established', async () => {
     let data = await db.raw('Select 1+1 as result')
@@ -39,24 +57,6 @@ describe('Pull Class', () => {
   })
   describe('Initialization', () => {
     test('Empty constructor inits with default values', () => {
-      let defaultData = {
-        repo: '',
-        pull_number: 0,
-        state: '',
-        title: '',
-        head_ref: '',
-        qa_req: 1,
-        created_at: 0,
-        updated_at: 0,
-        closed_at: 0,
-        merged_at: 0,
-        closes: null,
-        interacted: 0,
-        interacted_count: 0,
-        qa_ready: 0,
-        qa_ready_count: 0,
-      }
-
       let testPull = new Pull()
       expect(testPull.data).toMatchObject(defaultData)
     })
@@ -182,23 +182,6 @@ describe('Pull Class', () => {
         interacted_count: 2,
         qa_ready: true,
         qa_ready_count: 3,
-      }
-      let defaultData = {
-        repo: '',
-        pull_number: 0,
-        state: '',
-        title: '',
-        head_ref: '',
-        qa_req: 1,
-        created_at: 0,
-        updated_at: 0,
-        closed_at: 0,
-        merged_at: 0,
-        closes: null,
-        interacted: 0,
-        interacted_count: 0,
-        qa_ready: 0,
-        qa_ready_count: 0,
       }
 
       let testPull = new Pull()
