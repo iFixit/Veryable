@@ -38,24 +38,26 @@ function formatGHDate(utc_date: string | null): number | null {
 function closesDeclared(github_pull: GitHubPullRequest): number | null {
   let body = github_pull.bodyText || ''
   let closes_regex = new RegExp(signatures.closes, 'i')
-  let closes_pull = null
+  let closes_pull
   let __CLOSE = body.match(closes_regex)
 
   if (__CLOSE?.groups) {
     closes_pull = parseInt(__CLOSE.groups.closes)
   }
-  return closes_pull
+  return closes_pull ?? null;
 }
 // Get Signatures/Stamps
 function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, dev_block: string, interacted: number } {
-  let latest_commit_date = new Date(github_pull.commits.nodes[0].commit.pushedDate)
+  let latest_commit_date = github_pull.commits
+    ? new Date(github_pull.commits.nodes[0].commit.pushedDate) : new Date();
   let current_tags = {
     QA: false,
     dev_block: '',
     interacted: 0
   }
 
-  for (const comment of github_pull.comments.nodes) {
+  const comments = github_pull.comments ? github_pull.comments.nodes : []
+  comments.forEach(comment => {
     let comment_date = new Date(comment.createdAt)
     if (
       hasQATag(comment.bodyText) &&
@@ -75,7 +77,7 @@ function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, de
     ) {
       current_tags.interacted = 1
     }
-  }
+  })
 
   return current_tags
 }
@@ -112,10 +114,6 @@ function qaRequired(github_pull: GitHubPullRequest): number {
 
 // Iteratres through the Pull Object and retrieves the appropriate base properties
 function isQAReadyAndInteracted(github_pull: GitHubPullRequest): {qa_ready: number, qa_req: number, qa_interacted: number} {
-  let build_status = github_pull.commits.nodes[0].commit.status
-    ? github_pull.commits.nodes[0].commit.status.state
-    : 'EXPECTED'
-
   let qa_ready = 1
   // Want to skip pulls that are marked as qa_req_0
   let qa_req = qaRequired(github_pull)
@@ -123,6 +121,7 @@ function isQAReadyAndInteracted(github_pull: GitHubPullRequest): {qa_ready: numb
     qa_ready = 0
   }
 
+  let build_status = github_pull.commits?.nodes[0].commit.status?.state ?? 'EXPECTED'
   // Want to skip pulls that are failing CI
   if (build_status !== 'SUCCESS' && build_status !== 'EXPECTED') {
     qa_ready = 0
