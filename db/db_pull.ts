@@ -48,7 +48,11 @@ export default class Pull {
 
   static fromGithub() { }
 
-  static fromDataBase() {}
+  static fromDataBase(db_pull: PullRequest): Pull {
+    const pull = new Pull();
+    pull.data = { ...db_pull };
+    return pull;
+  }
   // Retrieves the Repo and Pull Number in a formatted string
   getUniqueID() {
     return `${this.data.repo} #${this.data.pull_number}`
