@@ -1,13 +1,24 @@
 import date from "date-and-time";
 import db from "../knex/knex";
 
-import logger from '../src/logger.js';
+import logger from '../src/logger';
 const log = logger( 'db_day' );
 
 const TWENTY_FOUR_HOURS = 86400;
 
+type DayMetric = {
+   pull_count: number,
+    pulls_added: number,
+    pulls_interacted: number,
+    unique_pulls_added: number,
+}
+
 export default class Day
 {
+  dayMetrics: DayMetric
+
+  today: number;
+  yesterday: number;
   constructor()
   {
     this.dayMetrics = {
