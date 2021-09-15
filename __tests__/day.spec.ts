@@ -44,9 +44,7 @@ describe('Day Class', () => {
           unique_pulls_added: 0,
         }
         let testDay = new Day()
-        let spy = jest.spyOn(testDay, 'save').mockImplementation(() => {
-          'Saving to DB'
-        })
+        let spy = jest.spyOn(testDay, 'save').mockImplementation(() => Promise.resolve())
 
         await testDay.init()
         let dayValues = testDay.getDayValues()
@@ -99,9 +97,8 @@ describe('Day Class', () => {
           unique_pulls_added: 0,
         }
         let testDay = new Day()
-        let spy = jest.spyOn(testDay, 'save').mockImplementation(() => {
-          'Saving to DB'
-        })
+        let spy = jest.spyOn(testDay, 'save').mockImplementation(() => Promise.resolve())
+
 
         await testDay.init()
         let dayValues = testDay.getDayValues()
@@ -176,9 +173,8 @@ describe('Day Class', () => {
           unique_pulls_added: 3,
         }
         let testDay = new Day()
-        let spy = jest.spyOn(testDay, 'save').mockImplementation(() => {
-          'Saving to DB'
-        })
+        let spy = jest.spyOn(testDay, 'save').mockImplementation(() => Promise.resolve())
+
 
         await testDay.init()
         let dayValues = testDay.getDayValues()
