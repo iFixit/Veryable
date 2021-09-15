@@ -71,7 +71,7 @@ function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, de
     if (
       qa_team.includes(comment.author.login) &&
       date.subtract(latest_commit_date, comment_date).toDays() <= 0 &&
-      date.isSameDay(comment_date, new Date())
+      date.isSameDay(comment_date, new Date(utils.getDates()[0]))
     ) {
       current_tags.interacted = 1
     }
