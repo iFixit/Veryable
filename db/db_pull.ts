@@ -21,6 +21,13 @@ interface PullRequest {
   updated_at: null | number,
 }
 
+function formatGHDate(utc_date: string | null): number | null {
+  if (utc_date) {
+    return Math.floor(new Date(utc_date).getTime() / 1000);
+  }
+  return null;
+}
+
 //TODO: move to actual ORM like Prisma for easier model configuration and declaration
 export default class Pull {
   data: PullRequest;
@@ -46,7 +53,28 @@ export default class Pull {
     };
   }
 
-  static fromGithub() { }
+   // Create new Pull and map values from GitHub Pull
+  static fromGitHub(github_pull: GitHubPullRequest): Pull {
+    const gh_pull = new Pull();
+    gh_pull.data = {
+      closed_at: formatGHDate(github_pull.closedAt),
+      closes: null,
+      created_at: formatGHDate(github_pull.createdAt),
+      head_ref: github_pull.headRefOid,
+      interacted_count: 0,
+      interacted: 0,
+      merged_at: formatGHDate(github_pull.mergedAt),
+      pull_number: github_pull.number,
+      qa_ready_count: 0,
+      qa_ready: 0,
+      qa_req: 1,
+      repo: github_pull.baseRepository.nameWithOwner,
+      state: github_pull.state,
+      title: github_pull.title,
+      updated_at: formatGHDate(github_pull.updatedAt),
+    };
+    return gh_pull;
+  }
 
   static fromDataBase(db_pull: PullRequest): Pull {
     const pull = new Pull();
