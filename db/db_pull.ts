@@ -79,7 +79,7 @@ export default class Pull {
         "Failed to save Pull #%d '%s\n\t%s",
         this.data.pull_number,
         this.data.title,
-        new Error(e.message)
+        new Error()
       )
     }
   }
