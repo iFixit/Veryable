@@ -3,26 +3,28 @@ import db from '../knex/knex'
 import logger from '../src/logger.js'
 const log = logger('db_pull')
 
-const defaultData = {
-  repo: '',
-  pull_number: 0,
-  state: '',
-  title: '',
-  head_ref: '',
-  qa_req: 1,
-  created_at: 0,
-  updated_at: 0,
-  closed_at: 0,
-  merged_at: 0,
-  closes: null,
-  interacted: 0, //binmary boolean
-  interacted_count: 0,
-  qa_ready: 0, //binmary boolean
-  qa_ready_count: 0,
+interface PullRequest {
+  closed_at: null | number,
+  closes: null | number,
+  created_at: null | number,
+  head_ref: string,
+  interacted_count: number,
+  interacted: number,
+  merged_at: null | number,
+  pull_number: number,
+  qa_ready_count: number,
+  qa_ready: number,
+  qa_req: number,
+  repo: string,
+  state: string,
+  title: string,
+  updated_at: null | number,
 }
 
 //TODO: move to actual ORM like Prisma for easier model configuration and declaration
 export default class Pull {
+  data: PullRequest;
+
   constructor(data) {
     // Data passed is a GitHub Pull Object
     if (data && data.number) {
