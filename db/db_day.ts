@@ -77,7 +77,7 @@ export default class Day
         .onConflict( "date" ).merge();
     } catch ( e )
     {
-      log.error( "Failed to save Day " + e.message );
+      log.error( "Failed to save Day " + e );
     }
   }
 
