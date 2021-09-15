@@ -80,7 +80,7 @@ function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, de
   return current_tags
 }
 
-function hasQATag(comment) {
+function hasQATag(comment: string): boolean {
   let regex = new RegExp(signatures.QA + signatures.emoji, 'i')
   return regex.test(comment)
 }
