@@ -47,10 +47,13 @@ function closesDeclared(pull) {
   return closes_pull
 }
 // Get Signatures/Stamps
-function getTagsAndInteracted(github_pull) {
+function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, dev_block: string, interacted: number } {
   let latest_commit_date = new Date(github_pull.commits.nodes[0].commit.pushedDate)
-  let current_tags = {}
-  let interacted = false
+  let current_tags = {
+    QA: false,
+    dev_block: '',
+    interacted: 0
+  }
 
   for (const comment of github_pull.comments.nodes) {
     let comment_date = new Date(comment.createdAt)
@@ -58,9 +61,9 @@ function getTagsAndInteracted(github_pull) {
       hasQATag(comment.bodyText) &&
       date.subtract(latest_commit_date, comment_date).toDays() <= 0
     ) {
-      current_tags['QA'] = true
+      current_tags.QA = true
     } else {
-      hasTags(comment.bodyText, current_tags)
+      current_tags.dev_block = hasTags(comment.bodyText, current_tags)
     }
 
     if (
@@ -68,11 +71,11 @@ function getTagsAndInteracted(github_pull) {
       date.subtract(latest_commit_date, comment_date).toDays() <= 0 &&
       date.isSameDay(comment_date, new Date())
     ) {
-      interacted = true
+      current_tags.interacted = 1
     }
   }
 
-  return [current_tags, interacted]
+  return current_tags
 }
 
 function hasQATag(comment) {
@@ -121,12 +124,12 @@ function isQAReadyAndInteracted(github_pull: GitHubPullRequest): {qa_ready: numb
   }
 
   // Want to skip pulls that are dev_block and already QA'd
-  let [tags, qa_interacted] = getTagsAndInteracted(github_pull)
+  let  tags = getTagsAndInteracted(github_pull)
   if (tags['dev_block'] || tags['QA']) {
     qa_ready = 0
   }
 
-  return { qa_ready, qa_req, qa_interacted }
+  return { qa_ready, qa_req, qa_interacted: tags.interacted }
 }
 
 //TODO: move to actual ORM like Prisma for easier model configuration and declaration
