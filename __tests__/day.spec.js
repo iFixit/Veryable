@@ -1,6 +1,10 @@
 import { jest } from '@jest/globals'
 import Day from '../db/db_day.js'
 import db from '../knex/knex'
+import {utils} from '../scripts/utils'
+
+// Mocking the dates it will be set to for today and yesteday; returning [Wed Aug 04 00:00:00 -0700 2021, Tue Aug 03 00:00:00 -0700 2021]
+jest.spyOn(utils, 'getDates').mockImplementation(() => [1628060400, 1627974000]);
 
 beforeAll(async () => {
   await db.schema.dropTableIfExists('qa_metrics').createTable('qa_metrics', table => {
@@ -85,13 +89,6 @@ describe('Day Class', () => {
             unique_pulls_added: 4,
           },
         ])
-
-        // Mocking the dates it will be set to for today and yesteday; returning [Wed Aug 04 00:00:00 -0700 2021, Tue Aug 03 00:00:00 -0700 2021]
-        jest.spyOn(Day.prototype, 'getDates').mockImplementation(() => [1628060400, 1627974000])
-      })
-
-      afterEach(() => {
-        jest.restoreAllMocks()
       })
 
       test("should init with today's date but the 'pull_count' will be set to 'yesterday'.'pull_count' value ", async () => {
@@ -170,12 +167,6 @@ describe('Day Class', () => {
             unique_pulls_added: 4,
           },
         ])
-        // Mocking the dates it will be set to for today and yesteday; returning [Wed Aug 04 00:00:00 -0700 2021, Tue Aug 03 00:00:00 -0700 2021]
-        jest.spyOn(Day.prototype, 'getDates').mockImplementation(() => [1628060400, 1627974000])
-      })
-
-      afterEach(() => {
-        jest.restoreAllMocks()
       })
       test("should init with today's date and all values from today's row in the database", async () => {
         let newDay = {
