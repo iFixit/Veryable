@@ -25,22 +25,30 @@ interface PullRequest {
 export default class Pull {
   data: PullRequest;
 
-  constructor(data) {
-    // Data passed is a GitHub Pull Object
-    if (data && data.number) {
-      this.data = { ...defaultData }
-      this.data.repo = data.baseRepository.nameWithOwner
-      this.data.pull_number = data.number
-      this.data.title = data.title
-      this.data.head_ref = data.headRefOid
-      this.data.created_at = new Date(data.createdAt).getTime() / 1000
-      this.data.state = data.state
-    } else if (data) {
-      this.data = { ...data }
-    } else {
-      this.data = { ...defaultData }
-    }
+  //Empty Constructor
+  constructor () {
+    this.data = {
+      closed_at: null,
+      closes: null,
+      created_at: 0,
+      head_ref: '',
+      interacted_count: 0,
+      interacted: 0,
+      merged_at: null,
+      pull_number: 0,
+      qa_ready_count: 0,
+      qa_ready: 0,
+      qa_req: 1,
+      repo: '',
+      state: '',
+      title: '',
+      updated_at: 0,
+    };
   }
+
+  static fromGithub() { }
+
+  static fromDataBase() {}
   // Retrieves the Repo and Pull Number in a formatted string
   getUniqueID() {
     return `${this.data.repo} #${this.data.pull_number}`
