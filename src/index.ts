@@ -46,15 +46,14 @@ function parsePulls(github_pulls: GitHubPullRequest[]) {
   const unique_id_pulls = DB_PULLS.map(db_pull => {
     return db_pull.getUniqueID()
   })
-  for (const pull of github_pulls) {
-    let found = unique_id_pulls.indexOf( `${ pull.baseRepository.nameWithOwner } #${ pull.number }` )
-    if ( found < 0 )
-    {
-      DB_PULLS.push( Pull.fromGitHub( github_pull ) )
+  github_pulls.forEach(github_pull => {
+    let found = unique_id_pulls.indexOf(`${github_pull.baseRepository.nameWithOwner} #${github_pull.number}`)
+    if (found < 0) {
+      DB_PULLS.push(Pull.fromGitHub(github_pull))
       found = DB_PULLS.length - 1
     }
-    parsePull(pull, DB_PULLS[found])
-  }
+    parsePull(github_pull, DB_PULLS[found])
+  });
 }
 
 async function updateDayMetrics() {
