@@ -42,12 +42,12 @@ async function main() {
   log.info('Finished script...\n')
 }
 
-function parsePulls(github_pulls) {
+function parsePulls(github_pulls: GitHubPullRequest[]) {
   const unique_id_pulls = DB_PULLS.map(db_pull => {
     return db_pull.getUniqueID()
   })
   for (const pull of github_pulls) {
-    const found = unique_id_pulls.indexOf( `${ pull.baseRepository.nameWithOwner } #${ pull.number }` )
+    let found = unique_id_pulls.indexOf( `${ pull.baseRepository.nameWithOwner } #${ pull.number }` )
     if ( found < 0 )
     {
       DB_PULLS.push( Pull.fromGitHub( github_pull ) )
