@@ -35,13 +35,13 @@ function formatGHDate(utc_date: string | null): number | null {
 }
 
 // Check if there is an Issue connected with Pull
-function closesDeclared(pull) {
-  let body = pull.bodyText
+function closesDeclared(github_pull: GitHubPullRequest): number | null {
+  let body = github_pull.bodyText || ''
   let closes_regex = new RegExp(signatures.closes, 'i')
   let closes_pull = null
-  let __CLOSE
+  let __CLOSE = body.match(closes_regex)
 
-  if ((__CLOSE = body.match(closes_regex)) !== null) {
+  if (__CLOSE?.groups) {
     closes_pull = parseInt(__CLOSE.groups.closes)
   }
   return closes_pull
