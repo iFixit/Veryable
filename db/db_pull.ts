@@ -62,8 +62,10 @@ function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, de
       date.subtract(latest_commit_date, comment_date).toDays() <= 0
     ) {
       current_tags.QA = true
-    } else {
-      current_tags.dev_block = hasTags(comment.bodyText, current_tags)
+    }
+    // since comments are in descending order, the first match will define the state
+    else if (current_tags.dev_block === '') {
+      current_tags.dev_block = hasTags(comment.bodyText)
     }
 
     if (
@@ -83,13 +85,16 @@ function hasQATag(comment) {
   return regex.test(comment)
 }
 
-function hasTags(comment, tags) {
+// Only checking if dev_block or not
+function hasTags(comment: string): string {
+  let dev_block = ''
   signatures.tags.forEach(tag => {
     let regex = new RegExp(tag.regex + signatures.emoji, 'i')
     if (regex.test(comment)) {
-      tags['dev_block'] = tag.state
+      dev_block = tag.state.toString()
     }
   })
+  return dev_block
 }
 
 // Check if the Pull requires QAing
@@ -125,7 +130,7 @@ function isQAReadyAndInteracted(github_pull: GitHubPullRequest): {qa_ready: numb
 
   // Want to skip pulls that are dev_block and already QA'd
   let  tags = getTagsAndInteracted(github_pull)
-  if (tags['dev_block'] || tags['QA']) {
+  if(tags.dev_block === 'true' || tags.QA) {
     qa_ready = 0
   }
 
