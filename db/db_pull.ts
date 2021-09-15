@@ -225,17 +225,17 @@ export default class Pull {
     this.qaReadyAndInteracted(github_pull);
   }
 
-  qaReadyAndInteracted(db_pull_data, github_pull) {
-    let [qa_ready, qa_interacted] = isQAReadyAndInteracted(db_pull_data, github_pull)
+  qaReadyAndInteracted(github_pull: GitHubPullRequest): void {
+    let [qa_ready, qa_interacted] = isQAReadyAndInteracted(github_pull)
     log.data(
-      `For Pull #${db_pull_data.pull_number} ${db_pull_data.title} Returned QA Ready: ${qa_ready}, Current QA Ready: ${db_pull_data.qa_ready}, Current QA Count: ${db_pull_data.qa_ready_count},`
+      `For Pull #${this.data.pull_number} ${this.data.title} Returned QA Ready: ${qa_ready}, Current QA Ready: ${this.data.qa_ready}, Current QA Count: ${this.data.qa_ready_count},`
     )
 
-    db_pull_data.qa_ready_count += !db_pull_data.qa_ready && qa_ready ? 1 : 0
-    db_pull_data.qa_ready = qa_ready
+    this.data.qa_ready_count += !this.data.qa_ready && qa_ready ? 1 : 0
+    this.data.qa_ready = qa_ready
 
-    db_pull_data.interacted_count += !db_pull_data.interacted & qa_interacted ? 1 : 0
-    db_pull_data.interacted = qa_interacted
+    this.data.interacted_count += !this.data.interacted & qa_interacted ? 1 : 0
+    this.data.interacted = qa_interacted
   }
 
 
