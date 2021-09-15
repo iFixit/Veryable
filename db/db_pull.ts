@@ -81,13 +81,13 @@ export default class Pull {
     pull.data = { ...db_pull };
     return pull;
   }
-  // Retrieves the Repo and Pull Number in a formatted string
-  getUniqueID() {
+  // Returns string formate of primary key
+  getUniqueID():string {
     return `${this.data.repo} #${this.data.pull_number}`
   }
 
-  // Retrieves the Repo Owner, Repo Name, and Pull Number
-  getGraphQLValues() {
+  // Retrive values needed for GitHub Graphql call
+  getGraphQLValues(): [{name: string, owner: string}, number] {
     let split = this.data.repo.split('/')
     let repo = {
       name: split[1],
@@ -96,7 +96,8 @@ export default class Pull {
     return [repo, this.data.pull_number]
   }
 
-  async save() {
+  // Insert / Update Pull Request into the DB
+  async save(): Promise<void> {
     try {
       await db('qa_pulls')
         .insert({ ...this.data })
@@ -112,12 +113,12 @@ export default class Pull {
     }
   }
 
-  async setNewValues(data) {
+  async setNewValues(data: PullRequest): Promise<void> {
     this.data = { ...data }
     await this.save()
   }
 
-  static async getDBPulls() {
+  static async getDBPulls(): Promise<Pull[]> {
     const rows = await db('qa_pulls').select().where({ state: 'OPEN' })
     const db_pulls: Pull[] = []
 
@@ -130,30 +131,30 @@ export default class Pull {
 
   //TODO: Only return QA_ready pulls on pulls that are still open
   // Case is where the qa_ready value does not change but the state does
-  static async getQAReadyPullCount() {
+  static async getQAReadyPullCount(): Promise<number> {
     let result = await db('qa_pulls')
       .count('qa_ready as running_pull_total')
       .where({ qa_ready: 1 })
       .andWhere({ state: 'OPEN' })
-    return result[0].running_pull_total
+    return result[0].running_pull_total as number
   }
 
-  static async getQAReadyUniquePullCount() {
+  static async getQAReadyUniquePullCount(): Promise<number> {
     let today = Math.floor(new Date().setHours(0, 0, 0, 0) / 1000)
     let result = await db('qa_pulls')
       .count('qa_ready_count as unique_pulls_added')
       .where('qa_ready_count', '>', 0)
       .andWhere('created_at', '>=', today)
     log.data("Get Unique Pull Count Today's value: " + today)
-    return result[0].unique_pulls_added
+    return result[0].unique_pulls_added as number
   }
 
-  static async getInteractionsCount() {
+  static async getInteractionsCount(): Promise<number> {
     let today = Math.floor(new Date().setHours(0, 0, 0, 0) / 1000)
     let result = await db('qa_pulls')
       .count('interacted as pulls_interacted')
       .where({ interacted: 1 })
       .andWhere('updated_at', '>=', today)
-    return result[0].pulls_interacted
+    return result[0].pulls_interacted as number
   }
 }
