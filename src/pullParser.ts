@@ -8,15 +8,11 @@ const QA_TEAM = config.qa_team
 import logger from './logger.js'
 const log = logger('pullParser')
 
-export default function parsePull(github_pull: GitHubPullRequest, db_pull = null) {
+export default function parsePull(github_pull: GitHubPullRequest, db_pull: Pull): void {
   log.data(`Parsing Pull #${github_pull.number} ${github_pull.title}`)
-  if (db_pull === null) {
-    db_pull = new Pull(github_pull)
-  }
-  const data = { ...db_pull.data }
 
-  db_pull.updateDates(data, github_pull)
-  db_pull.updateValues(data, github_pull)
+  db_pull.updateDates(github_pull)
+  db_pull.updateValues(github_pull)
   db_pull.save();
 }
 
