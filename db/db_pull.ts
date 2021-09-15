@@ -91,10 +91,10 @@ export default class Pull {
 
   static async getDBPulls() {
     const rows = await db('qa_pulls').select().where({ state: 'OPEN' })
-    const db_pulls = []
+    const db_pulls: Pull[] = []
 
     for (let row of rows) {
-      db_pulls.push(new Pull(row))
+      db_pulls.push(Pull.fromDataBase(row))
     }
 
     return db_pulls
