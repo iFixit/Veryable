@@ -277,22 +277,20 @@ export default class Pull {
     return result[0].running_pull_total as number
   }
 
-  static async getQAReadyUniquePullCount(): Promise<number> {
-    let today = Math.floor(new Date().setHours(0, 0, 0, 0) / 1000)
+  static async getQAReadyUniquePullCount(day:number): Promise<number> {
     let result = await db('qa_pulls')
       .count('qa_ready_count as unique_pulls_added')
       .where('qa_ready_count', '>', 0)
-      .andWhere('created_at', '>=', today)
-    log.data("Get Unique Pull Count Today's value: " + today)
+      .andWhere('created_at', '>=', day)
+    log.data("Get Unique Pull Count Today's value: " + day)
     return result[0].unique_pulls_added as number
   }
 
-  static async getInteractionsCount(): Promise<number> {
-    let today = Math.floor(new Date().setHours(0, 0, 0, 0) / 1000)
+  static async getInteractionsCount(day: number): Promise<number> {
     let result = await db('qa_pulls')
       .count('interacted as pulls_interacted')
       .where({ interacted: 1 })
-      .andWhere('updated_at', '>=', today)
+      .andWhere('updated_at', '>=', day)
     return result[0].pulls_interacted as number
   }
 }

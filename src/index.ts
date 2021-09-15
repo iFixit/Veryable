@@ -70,8 +70,8 @@ async function updateDayMetrics() {
   current_metrics.pulls_added += difference > 0 ? difference : 0
   current_metrics.pull_count = running_pull_total
 
-  current_metrics.unique_pulls_added = await Pull.getQAReadyUniquePullCount()
-  current_metrics.pulls_interacted = await Pull.getInteractionsCount()
+  current_metrics.unique_pulls_added = await Pull.getQAReadyUniquePullCount(DAY.today)
+  current_metrics.pulls_interacted = await Pull.getInteractionsCount(DAY.today)
 
   log.info('Current Pulls Today: ' + current_metrics.pull_count)
   log.info('Interactions Today: ' + current_metrics.pulls_interacted)
