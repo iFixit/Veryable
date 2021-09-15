@@ -37,7 +37,7 @@ function formatGHDate(utc_date: string | null): number | null {
 // Check if there is an Issue connected with Pull
 function closesDeclared(pull) {
   let body = pull.bodyText
-  let closes_regex = new RegExp(SIGNATURES.closes, 'i')
+  let closes_regex = new RegExp(signatures.closes, 'i')
   let closes_pull = null
   let __CLOSE
 
@@ -64,7 +64,7 @@ function getTagsAndInteracted(github_pull) {
     }
 
     if (
-      QA_TEAM.includes(comment.author.login) &&
+      qa_team.includes(comment.author.login) &&
       date.subtract(latest_commit_date, comment_date).toDays() <= 0 &&
       date.isSameDay(comment_date, new Date())
     ) {
@@ -76,13 +76,13 @@ function getTagsAndInteracted(github_pull) {
 }
 
 function hasQATag(comment) {
-  let regex = new RegExp(SIGNATURES.QA + SIGNATURES.emoji, 'i')
+  let regex = new RegExp(signatures.QA + signatures.emoji, 'i')
   return regex.test(comment)
 }
 
 function hasTags(comment, tags) {
-  SIGNATURES.tags.forEach(tag => {
-    let regex = new RegExp(tag.regex + SIGNATURES.emoji, 'i')
+  signatures.tags.forEach(tag => {
+    let regex = new RegExp(tag.regex + signatures.emoji, 'i')
     if (regex.test(comment)) {
       tags['dev_block'] = tag.state
     }
@@ -92,7 +92,7 @@ function hasTags(comment, tags) {
 // Check if the Pull requires QAing
 function qaRequired(pull) {
   let body = pull.bodyText
-  let qa_regex = new RegExp(SIGNATURES.qa_req, 'i')
+  let qa_regex = new RegExp(signatures.qa_req, 'i')
   return qa_regex.test(body)
 }
 
