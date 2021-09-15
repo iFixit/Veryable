@@ -1,11 +1,6 @@
-import date from 'date-and-time'
-import Pull from '../db/db_pull.js'
+import Pull from '../db/db_pull'
+import logger from './logger'
 
-import config from '../config/config.js'
-const SIGNATURES = config.signatures
-const QA_TEAM = config.qa_team
-
-import logger from './logger.js'
 const log = logger('pullParser')
 
 export default function parsePull(github_pull: GitHubPullRequest, db_pull: Pull): void {
