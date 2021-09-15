@@ -48,6 +48,24 @@ const defaultData = {
   qa_ready_count: 0,
 }
 
+ const mockPullData = {
+  repo: 'iFixit/ifixit',
+  pull_number: 39126,
+  state: 'OPEN',
+  title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
+  head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
+  qa_req: 1,
+  created_at: 1628362800,
+  updated_at: 0,
+  closed_at: 0,
+  merged_at: 0,
+  closes: null,
+  interacted: 0,
+  interacted_count: 0,
+  qa_ready: 0,
+  qa_ready_count: 0,
+}
+
 describe('Pull Class', () => {
   test('Connection Established', async () => {
     let data = await db.raw('Select 1+1 as result')
@@ -61,24 +79,6 @@ describe('Pull Class', () => {
       expect(testPull.data).toMatchObject(defaultData)
     })
     test('Init with data passed to constructor', () => {
-      let mockPullData = {
-        repo: 'iFixit/ifixit',
-        pull_number: 35524,
-        state: 'MERGED',
-        title: 'PHP-Webdriver: Upgrade for Chrome tests only',
-        head_ref: '4c763380b8a34be7d3e78fcee935ef2058a76b45',
-        qa_req: 0,
-        created_at: 1608168616,
-        updated_at: 1610040334,
-        closed_at: 1610040333,
-        merged_at: 1610040333,
-        closes: null,
-        interacted: 0,
-        interacted_count: 0,
-        qa_ready: 0,
-        qa_ready_count: 0,
-      }
-
       let testPull = new Pull(mockPullData)
       expect(testPull.data).toMatchObject(mockPullData)
     })
@@ -120,70 +120,16 @@ describe('Pull Class', () => {
   })
   describe('Instance Methods', () => {
     test('getUniqueID returns "repo owner/name #pull number" ', () => {
-      let mockPullData = {
-        repo: 'iFixit/ifixit',
-        pull_number: 39126,
-        state: 'OPEN',
-        title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
-        head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
-        qa_req: 1,
-        created_at: 1628362800,
-        updated_at: 0,
-        closed_at: 0,
-        merged_at: 0,
-        closes: null,
-        interacted: 0,
-        interacted_count: 0,
-        qa_ready: 0,
-        qa_ready_count: 0,
-      }
-
       let testPull = new Pull(mockPullData)
       let expectedUniqueID = 'iFixit/ifixit #39126'
       expect(testPull.getUniqueID()).toBe(expectedUniqueID)
     })
     test('getGraphQLValues returns repo{ name, owner} pull number', () => {
-      let mockPullData = {
-        repo: 'iFixit/ifixit',
-        pull_number: 39126,
-        state: 'OPEN',
-        title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
-        head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
-        qa_req: 1,
-        created_at: 1628362800,
-        updated_at: 0,
-        closed_at: 0,
-        merged_at: 0,
-        closes: null,
-        interacted: 0,
-        interacted_count: 0,
-        qa_ready: 0,
-        qa_ready_count: 0,
-      }
-
       let testPull = new Pull(mockPullData)
       let expectedGraphQLValues = [{ name: 'ifixit', owner: 'iFixit' }, 39126]
       expect(testPull.getGraphQLValues()).toMatchObject(expectedGraphQLValues)
     })
     test('setNewValues changes Pull data', async () => {
-      let mockPullData = {
-        repo: 'iFixit/ifixit',
-        pull_number: 39126,
-        state: 'OPEN',
-        title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
-        head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
-        qa_req: 1,
-        created_at: 1628362800,
-        updated_at: 1628363900,
-        closed_at: 0,
-        merged_at: 0,
-        closes: null,
-        interacted: true,
-        interacted_count: 2,
-        qa_ready: true,
-        qa_ready_count: 3,
-      }
-
       let testPull = new Pull()
       let spy = jest.spyOn(testPull, 'save').mockImplementation(() => {
         'Saving to DB'
@@ -202,24 +148,7 @@ describe('Pull Class', () => {
       test('Setting values on new Pull creates new row ', async () => {
         let dataBefore = await db('qa_pulls').select()
         expect(dataBefore.length).toBe(0)
-        let mockPullData = {
-          repo: 'iFixit/ifixit',
-          pull_number: 39126,
-          state: 'OPEN',
-          title:
-            'Shopify Hotfix: Add order method to get customer email and use it in return emails',
-          head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
-          qa_req: 1,
-          created_at: 1628362800,
-          updated_at: 1628363900,
-          closed_at: 0,
-          merged_at: 0,
-          closes: null,
-          interacted: 1,
-          interacted_count: 2,
-          qa_ready: 1,
-          qa_ready_count: 3,
-        }
+
         let testPull = new Pull()
         await testPull.setNewValues(mockPullData)
         expect(testPull.data).toMatchObject(mockPullData)
