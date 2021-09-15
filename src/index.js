@@ -1,6 +1,7 @@
-import { execSync } from 'child_process'
 import config from '../config/config.js'
 const REPOS = config.repos
+
+import refreshPulls from '../scripts/refreshPulls';
 
 import { queryOpenPulls } from './ghgraphql.js'
 
@@ -20,7 +21,7 @@ const log = logger('main')
 ;(async () => {
   log.info('Will now refresh current open pulls in DB')
   // Refresh any open pulls since last start up and block code until done
-  execSync('node ./scripts/refreshPulls.js')
+  await refreshPulls()
   log.info('Done refreshing pulls')
   main()
   setInterval(main, 60 * 1000) //Run every 60 seconds
