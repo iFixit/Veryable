@@ -234,7 +234,7 @@ export default class Pull {
     this.data.qa_ready_count += !this.data.qa_ready && qa_ready ? 1 : 0
     this.data.qa_ready = qa_ready
 
-    this.data.interacted_count += !this.data.interacted & qa_interacted ? 1 : 0
+    this.data.interacted_count += !this.data.interacted && qa_interacted ? 1 : 0
     this.data.interacted = qa_interacted
   }
 
