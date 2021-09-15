@@ -232,15 +232,15 @@ describe('Pull Class', () => {
     })
     test('setNewValues changes Pull data', async () => {
       let testPull = Pull.fromDataBase(mockPullData)
-      let spy = jest.spyOn(testPull, 'save').mockImplementation(() => {
-        'Saving to DB'
-      })
+      let spy = jest.spyOn(testPull, 'save').mockImplementation(() => Promise.resolve());
+
 
       expect(testPull.data).toMatchObject(defaultData)
 
       testPull.setNewValues(updated_pull_data)
       expect(testPull.data).toMatchObject(mockPullData)
       expect(spy).toHaveBeenCalledTimes(1)
+      spy.mockRestore()
     })
     describe('Saving Pull data', () => {
       beforeEach(async () => {
