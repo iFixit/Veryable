@@ -1,6 +1,12 @@
+import date from 'date-and-time'
 import db from '../knex/knex'
 
-import logger from '../src/logger.js'
+import logger from '../src/logger'
+import config from '../config/config'
+import { utils } from '../scripts/utils'
+
+const { signatures } = config
+const { qa_team } = config
 const log = logger('db_pull')
 
 interface PullRequest {
