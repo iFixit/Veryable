@@ -86,26 +86,6 @@ export default class Day
     return { ...this.dayMetrics };
   }
 
-  getPullCount()
-  {
-    return this.dayMetrtics.pull_count;
-  }
-
-  getPullsAdded()
-  {
-    return this.dayMetrtics.pulls_added;
-  }
-
-  getInteractionsCount()
-  {
-    return this.dayMetrtics.pulls_interacted;
-  }
-
-  getUniquePullsAddedCount()
-  {
-    return this.dayMetrtics.unique_pulls_added;
-  }
-
   getDates()
   {
     let today = Math.floor( new Date().setHours( 0, 0, 0, 0 ) / 1000 );
