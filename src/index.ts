@@ -1,5 +1,5 @@
 import config from '../config/config'
-const REPOS = config.repos
+const { repos } = config
 
 import refreshPulls from '../scripts/refreshPulls';
 
@@ -32,7 +32,7 @@ async function main() {
   log.info('Running script...\n')
 
   // Iterate through the list of repos declared in the config.json file
-  for (const repo of REPOS) {
+  for (const repo of repos) {
     log.data(`Parsing pulls for repo: ${JSON.stringify(repo)}`)
     const all_open_pulls = await queryOpenPulls(repo)
     parsePulls(all_open_pulls.repository.pullRequests.nodes)
