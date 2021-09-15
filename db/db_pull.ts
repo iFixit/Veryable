@@ -90,10 +90,16 @@ function hasTags(comment, tags) {
 }
 
 // Check if the Pull requires QAing
-function qaRequired(pull) {
-  let body = pull.bodyText
+function qaRequired(github_pull: GitHubPullRequest): number {
+  let body = github_pull.bodyText || ''
   let qa_regex = new RegExp(signatures.qa_req, 'i')
-  return qa_regex.test(body)
+  const qa = body.match(qa_regex)
+  let qa_req = 1
+
+  if (qa?.groups) {
+    qa_req = parseInt(qa.groups.qa_req)
+  }
+  return qa_req
 }
 
 // Iteratres through the Pull Object and retrieves the appropriate base properties
