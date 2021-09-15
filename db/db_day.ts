@@ -1,7 +1,9 @@
-import date from "date-and-time";
 import db from "../knex/knex";
 
 import logger from '../src/logger';
+
+import { utils } from '../scripts/utils'
+
 const log = logger( 'db_day' );
 
 const TWENTY_FOUR_HOURS = 86400;
@@ -27,7 +29,7 @@ export default class Day
       pulls_interacted: 0,
       unique_pulls_added: 0
     };
-    let [ t, y ] = this.getDates();
+    let [ t, y ] = utils.getDates();
     this.today = t;
     this.yesterday = y;
     log.data( `Today's values are ${ this.today } and yesterday is ${ this.yesterday }` );
@@ -66,7 +68,7 @@ export default class Day
   {
     if ( this.today !== Math.floor( new Date().setHours( 0, 0, 0, 0 ) / 1000 ) )
     {
-      [ this.today, this.yesterday ] = this.getDates();
+      [ this.today, this.yesterday ] = utils.getDates();
       this.dayMetrics.pulls_added = 0;
     }
     this.dayMetrics = newMetrics ? newMetrics : this.dayMetrics;
@@ -84,13 +86,6 @@ export default class Day
   getDayValues()
   {
     return { ...this.dayMetrics };
-  }
-
-  getDates()
-  {
-    let today = Math.floor( new Date().setHours( 0, 0, 0, 0 ) / 1000 );
-    let yesterday = Math.floor( date.addDays( new Date(), -1 ).setHours( 0, 0, 0, 0 ) / 1000 );
-    return [ today, yesterday ];
   }
 };
 
