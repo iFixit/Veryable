@@ -97,7 +97,7 @@ function qaRequired(pull) {
 }
 
 // Iteratres through the Pull Object and retrieves the appropriate base properties
-function isQAReadyAndInteracted(db_pull_data, github_pull) {
+function isQAReadyAndInteracted(github_pull: GitHubPullRequest) {
   let build_status = github_pull.commits.nodes[0].commit.status
     ? github_pull.commits.nodes[0].commit.status.state
     : 'EXPECTED'
@@ -107,7 +107,6 @@ function isQAReadyAndInteracted(db_pull_data, github_pull) {
   let qa_req = qaRequired(github_pull)
   if (qa_req) {
     qa_ready = false
-    db_pull_data.qa_req = false
   }
 
   // Want to skip pulls that are failing CI
@@ -121,7 +120,7 @@ function isQAReadyAndInteracted(db_pull_data, github_pull) {
     qa_ready = false
   }
 
-  return [qa_ready, qa_interacted]
+  return [qa_ready, qa_req, qa_interacted]
 }
 
 //TODO: move to actual ORM like Prisma for easier model configuration and declaration
@@ -226,11 +225,11 @@ export default class Pull {
   }
 
   qaReadyAndInteracted(github_pull: GitHubPullRequest): void {
-    let [qa_ready, qa_interacted] = isQAReadyAndInteracted(github_pull)
+    let [qa_ready, qa_req, qa_interacted] = isQAReadyAndInteracted(github_pull)
     log.data(
       `For Pull #${this.data.pull_number} ${this.data.title} Returned QA Ready: ${qa_ready}, Current QA Ready: ${this.data.qa_ready}, Current QA Count: ${this.data.qa_ready_count},`
     )
-
+    this.data.qa_req = qa_req;
     this.data.qa_ready_count += !this.data.qa_ready && qa_ready ? 1 : 0
     this.data.qa_ready = qa_ready
 
