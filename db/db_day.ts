@@ -38,8 +38,7 @@ export default class Day
 
 
   // Initial the day
-  async init()
-  {
+  async init(): Promise<void> {
     let day = await db( 'qa_metrics' ).first().where( { "date": this.today } ).orWhere( { "date": this.yesterday } ).orderBy( "date", "desc" );
 
     log.data( `Day Data ${ JSON.stringify( day, null, 2 ) }` );
@@ -64,14 +63,14 @@ export default class Day
   };
 
   // Insert the new Day in the table and if it exists Update the values accordingly
-  async save( newMetrics = null )
+  async save( newMetrics: DayMetric | null = null ): Promise<void>
   {
     if ( this.today !== Math.floor( new Date().setHours( 0, 0, 0, 0 ) / 1000 ) )
     {
       [ this.today, this.yesterday ] = utils.getDates();
       this.dayMetrics.pulls_added = 0;
     }
-    this.dayMetrics = newMetrics ? newMetrics : this.dayMetrics;
+    this.dayMetrics = newMetrics || this.dayMetrics;
     try
     {
       await db( 'qa_metrics' )
@@ -83,7 +82,7 @@ export default class Day
     }
   }
 
-  getDayValues()
+  getDayValues(): DayMetric
   {
     return { ...this.dayMetrics };
   }
