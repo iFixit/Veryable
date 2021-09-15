@@ -72,7 +72,7 @@ export default class Pull {
     try {
       await db('qa_pulls')
         .insert({ ...this.data })
-        .onConflict('repo', 'pull_number')
+        .onConflict(['repo', 'pull_number'])
         .merge()
     } catch (e) {
       log.error(
