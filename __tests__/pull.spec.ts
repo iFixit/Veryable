@@ -195,28 +195,8 @@ describe('Pull Class', () => {
         updatedAt: '2021-08-07T19:00:00Z',
         mergedAt: null,
       }
-
-      let expectedPullData = {
-        repo: 'iFixit/ifixit',
-        pull_number: 39126,
-        state: 'OPEN',
-        title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
-        head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
-        qa_req: 1,
-        created_at: 1628362800,
-        updated_at: 0,
-        closed_at: 0,
-        merged_at: 0,
-        closes: null,
-        interacted: 0,
-        interacted_count: 0,
-        qa_ready: 0,
-        qa_ready_count: 0,
-      }
-
       let testPull = Pull.fromGitHub(mockGitHubData)
-
-      expect(testPull.data).toMatchObject(expectedPullData)
+      expect(testPull.data).toMatchObject(mockPullData)
     })
   })
   describe('Instance Methods', () => {
@@ -235,10 +215,10 @@ describe('Pull Class', () => {
       let spy = jest.spyOn(testPull, 'save').mockImplementation(() => Promise.resolve());
 
 
-      expect(testPull.data).toMatchObject(defaultData)
+      expect(testPull.data).toMatchObject(mockPullData)
 
       testPull.setNewValues(updated_pull_data)
-      expect(testPull.data).toMatchObject(mockPullData)
+      expect(testPull.data).toMatchObject(updated_pull_data)
       expect(spy).toHaveBeenCalledTimes(1)
       spy.mockRestore()
     })
@@ -282,30 +262,21 @@ describe('Pull Class', () => {
         }
 
         await db('qa_pulls').insert(rowData)
-        let mockUpdatePullData = {
-          repo: 'iFixit/ifixit',
-          pull_number: 39126,
-          state: 'CLOSED',
-          title:
-            'Shopify Hotfix: Add order method to get customer email and use it in return emails',
-          head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
-          qa_req: 1,
-          created_at: 1628362800,
-          updated_at: 1628363900,
-          closed_at: 1628363900,
-          merged_at: 1628363900,
-          closes: null,
-          interacted: 1,
-          interacted_count: 3,
-          qa_ready: 1,
-          qa_ready_count: 5,
-        }
         let newData = await db('qa_pulls').select()
         expect(newData.length).toBe(1)
         expect(newData[0]).toMatchObject(rowData)
 
         let testPull = Pull.fromDataBase(newData[0])
-
+        let mockUpdatePullData = {
+          ...mockPullData,
+          updated_at: 1628363900,
+          closed_at: 1628363900,
+          merged_at: 1628363900,
+          interacted: 1,
+          interacted_count: 3,
+          qa_ready: 1,
+          qa_ready_count: 5,
+        }
         testPull.setNewValues(mockUpdatePullData)
         expect(testPull.data).toMatchObject(mockUpdatePullData)
 
