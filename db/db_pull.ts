@@ -100,10 +100,6 @@ export default class Pull {
     return db_pulls
   }
 
-  static getSchemaJSON() {
-    return defaultData
-  }
-
   //TODO: Only return QA_ready pulls on pulls that are still open
   // Case is where the qa_ready value does not change but the state does
   static async getQAReadyPullCount() {

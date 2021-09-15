@@ -402,47 +402,7 @@ describe('Pull Class', () => {
         expect(pull.data.state).toBe('OPEN')
       })
     })
-    test('getSchemaJSON returns ORM in JSON', () => {
-      let mockPullData = {
-        repo: 'iFixit/ifixit',
-        pull_number: 39126,
-        state: 'OPEN',
-        title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
-        head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
-        qa_req: 1,
-        created_at: 1628362800,
-        updated_at: 1628363900,
-        closed_at: 0,
-        merged_at: 0,
-        closes: null,
-        interacted: 1,
-        interacted_count: 2,
-        qa_ready: 1,
-        qa_ready_count: 3,
-      }
-      let keys = Object.keys(mockPullData)
-      let pullSchema = Pull.getSchemaJSON()
-      keys.forEach(key => {
-        expect(pullSchema).toHaveProperty(key)
-      })
-      expect(pullSchema).toMatchObject({
-        repo: expect.any(String),
-        pull_number: expect.any(Number),
-        state: expect.any(String),
-        title: expect.any(String),
-        head_ref: expect.any(String),
-        qa_req: expect.any(Number),
-        created_at: expect.any(Number),
-        updated_at: expect.any(Number),
-        closed_at: expect.any(Number),
-        merged_at: expect.any(Number),
-        closes: null,
-        interacted: expect.any(Number),
-        interacted_count: expect.any(Number),
-        qa_ready: expect.any(Number),
-        qa_ready_count: expect.any(Number),
-      })
-    })
+
     test('getQAReadyPullCount returns sum of all pulls who have QA Ready to 1||true', async () => {
       let data = await Pull.getQAReadyPullCount()
       expect(data).toBe(2)
