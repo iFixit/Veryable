@@ -182,7 +182,7 @@ describe('Pull Class', () => {
       expect(testPull.data).toMatchObject(mockPullData)
     })
     test('Init with GitHub Pull data', () => {
-      let mockGitHubData = {
+      let mockGitHubData: GitHubPullRequest = {
         closedAt: null,
         createdAt: '2021-08-07T19:00:00Z',
         headRefOid: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
@@ -192,6 +192,8 @@ describe('Pull Class', () => {
         number: 39126,
         state: 'OPEN',
         title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
+        updatedAt: '2021-08-07T19:00:00Z',
+        mergedAt: null,
       }
 
       let expectedPullData = {
