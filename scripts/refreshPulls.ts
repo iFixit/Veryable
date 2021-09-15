@@ -1,22 +1,19 @@
 // Plan is to run this once to update all Pulls current in the DB that are still marked as OPEN yet the live Pull has been CLOSED or MERGED
 
-import Pull from '../db/db_pull.js'
-import { queryPull } from '../src/ghgraphql.js'
-import parsePull from '../src/pullParser.js'
+import Pull from '../db/db_pull'
+import { queryPull } from '../src/ghgraphql'
+import parsePull from '../src/pullParser'
 
-const DB_PULLS = await Pull.getDBPulls()
 
-import logger from '../src/logger.js'
-const log = logger('refreshPull')
+import logger from '../src/logger'
+export default async function ():Promise<void> {
+  const db_pulls = await Pull.getDBPulls();
+  const log = logger('refreshPull');
 
-for (let db_pull of DB_PULLS) {
-  try {
-    const github_pull = await queryPull(...db_pull.getGraphQLValues())
-    parsePull(github_pull.repository.pullRequest, db_pull)
-  } catch (e) {
-    log.error(`Failed to parse ${db_pull.getUniqueID()}\n ${e.message}`)
-  }
+  db_pulls.forEach(async (db_pull) => {
+    const github_pull = await queryPull(...db_pull.getGraphQLValues());
+    parsePull(github_pull.repository.pullRequest, db_pull);
+  });
+
+  log.info('Done refreshing Pulls');
 }
-
-log.info('Done refreshing Pulls')
-process.exit(0)
