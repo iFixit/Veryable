@@ -277,19 +277,23 @@ export default class Pull {
     return result[0].running_pull_total as number
   }
 
-  static async getQAReadyUniquePullCount(day:number): Promise<number> {
+  //TODO: Add conditional to be within single day range
+  //Will also include pulls that are still open passed creation date
+  static async getQAReadyUniquePullCount(day: number): Promise<number> {
     let result = await db('qa_pulls')
       .count('qa_ready_count as unique_pulls_added')
-      .where('qa_ready_count', '>', 0)
+      .where('qa_ready_count', '>=', 1)
       .andWhere('created_at', '>=', day)
     log.data("Get Unique Pull Count Today's value: " + day)
     return result[0].unique_pulls_added as number
   }
 
+  //TODO : This query will not work if the pull is updated on the day but no change to interaction has been done.
+  // This also does not consider pulls currently marked as non-interacted but have been interacted for the day
   static async getInteractionsCount(day: number): Promise<number> {
     let result = await db('qa_pulls')
-      .count('interacted as pulls_interacted')
-      .where({ interacted: 1 })
+      .count('interacted_count as pulls_interacted')
+      .where('interacted_count', '>=', 1)
       .andWhere('updated_at', '>=', day)
     return result[0].pulls_interacted as number
   }
