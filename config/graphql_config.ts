@@ -89,7 +89,7 @@ commits( last: 1 ){
     }
   }
 },
-comments( last: 50 ){
+comments( last: 50, orderBy: { field: UPDATED_AT, direction: DESC } ){
   nodes{
     ...commentFields
   }
