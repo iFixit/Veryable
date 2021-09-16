@@ -902,5 +902,414 @@ describe('Pull Class', () => {
       expect(test_pull.data).toMatchObject(expected_data);
     });
 
+    test('Parse for qa ready and increment qa ready count', () => {
+      const mock_github_data:GitHubPullRequest = {
+        bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
+        closedAt: null,
+        comments: { // Comments are sorted in descending order of creation
+          nodes: [
+            {
+              author: {
+                login: 'mcTestyFace',
+              },
+              bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
+              createdAt: '2021-08-06T23:59:34Z',
+            },
+          ],
+        },
+        commits: {
+          nodes: [
+            {
+              commit: {
+                pushedDate: '2021-08-06T10:00:00Z',
+                status: {
+                  state: 'SUCCESS',
+                },
+              },
+            },
+          ],
+        },
+        createdAt: '2021-08-06T23:46:48Z',
+        headRefOid: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
+        baseRepository: {
+          nameWithOwner: 'iFixit/ifixit',
+        },
+        mergedAt: null,
+        number: 39124,
+        state: 'OPEN',
+        title: 'Reset cache before each CustomerMapperTest',
+        updatedAt: '2021-08-07T00:16:22Z',
+      };
+
+      const mock_db_pull_data = {
+        closed_at: null,
+        closes: null,
+        created_at: 1628293608,
+        head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
+        interacted_count: 2,
+        interacted: 0,
+        merged_at: null,
+        pull_number: 39124,
+        qa_ready_count: 3,
+        qa_ready: 0,
+        qa_req: 1,
+        repo: 'iFixit/ifixit',
+        state: 'OPEN',
+        title: 'Reset cache before each CustomerMapperTest',
+        updated_at: 1628293608,
+      };
+
+      const expected_data = {
+        closed_at: null,
+        closes: null,
+        created_at: 1628293608,
+        head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
+        interacted_count: 2,
+        interacted: 0,
+        merged_at: null,
+        pull_number: 39124,
+        qa_ready_count: 4,
+        qa_ready: 1,
+        qa_req: 1,
+        repo: 'iFixit/ifixit',
+        state: 'OPEN',
+        title: 'Reset cache before each CustomerMapperTest',
+        updated_at: 1628295382,
+      };
+      const test_pull = Pull.fromDataBase(mock_db_pull_data);
+      test_pull.updateValues(mock_github_data);
+      expect(test_pull.data).toMatchObject(expected_data);
+    });
+
+    test('Parse for interaction after new commit', () => {
+      const mock_github_data:GitHubPullRequest = {
+        bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
+        closedAt: null,
+        comments: { // Comments are sorted in descending order of creation
+          nodes: [
+            {
+              author: {
+                login: 'mcTestyFace',
+              },
+              bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
+              createdAt: '2021-08-06T23:59:34Z',
+            },
+            {
+              author: {
+                login: 'ardelato',
+              },
+              bodyText: 'Comment with a question',
+              createdAt: '2021-08-06T19:00:00Z',
+            },
+            {
+              author: {
+                login: 'deltuh-vee',
+              },
+              bodyText: 'Another comment with a question',
+              createdAt: '2021-08-06T18:00:00Z',
+            },
+          ],
+        },
+        commits: {
+          nodes: [
+            {
+              commit: {
+                pushedDate: '2021-08-06T10:00:00Z',
+                status: {
+                  state: 'SUCCESS',
+                },
+              },
+            },
+          ],
+        },
+        createdAt: '2021-08-06T23:46:48Z',
+        headRefOid: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
+        baseRepository: {
+          nameWithOwner: 'iFixit/ifixit',
+        },
+        mergedAt: null,
+        number: 39124,
+        state: 'OPEN',
+        title: 'Reset cache before each CustomerMapperTest',
+        updatedAt: '2021-08-07T00:16:22Z',
+      };
+      const expected_data = {
+        closed_at: null,
+        closes: null,
+        created_at: 1628293608,
+        head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
+        interacted_count: 1,
+        interacted: 1,
+        merged_at: null,
+        pull_number: 39124,
+        qa_ready_count: 1,
+        qa_ready: 1,
+        qa_req: 1,
+        repo: 'iFixit/ifixit',
+        state: 'OPEN',
+        title: 'Reset cache before each CustomerMapperTest',
+        updated_at: 1628295382,
+      };
+      const spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [1628233200000, 1628146800000]);
+      const test_pull = Pull.fromGitHub(mock_github_data);
+      test_pull.updateValues(mock_github_data);
+      expect(test_pull.data).toMatchObject(expected_data);
+      expect(spy).toHaveBeenCalledTimes(2);
+      spy.mockRestore();
+    });
+
+    test('Parse for interaction with new commit and previous comments', () => {
+      const mock_github_data:GitHubPullRequest = {
+        bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
+        closedAt: null,
+        comments: { // Comments are sorted in descending order of creation
+          nodes: [
+            {
+              author: {
+                login: 'mcTestyFace',
+              },
+              bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
+              createdAt: '2021-08-06T23:59:34Z',
+            },
+            {
+              author: {
+                login: 'ardelato',
+              },
+              bodyText: 'Comment with a question',
+              createdAt: '2021-08-05T19:00:00Z',
+            },
+            {
+              author: {
+                login: 'deltuh-vee',
+              },
+              bodyText: 'Another comment with a question',
+              createdAt: '2021-08-04T18:00:00Z',
+            },
+          ],
+        },
+        commits: {
+          nodes: [
+            {
+              commit: {
+                pushedDate: '2021-08-06T10:00:00Z',
+                status: {
+                  state: 'SUCCESS',
+                },
+              },
+            },
+          ],
+        },
+        createdAt: '2021-08-06T23:46:48Z',
+        headRefOid: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
+        baseRepository: {
+          nameWithOwner: 'iFixit/ifixit',
+        },
+        mergedAt: null,
+        number: 39124,
+        state: 'OPEN',
+        title: 'Reset cache before each CustomerMapperTest',
+        updatedAt: '2021-08-07T00:16:22Z',
+      };
+      const expected_data = {
+        closed_at: null,
+        closes: null,
+        created_at: 1628293608,
+        head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
+        interacted_count: 0,
+        interacted: 0,
+        merged_at: null,
+        pull_number: 39124,
+        qa_ready_count: 1,
+        qa_ready: 1,
+        qa_req: 1,
+        repo: 'iFixit/ifixit',
+        state: 'OPEN',
+        title: 'Reset cache before each CustomerMapperTest',
+        updated_at: 1628295382,
+      };
+      const spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [1628233200000, 1628146800000]);
+      const test_pull = Pull.fromGitHub(mock_github_data);
+      test_pull.updateValues(mock_github_data);
+      expect(test_pull.data).toMatchObject(expected_data);
+
+      expect(spy).toHaveBeenCalledTimes(0);
+      spy.mockRestore();
+    });
+
+    test('Parse for interaction with new commit and previous comments', () => {
+      const mock_github_data:GitHubPullRequest = {
+        bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
+        closedAt: null,
+        comments: { // Comments are sorted in descending order of creation
+          nodes: [
+            {
+              author: {
+                login: 'mcTestyFace',
+              },
+              bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
+              createdAt: '2021-08-06T23:59:34Z',
+            },
+            {
+              author: {
+                login: 'ardelato',
+              },
+              bodyText: 'Comment with a question',
+              createdAt: '2021-08-05T19:00:00Z',
+            },
+            {
+              author: {
+                login: 'deltuh-vee',
+              },
+              bodyText: 'Another comment with a question',
+              createdAt: '2021-08-04T18:00:00Z',
+            },
+          ],
+        },
+        commits: {
+          nodes: [
+            {
+              commit: {
+                pushedDate: '2021-08-06T10:00:00Z',
+                status: {
+                  state: 'SUCCESS',
+                },
+              },
+            },
+          ],
+        },
+        createdAt: '2021-08-06T23:46:48Z',
+        headRefOid: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
+        baseRepository: {
+          nameWithOwner: 'iFixit/ifixit',
+        },
+        mergedAt: null,
+        number: 39124,
+        state: 'OPEN',
+        title: 'Reset cache before each CustomerMapperTest',
+        updatedAt: '2021-08-07T00:16:22Z',
+      };
+      const expected_data = {
+        closed_at: null,
+        closes: null,
+        created_at: 1628293608,
+        head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
+        interacted_count: 0,
+        interacted: 0,
+        merged_at: null,
+        pull_number: 39124,
+        qa_ready_count: 1,
+        qa_ready: 1,
+        qa_req: 1,
+        repo: 'iFixit/ifixit',
+        state: 'OPEN',
+        title: 'Reset cache before each CustomerMapperTest',
+        updated_at: 1628295382,
+      };
+      const spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [1628233200000, 1628146800000]);
+      const test_pull = Pull.fromGitHub(mock_github_data);
+      test_pull.updateValues(mock_github_data);
+      expect(test_pull.data).toMatchObject(expected_data);
+
+      expect(spy).toHaveBeenCalledTimes(0);
+      spy.mockRestore();
+    });
+
+    test('Parse for interaction and increment interaction count', () => {
+      const mock_github_data:GitHubPullRequest = {
+        bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
+        closedAt: null,
+        comments: { // Comments are sorted in descending order of creation
+          nodes: [
+            {
+              author: {
+                login: 'mcTestyFace',
+              },
+              bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
+              createdAt: '2021-08-06T23:59:34Z',
+            },
+            {
+              author: {
+                login: 'ardelato',
+              },
+              bodyText: 'Comment with a question',
+              createdAt: '2021-08-06T19:00:00Z',
+            },
+            {
+              author: {
+                login: 'deltuh-vee',
+              },
+              bodyText: 'Another comment with a question',
+              createdAt: '2021-08-04T18:00:00Z',
+            },
+          ],
+        },
+        commits: {
+          nodes: [
+            {
+              commit: {
+                pushedDate: '2021-08-06T10:00:00Z',
+                status: {
+                  state: 'SUCCESS',
+                },
+              },
+            },
+          ],
+        },
+        createdAt: '2021-08-06T23:46:48Z',
+        headRefOid: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
+        baseRepository: {
+          nameWithOwner: 'iFixit/ifixit',
+        },
+        mergedAt: null,
+        number: 39124,
+        state: 'OPEN',
+        title: 'Reset cache before each CustomerMapperTest',
+        updatedAt: '2021-08-07T00:16:22Z',
+      };
+
+      const mock_db_pull_data = {
+        closed_at: null,
+        closes: null,
+        created_at: 1628293608,
+        head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
+        interacted_count: 2,
+        interacted: 0,
+        merged_at: null,
+        pull_number: 39124,
+        qa_ready_count: 1,
+        qa_ready: 1,
+        qa_req: 1,
+        repo: 'iFixit/ifixit',
+        state: 'OPEN',
+        title: 'Reset cache before each CustomerMapperTest',
+        updated_at: 1628293608,
+      };
+
+      const expected_data = {
+        closed_at: null,
+        closes: null,
+        created_at: 1628293608,
+        head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
+        interacted_count: 3,
+        interacted: 1,
+        merged_at: null,
+        pull_number: 39124,
+        qa_ready_count: 1,
+        qa_ready: 1,
+        qa_req: 1,
+        repo: 'iFixit/ifixit',
+        state: 'OPEN',
+        title: 'Reset cache before each CustomerMapperTest',
+        updated_at: 1628295382,
+      };
+      const spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [1628233200000, 1628146800000]);
+
+      const test_pull = Pull.fromDataBase(mock_db_pull_data);
+      test_pull.updateValues(mock_github_data);
+      expect(test_pull.data).toMatchObject(expected_data);
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      spy.mockRestore();
+    });
   });
 })
