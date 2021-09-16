@@ -16,6 +16,8 @@ const defaultData = {
 
 export default class Issue
 {
+  data: any
+
   constructor( data )
   {
     if ( data )
@@ -40,10 +42,10 @@ export default class Issue
   {
     try
     {
-      await db( 'qa_issues' ).insert( { ...this.data } ).onConflict( "repo", "issue_number" ).merge();
+      await db( 'qa_issues' ).insert( { ...this.data } ).onConflict( ["repo", "issue_number"] ).merge();
     } catch ( e )
     {
-      log.error( "Failed to save Issue '%s %d: %s", this.data.title, this.data.issue_number, e.message );
+      log.error( "Failed to save Issue '%s %d: %s", this.data.title, this.data.issue_number, e );
     }
   }
 
@@ -61,7 +63,7 @@ export default class Issue
   static async getAllDBIssues()
   {
     const rows = await db( 'qa_issues' ).select().whereNull( 'author' );
-    const db_issues = [];
+    const db_issues:Issue[] = [];
 
     for ( let row of rows )
     {
