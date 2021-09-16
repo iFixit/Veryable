@@ -304,11 +304,15 @@ describe('Pull Class', () => {
 
     test('getQAReadyPullCount returns sum of all pulls who have QA Ready to 1||true', async () => {
       let data = await Pull.getQAReadyPullCount()
-      expect(data).toBe(2)
+      expect(data).toBe(1)
     })
-    test.todo('getInteractionsCount returns sum of all pulls interacted for the day')
-    test.todo(
-      'getQAReadyUniquePullCount returns sum of all pulls only added to QA column for the day'
-    )
+    test('getInteractionsCount returns sum of all pulls interacted for the day',async () => {
+      const data = await Pull.getInteractionsCount(1628024709);
+      expect(data).toBe(3);
+    })
+    test('getQAReadyUniquePullCount returns sum of all pulls only added to QA column for the day',async () => {
+      const data = await Pull.getQAReadyUniquePullCount(1628024709);
+      expect(data).toBe(2);
+    })
   })
 })
