@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals'
-import Day from '../db/db_day.js'
+import Day from '../db/db_day'
 import db from '../knex/knex'
 import {utils} from '../scripts/utils'
 
