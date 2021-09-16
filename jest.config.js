@@ -4,6 +4,6 @@ module.exports = {
   testEnvironment: 'jest-environment-node',
   transform: {},
   testMatch: [
-     "<rootDir>/out/__tests__/**/*"
+     "<rootDir>/__tests__/**/*"
   ],
 }
