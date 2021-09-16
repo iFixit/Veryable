@@ -315,4 +315,29 @@ describe('Pull Class', () => {
       expect(data).toBe(2);
     })
   })
+
+   describe('Parsing Pull Data', () => {
+    test('Dates properly updated', () => {
+      const test_pull = Pull.fromDataBase(mockPullData);
+      const mock_github_data: GitHubPullRequest = {
+        baseRepository: {
+          nameWithOwner: 'iFixit/ifixit',
+        },
+        closedAt: null,
+        createdAt: '2021-08-07T19:00:00Z',
+        headRefOid: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
+        mergedAt: '2021-08-07T19:00:00Z',
+        number: 39126,
+        state: 'MERGED',
+        title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
+        updatedAt: '2021-08-07T19:00:00Z',
+      };
+
+      test_pull.updateDates(mock_github_data);
+      expect(test_pull.data.closed_at).toBe(null);
+      expect(test_pull.data.created_at).toBe(1628362800);
+      expect(test_pull.data.updated_at).toBe(1628362800);
+      expect(test_pull.data.merged_at).toBe(1628362800);
+    });
+  });
 })
