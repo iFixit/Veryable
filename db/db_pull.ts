@@ -117,7 +117,7 @@ function isQAReadyAndInteracted(github_pull: GitHubPullRequest): {qa_ready: numb
   let qa_ready = 1
   // Want to skip pulls that are marked as qa_req_0
   let qa_req = qaRequired(github_pull)
-  if (qa_req) {
+  if (!qa_req) {
     qa_ready = 0
   }
 
