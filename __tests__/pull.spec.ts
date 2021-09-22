@@ -27,6 +27,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
+  await db('qa_pulls').del()
   await db.destroy()
 })
 
@@ -167,22 +168,22 @@ const updated_pull_data = {
 }
 describe('Pull Class', () => {
   test('Connection Established', async () => {
-    let data = await db.raw('Select 1+1 as result')
+    const data = await db.raw('Select 1+1 as result')
     expect(data[0]).toContainEqual({
       result: 2,
     })
   })
   describe('Initialization', () => {
     test('Empty constructor inits with default values', () => {
-      let testPull = new Pull()
+      const testPull = new Pull()
       expect(testPull.data).toMatchObject(defaultData)
     })
     test('Init with data passed to constructor', () => {
-      let testPull = Pull.fromDataBase(mockPullData)
+      const testPull = Pull.fromDataBase(mockPullData)
       expect(testPull.data).toMatchObject(mockPullData)
     })
     test('Init with GitHub Pull data', () => {
-      let mockGitHubData: GitHubPullRequest = {
+      const mockGitHubData: GitHubPullRequest = {
         closedAt: null,
         createdAt: '2021-08-07T19:00:00Z',
         headRefOid: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
@@ -195,24 +196,24 @@ describe('Pull Class', () => {
         updatedAt: '2021-08-07T19:00:00Z',
         mergedAt: null,
       }
-      let testPull = Pull.fromGitHub(mockGitHubData)
+      const testPull = Pull.fromGitHub(mockGitHubData)
       expect(testPull.data).toMatchObject(mockPullData)
     })
   })
   describe('Instance Methods', () => {
     test('getUniqueID returns "repo owner/name #pull number" ', () => {
-      let testPull = Pull.fromDataBase(mockPullData)
-      let expectedUniqueID = 'iFixit/ifixit #39126'
+      const testPull = Pull.fromDataBase(mockPullData)
+      const expectedUniqueID = 'iFixit/ifixit #39126'
       expect(testPull.getUniqueID()).toBe(expectedUniqueID)
     })
     test('getGraphQLValues returns repo{ name, owner} pull number', () => {
-      let testPull = Pull.fromDataBase(mockPullData)
-      let expectedGraphQLValues = [{ name: 'ifixit', owner: 'iFixit' }, 39126]
+      const testPull = Pull.fromDataBase(mockPullData)
+      const expectedGraphQLValues = [{ name: 'ifixit', owner: 'iFixit' }, 39126]
       expect(testPull.getGraphQLValues()).toMatchObject(expectedGraphQLValues)
     })
     test('setNewValues changes Pull data', async () => {
-      let testPull = Pull.fromDataBase(mockPullData)
-      let spy = jest.spyOn(testPull, 'save').mockImplementation(() => Promise.resolve());
+      const testPull = Pull.fromDataBase(mockPullData)
+      const spy = jest.spyOn(testPull, 'save').mockImplementation(() => Promise.resolve());
 
 
       expect(testPull.data).toMatchObject(mockPullData)
@@ -227,22 +228,22 @@ describe('Pull Class', () => {
         await db('qa_pulls').del()
       })
       test('Setting values on new Pull creates new row ', async () => {
-        let dataBefore = await db('qa_pulls').select()
+        const dataBefore = await db('qa_pulls').select()
         expect(dataBefore.length).toBe(0)
 
-        let testPull = Pull.fromDataBase(mockPullData)
+        const testPull = Pull.fromDataBase(mockPullData)
         await testPull.setNewValues(updated_pull_data)
         expect(testPull.data).toMatchObject(updated_pull_data)
-        let dataAfter = await db('qa_pulls').select()
+        const dataAfter = await db('qa_pulls').select()
         expect(dataAfter.length).toBe(1)
 
         expect(dataAfter[0]).toMatchObject(testPull.data)
       })
       test('Setting new values on existing Pull updates row', async () => {
-        let dataBefore = await db('qa_pulls').select()
+        const dataBefore = await db('qa_pulls').select()
         expect(dataBefore.length).toBe(0)
 
-        let rowData = {
+        const rowData = {
           repo: 'iFixit/ifixit',
           pull_number: 39126,
           state: 'OPEN',
@@ -262,12 +263,12 @@ describe('Pull Class', () => {
         }
 
         await db('qa_pulls').insert(rowData)
-        let newData = await db('qa_pulls').select()
+        const newData = await db('qa_pulls').select()
         expect(newData.length).toBe(1)
         expect(newData[0]).toMatchObject(rowData)
 
-        let testPull = Pull.fromDataBase(newData[0])
-        let mockUpdatePullData = {
+        const testPull = Pull.fromDataBase(newData[0])
+        const mockUpdatePullData = {
           ...mockPullData,
           updated_at: 1628363900,
           closed_at: 1628363900,
@@ -280,7 +281,7 @@ describe('Pull Class', () => {
         testPull.setNewValues(mockUpdatePullData)
         expect(testPull.data).toMatchObject(mockUpdatePullData)
 
-        let dataAfter = await db('qa_pulls').select()
+        const dataAfter = await db('qa_pulls').select()
         expect(dataAfter.length).toBe(1)
         expect(dataAfter[0]).toMatchObject(testPull.data)
         expect(dataAfter[0]).toMatchObject(mockUpdatePullData)
@@ -293,7 +294,7 @@ describe('Pull Class', () => {
       await db_insert()
     })
     test('getDBPulls retrieves all OPEN pulls from database as Pull[]', async () => {
-      let data = await Pull.getDBPulls()
+      const data = await Pull.getDBPulls()
       expect(data.length).toBe(3)
 
       data.forEach(pull => {
@@ -303,7 +304,7 @@ describe('Pull Class', () => {
     })
 
     test('getQAReadyPullCount returns sum of all pulls who have QA Ready to 1||true', async () => {
-      let data = await Pull.getQAReadyPullCount()
+      const data = await Pull.getQAReadyPullCount()
       expect(data).toBe(1)
     })
     test('getInteractionsCount returns sum of all pulls interacted for the day',async () => {
