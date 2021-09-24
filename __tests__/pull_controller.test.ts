@@ -1,3 +1,26 @@
+import { Pull } from "@prisma/client"
+import { utils } from '../scripts/utils'
+import { parsePull } from '../controllers/pull_controller'
+
+
+const mockPullData: Pull = {
+  repo: 'iFixit/ifixit',
+  pull_number: 39126,
+  state: 'OPEN',
+  title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
+  head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
+  qa_req: 1,
+  created_at: 1628362800,
+  updated_at: 1628362800,
+  closed_at: null,
+  merged_at: null,
+  closes: null,
+  interacted: false,
+  interacted_count: 0,
+  qa_ready: false,
+  qa_ready_count: 0,
+}
+
 describe('Parsing Pull Data', () => {
     test('Dates properly updated', () => {
       const test_pull = Pull.fromDataBase(mockPullData);
