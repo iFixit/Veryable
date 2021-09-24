@@ -1,14 +1,23 @@
-import Pull from '../db/db_pull'
-import logger from './logger'
+import date from 'date-and-time';
+import { Pull } from "@prisma/client"
+
+import PullRequest from '../db/db_pull'
+import config from '../config/config'
+const { signatures } = config
+const { qa_team } = config
+
+import { utils } from '../scripts/utils'
+
+import logger from '../src/logger'
 
 const log = logger('pullParser')
 
-export default function parsePull(github_pull: GitHubPullRequest, db_pull: Pull): void {
+export async function parsePull(github_pull: GitHubPullRequest, db_pull: Pull): Promise<Pull> {
   log.data(`Parsing Pull #${github_pull.number} ${github_pull.title}`)
 
   db_pull.updateDates(github_pull)
   db_pull.updateValues(github_pull)
-  db_pull.save();
+  return await PullRequest.save(db_pull)
 }
 
 
