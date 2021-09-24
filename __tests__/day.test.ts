@@ -39,20 +39,6 @@ describe('DayMetric class', () => {
         expect(dayValues).toMatchObject(newDay)
       })
 
-      test('should create a new day row with all values set to zero', async () => {
-        const newDay = {
-          pull_count: 0,
-          pulls_added: 0,
-          pulls_interacted: 0,
-          unique_pulls_added: 0,
-        }
-        const testDay = new DayMetric()
-        await testDay.init()
-
-        const data = await db('qa_metrics').select()
-        expect(data.length).toBe(1)
-        expect(data[0]).toMatchObject(newDay)
-      })
     })
 
     describe("'today' is not in the database, but 'yesterday' is", () => {
