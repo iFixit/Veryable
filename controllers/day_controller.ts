@@ -6,10 +6,13 @@ import Pull from '../db/db_pull'
 
 
 export async function updateDayMetrics(day: DayMetric) {
-  let current_metrics = day.getDayValues()
-  let running_pull_total = await Pull.getQAReadyPullCount()
+  if (day.metrics.date === 0) {
+    await day.init();
+  }
+  const current_metrics = day.getDayValues()
+  const running_pull_total = await Pull.getQAReadyPullCount()
   //TODO: Fix bugwhen there is no yesterday so the difference is the entire qa ready total
-  let difference = running_pull_total - current_metrics.pull_count
+  const difference = running_pull_total - current_metrics.pull_count
 
   log.data('Previous Pull Total: ' + current_metrics.pull_count)
   log.data('Running Total: ' + running_pull_total)
