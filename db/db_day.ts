@@ -7,13 +7,11 @@ import { utils } from '../scripts/utils'
 
 const log = logger( 'db_day' );
 
-const TWENTY_FOUR_HOURS = 86400;
-
 export default class DayMetric
 {
   dayMetrics: Day
 
-  yesterday: number;
+  yesterday?: Day | null;
   constructor()
   {
     this.dayMetrics = {
@@ -23,37 +21,21 @@ export default class DayMetric
       unique_pulls_added: 0,
       date: 0
     };
-    let [ t, y ] = utils.getDates();
-    this.dayMetrics.date = t;
-    this.yesterday = y;
-    log.data( `Today's values are ${ this.dayMetrics.date } and yesterday is ${ this.yesterday }` );
-
   }
 
 
   // Initial the day
   async init(): Promise<void> {
-    let day = await db( 'qa_metrics' ).first().where( { "date": this.dayMetrics.date } ).orWhere( { "date": this.yesterday } ).orderBy( "date", "desc" );
+    let [today, yesterday] = utils.getDates();
+    this.yesterday = await prisma.day.findFirst({ where: { date: yesterday } })
 
-    log.data( `Day Data ${ JSON.stringify( day, null, 2 ) }` );
+     log.data(`Today's values are ${today} and yesterday is ${this.yesterday?.date}`);
+    if (this.yesterday) {
+      this.dayMetrics.pull_count = this.yesterday.pull_count
+    }
+    this.dayMetrics = await prisma.day.findFirst({ where: { 'date': today }, orderBy: { 'date': 'desc' } }) || {...this.dayMetrics, date: today};
 
-    if ( day )
-    {
-      this.dayMetrics.pull_count = day.pull_count;
-      log.data( ` Today's date and yesterday's date ${ this.dayMetrics.date } , ${ day.date }` );
-      log.data( ` Value for Pulls added is ${ this.dayMetrics.date - day.date === TWENTY_FOUR_HOURS ? 0 : day.pulls_added } ` );
-      if ( this.dayMetrics.date - day.date !== TWENTY_FOUR_HOURS )
-      {
-        this.dayMetrics.pulls_added = day.pulls_added;
-        this.dayMetrics.pulls_interacted = day.pulls_interacted;
-        this.dayMetrics.unique_pulls_added = day.unique_pulls_added;
-      }
-    }
-    else
-    {
-      log.data( 'Not initing with previous day data' );
-      this.save();
-    }
+    log.data(`Day Data ${JSON.stringify(this.dayMetrics, null, 2)}`);
   };
 
   // Insert the new Day in the table and if it exists Update the values accordingly
