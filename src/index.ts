@@ -5,8 +5,8 @@ import refreshPulls from '../scripts/refreshPulls';
 
 import { queryOpenPulls } from './ghgraphql'
 
-import Day from '../db/db_day'
-const DAY = new Day()
+import DayMetric from '../db/db_day'
+const DAY = new DayMetric()
 
 import Pull from '../db/db_pull'
 let DB_PULLS: Pull[]
@@ -19,7 +19,6 @@ const log = logger('main')
 
 // Automatically run script repeatedly
 ;(async () => {
-  await DAY.init();
   DB_PULLS = await Pull.getDBPulls();
   log.info('Will now refresh current open pulls in DB')
   // Refresh any open pulls since last start up and block code until done
@@ -39,7 +38,7 @@ async function main() {
     parsePulls(all_open_pulls.repository.pullRequests.nodes)
   }
 
-  await updateDayMetrics()
+  await updateDayMetrics(DAY)
   log.info('Finished script...\n')
 }
 
