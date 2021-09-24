@@ -5,25 +5,18 @@ import { Day } from "@prisma/client"
 import prisma from '../prisma/client'
 
 // Mocking the dates it will be set to for today and yesteday; returning [Wed Aug 04 00:00:00 -0700 2021, Tue Aug 03 00:00:00 -0700 2021]
-jest.spyOn(utils, 'getDates').mockImplementation(() => [1628060400, 1627974000]);
+let get_dates_spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [1628060400, 1627974000]);
 
-beforeAll(async () => {
-  await db.schema.dropTableIfExists('qa_metrics').createTable('qa_metrics', table => {
-    table.uuid('date').primary().notNullable()
-    table.integer('pull_count').notNullable()
-    table.integer('pulls_added').notNullable()
-    table.integer('pulls_interacted').notNullable()
-    table.integer('unique_pulls_added').notNullable()
-  })
-  await db('qa_metrics').del()
+beforeEach(async () => {
+    await prisma.day.deleteMany();
+    get_dates_spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [1628060400, 1627974000]);
 })
 
 afterAll(async () => {
-  await db('qa_metrics').del()
-  await db.destroy()
+  await prisma.day.deleteMany();
 })
 
-describe('Day Class', () => {
+describe('DayMetric class', () => {
   test('Connection Established', async () => {
     const data = await db.raw('Select 1+1 as result')
     expect(data[0]).toContainEqual({
