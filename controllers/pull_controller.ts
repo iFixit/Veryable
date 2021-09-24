@@ -1,5 +1,5 @@
 import date from 'date-and-time';
-import { Pull } from "@prisma/client"
+import { Pull, qa_pulls_state } from "@prisma/client"
 
 import PullRequest from '../db/db_pull'
 import config from '../config/config'
@@ -14,42 +14,39 @@ const log = logger('pullParser')
 
 export async function parsePull(github_pull: GitHubPullRequest, db_pull: Pull): Promise<Pull> {
   log.data(`Parsing Pull #${github_pull.number} ${github_pull.title}`)
-
-  db_pull.updateDates(github_pull)
-  db_pull.updateValues(github_pull)
-  return await PullRequest.save(db_pull)
+  const pull: Pull = grabValues(github_pull, db_pull)
+  return await PullRequest.save(pull)
 }
 
+function grabValues(github_pull: GitHubPullRequest, db_pull: Pull): Pull {
+  let { qa_ready, qa_req, qa_interacted } = isQAReadyAndInteracted(github_pull)
 
- updateDates(github_pull: GitHubPullRequest): void {
-    this.data.closed_at = formatGHDate(github_pull.closedAt);
-    this.data.created_at = formatGHDate(github_pull.createdAt);
-    this.data.updated_at = formatGHDate(github_pull.updatedAt);
-    this.data.merged_at = formatGHDate(github_pull.mergedAt);
+  let qa_ready_count = 0;
+  let interacted_count = 0;
+
+  if (db_pull) {
+    qa_ready_count = db_pull.qa_ready_count + (!db_pull.qa_ready && qa_ready ? 1 : 0)
+
+    interacted_count = db_pull.interacted_count + (!db_pull.interacted && qa_interacted ? 1 : 0)
   }
-
-
-  updateValues(github_pull: GitHubPullRequest): void {
-    this.data.head_ref = github_pull.headRefOid;
-    this.data.state = github_pull.state;
-    this.data.closes = closesDeclared(github_pull);
-    this.updateDates(github_pull);
-    this.qaReadyAndInteracted(github_pull);
-  }
-
-  qaReadyAndInteracted(github_pull: GitHubPullRequest): void {
-    let { qa_ready, qa_req, qa_interacted } = isQAReadyAndInteracted(github_pull)
-    log.data(
-      `For Pull #${this.data.pull_number} ${this.data.title} Returned QA Ready: ${qa_ready}, Current QA Ready: ${this.data.qa_ready}, Current QA Count: ${this.data.qa_ready_count},`
-    )
-    this.data.qa_req = qa_req;
-    this.data.qa_ready_count += !this.data.qa_ready && qa_ready ? 1 : 0
-    this.data.qa_ready = qa_ready
-
-    this.data.interacted_count += !this.data.interacted && qa_interacted ? 1 : 0
-    this.data.interacted = qa_interacted
-  }
-
+  return {
+      closed_at: formatGHDate(github_pull.closedAt),
+      closes: closesDeclared(github_pull),
+      created_at: formatGHDate(github_pull.createdAt),
+      head_ref: github_pull.headRefOid,
+      interacted_count: interacted_count,
+      interacted: qa_interacted,
+      merged_at: formatGHDate(github_pull.mergedAt),
+      pull_number: github_pull.number,
+      qa_ready_count: qa_ready_count,
+      qa_ready: qa_ready,
+      qa_req: qa_req,
+      repo: github_pull.baseRepository.nameWithOwner,
+      state: github_pull.state as qa_pulls_state,
+      title: github_pull.title,
+      updated_at: formatGHDate(github_pull.updatedAt),
+    }
+}
 
 function formatGHDate(utc_date: string | null): number | null {
   if (utc_date) {
