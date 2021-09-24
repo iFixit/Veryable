@@ -23,7 +23,6 @@ export default class DayMetric
     };
   }
 
-
   // Initial the day
   async init(): Promise<void> {
     let [today, yesterday] = utils.getDates();
@@ -39,14 +38,20 @@ export default class DayMetric
   };
 
   // Insert the new Day in the table and if it exists Update the values accordingly
-  async save( newMetrics: Day | null = null ): Promise<void>
+  async save(): Promise<void>
   {
     if ( this.isNewDay() )
     {
-      [ this.dayMetrics.date, this.yesterday ] = utils.getDates();
-      this.dayMetrics.pulls_added = 0;
+     let [ today, yesterday ] = utils.getDates();
+      this.yesterday = this.dayMetrics;
+      this.dayMetrics = {
+        pull_count: this.yesterday?.pull_count || 0,
+        pulls_added: 0,
+        pulls_interacted: 0,
+        unique_pulls_added: 0,
+        date: today
+      };
     }
-    this.dayMetrics = newMetrics || this.dayMetrics;
     try
     {
       await db( 'qa_metrics' )
@@ -56,6 +61,10 @@ export default class DayMetric
     {
       log.error( "Failed to save Day " + e );
     }
+  }
+
+  setNewValues(new_day_values: Day): void {
+    this.dayMetrics = { ...new_day_values, date: this.dayMetrics.date}
   }
 
   getDayValues(): Day
