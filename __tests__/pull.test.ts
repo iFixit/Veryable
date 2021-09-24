@@ -130,10 +130,10 @@ describe('PullRequest Class', () => {
       const expectedUniqueID = 'iFixit/ifixit #39126'
       expect(unique_id).toBe(expectedUniqueID)
     })
-    test('getGraphQLValues returns repo{ name, owner} pull number', () => {
-      const testPull = Pull.fromDataBase(mockPullData)
+    test('get GraphQL Values', () => {
+      const graphql_values = PullRequest.getGraphQLValues(mockPullData)
       const expectedGraphQLValues = [{ name: 'ifixit', owner: 'iFixit' }, 39126]
-      expect(testPull.getGraphQLValues()).toMatchObject(expectedGraphQLValues)
+      expect(graphql_values).toMatchObject(expectedGraphQLValues)
     })
     test('setNewValues changes Pull data', async () => {
       const testPull = Pull.fromDataBase(mockPullData)
