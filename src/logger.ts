@@ -38,7 +38,8 @@ export default function ( moduleName:string ): winston.Logger
           winston.format.colorize( config ),
           winston.format.label( { label: moduleName } ),
           config.standardFormat
-        )
+        ),
+        silent : process.env.NODE_ENV === 'test'? true : false
       } ),
       new winston.transports.File( {
         filename: config.errorFilename,
