@@ -123,40 +123,7 @@ async function db_insert() {
   qa_ready_count: 0,
 }
 
-describe('Pull Class', () => {
-  test('Connection Established', async () => {
-    const data = await db.raw('Select 1+1 as result')
-    expect(data[0]).toContainEqual({
-      result: 2,
-    })
-  })
-  describe('Initialization', () => {
-    test('Empty constructor inits with default values', () => {
-      const testPull = new Pull()
-      expect(testPull.data).toMatchObject(defaultData)
-    })
-    test('Init with data passed to constructor', () => {
-      const testPull = Pull.fromDataBase(mockPullData)
-      expect(testPull.data).toMatchObject(mockPullData)
-    })
-    test('Init with GitHub Pull data', () => {
-      const mockGitHubData: GitHubPullRequest = {
-        closedAt: null,
-        createdAt: '2021-08-07T19:00:00Z',
-        headRefOid: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
-        baseRepository: {
-          nameWithOwner: 'iFixit/ifixit',
-        },
-        number: 39126,
-        state: 'OPEN',
-        title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
-        updatedAt: '2021-08-07T19:00:00Z',
-        mergedAt: null,
-      }
-      const testPull = Pull.fromGitHub(mockGitHubData)
-      expect(testPull.data).toMatchObject(mockPullData)
-    })
-  })
+describe('PullRequest Class', () => {
   describe('Instance Methods', () => {
     test('getUniqueID returns "repo owner/name #pull number" ', () => {
       const testPull = Pull.fromDataBase(mockPullData)
