@@ -12,13 +12,13 @@ import logger from '../src/logger'
 
 const log = logger('pullParser')
 
-export async function parsePull(github_pull: GitHubPullRequest, db_pull: Pull): Promise<Pull> {
+export async function parsePull(github_pull: GitHubPullRequest, db_pull: Pull | null): Promise<Pull> {
   log.data(`Parsing Pull #${github_pull.number} ${github_pull.title}`)
   const pull: Pull = grabValues(github_pull, db_pull)
   return await PullRequest.save(pull)
 }
 
-function grabValues(github_pull: GitHubPullRequest, db_pull: Pull): Pull {
+function grabValues(github_pull: GitHubPullRequest, db_pull: Pull | null): Pull {
   let { qa_ready, qa_req, qa_interacted } = isQAReadyAndInteracted(github_pull)
 
   let qa_ready_count = 0;
