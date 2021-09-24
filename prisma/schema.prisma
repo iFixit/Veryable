@@ -7,21 +7,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model qa_metrics {
+model Day {
   date               Int @id
   pull_count         Int @default(0)
   pulls_added        Int @default(0)
   pulls_interacted   Int @default(0)
   unique_pulls_added Int @default(0)
+
+  @@map("qa_metrics")
 }
 
-model qa_pulls {
+model Pull {
   repo             String         @default("") @db.VarChar(100)
   pull_number      Int            @db.UnsignedInt
   state            qa_pulls_state
   title            String         @db.VarChar(255)
   head_ref         String         @db.Char(40)
-  qa_req           Boolean        @default(true)
+  qa_req           Int            @default(1)
   created_at       Int?           @db.UnsignedInt
   updated_at       Int?           @db.UnsignedInt
   closed_at        Int?           @db.UnsignedInt
@@ -33,6 +35,7 @@ model qa_pulls {
   qa_ready_count   Int            @default(0)
 
   @@id([repo, pull_number])
+  @@map("qa_pulls")
 }
 
 enum qa_pulls_state {
