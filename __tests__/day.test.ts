@@ -101,25 +101,28 @@ describe('DayMetric class', () => {
       })
     })
     describe("'today' and 'yesterday' are in the database", () => {
+      const today: Day = {
+        date: today_unix,
+        pull_count: 15,
+        pulls_added: 3,
+        pulls_interacted: 2,
+        unique_pulls_added: 3,
+      }
+
+      const yesterday: Day = {
+        date: yesterday_unix,
+        pull_count: 12,
+        pulls_added: 49,
+        pulls_interacted: 15,
+        unique_pulls_added: 4,
+      }
+
       beforeEach(async () => {
-        await db('qa_metrics').del()
-        await db('qa_metrics').insert([
-          {
-            date: today_unix,
-            pull_count: 15,
-            pulls_added: 3,
-            pulls_interacted: 2,
-            unique_pulls_added: 3,
-          },
-          {
-            date: yesterday_unix, //Tue Aug 03 00:00:00 -0700 2021
-            pull_count: 12,
-            pulls_added: 49,
-            pulls_interacted: 15,
-            unique_pulls_added: 4,
-          },
-        ])
+        await prisma.day.createMany({
+          data: [today, yesterday]
+        })
       })
+
       test("should init with today's date and all values from today's row in the database", async () => {
         const newDay = {
           pull_count: 15,
