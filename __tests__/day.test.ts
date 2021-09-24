@@ -136,24 +136,31 @@ describe('DayMetric class', () => {
         expect(data.length).toBe(2)
         expect(data).toMatchObject([today,yesterday])
       })
-      test('should not update the database when initing', async () => {
-        const newDay = {
-          pull_count: 15,
-          pulls_added: 3,
+      test('set new values for today', async () => {
+        const updated_today: Day = {
+          pull_count: 12,
+          pulls_added: 4,
           pulls_interacted: 2,
-          unique_pulls_added: 3,
+          unique_pulls_added: 4,
+          date: today_unix
         }
-
-        const dataBefore = await db('qa_metrics').select().orderBy('date', 'desc')
-
         const testDay = new DayMetric()
 
         await testDay.init()
-        const dayValues = testDay.getDayValues()
-        expect(dayValues).toMatchObject(newDay)
 
-        const dataAfter = await db('qa_metrics').select().orderBy('date', 'desc')
-        expect(dataAfter).toMatchObject(dataBefore)
+        const dayValues = testDay.getDayValues()
+        expect(dayValues).toMatchObject(today)
+
+         testDay.setNewValues(updated_today)
+
+        const dayAfter = testDay.getDayValues()
+        expect(dayAfter).toMatchObject(updated_today)
+
+        await testDay.save()
+        const data = await prisma.day.findMany({ orderBy: { 'date': 'desc' } })
+
+        expect(data.length).toBe(2)
+        expect(data).toMatchObject([updated_today,yesterday])
       })
     })
   })
