@@ -1,4 +1,5 @@
-import db from "../knex/knex";
+import { Day } from "@prisma/client";
+import prisma from "../prisma/client"
 
 import logger from '../src/logger';
 
@@ -8,16 +9,9 @@ const log = logger( 'db_day' );
 
 const TWENTY_FOUR_HOURS = 86400;
 
-type DayMetric = {
-   pull_count: number,
-    pulls_added: number,
-    pulls_interacted: number,
-    unique_pulls_added: number,
-}
-
-export default class Day
+export default class DayMetric
 {
-  dayMetrics: DayMetric
+  dayMetrics: Day
 
   today: number;
   yesterday: number;
@@ -63,7 +57,7 @@ export default class Day
   };
 
   // Insert the new Day in the table and if it exists Update the values accordingly
-  async save( newMetrics: DayMetric | null = null ): Promise<void>
+  async save( newMetrics: Day | null = null ): Promise<void>
   {
     if ( this.today !== Math.floor( new Date().setHours( 0, 0, 0, 0 ) / 1000 ) )
     {
@@ -82,7 +76,7 @@ export default class Day
     }
   }
 
-  getDayValues(): DayMetric
+  getDayValues(): Day
   {
     return { ...this.dayMetrics };
   }
