@@ -59,7 +59,7 @@ export default class DayMetric
   // Insert the new Day in the table and if it exists Update the values accordingly
   async save( newMetrics: Day | null = null ): Promise<void>
   {
-    if ( this.dayMetrics.date !== Math.floor( new Date().setHours( 0, 0, 0, 0 ) / 1000 ) )
+    if ( this.isNewDay() )
     {
       [ this.dayMetrics.date, this.yesterday ] = utils.getDates();
       this.dayMetrics.pulls_added = 0;
@@ -79,6 +79,10 @@ export default class DayMetric
   getDayValues(): Day
   {
     return { ...this.dayMetrics };
+  }
+
+  private isNewDay(): boolean{
+    return this.dayMetrics.date !== utils.getDates()[0]
   }
 };
 
