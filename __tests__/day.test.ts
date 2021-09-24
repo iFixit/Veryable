@@ -23,10 +23,6 @@ describe('DayMetric class', () => {
 
   describe('Day Value Conditions', () => {
     describe("'today' and 'yesterday' are not in the database", () => {
-      test('should have no values in the database', async () => {
-        const data = await db('qa_metrics').select()
-        expect(data.length).toBe(0)
-      })
 
       test("should init today's date with all values set to zero", async () => {
         const newDay = {
