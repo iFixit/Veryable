@@ -9,12 +9,12 @@ const log = logger( 'db_day' );
 
 export default class DayMetric
 {
-  dayMetrics: Day
+  metrics: Day
 
   yesterday?: Day | null;
   constructor()
   {
-    this.dayMetrics = {
+    this.metrics = {
       pull_count: 0,
       pulls_added: 0,
       pulls_interacted: 0,
@@ -30,11 +30,11 @@ export default class DayMetric
 
      log.data(`Today's values are ${today} and yesterday is ${this.yesterday?.date}`);
     if (this.yesterday) {
-      this.dayMetrics.pull_count = this.yesterday.pull_count
+      this.metrics.pull_count = this.yesterday.pull_count
     }
-    this.dayMetrics = await prisma.day.findFirst({ where: { 'date': today }, orderBy: { 'date': 'desc' } }) || {...this.dayMetrics, date: today};
+    this.metrics = await prisma.day.findFirst({ where: { 'date': today }, orderBy: { 'date': 'desc' } }) || {...this.metrics, date: today};
 
-    log.data(`Day Data ${JSON.stringify(this.dayMetrics, null, 2)}`);
+    log.data(`Day Data ${JSON.stringify(this.metrics, null, 2)}`);
   };
 
   // Insert the new Day in the table and if it exists Update the values accordingly
@@ -43,8 +43,8 @@ export default class DayMetric
     if ( this.isNewDay() )
     {
      let [ today, yesterday ] = utils.getDates();
-      this.yesterday = this.dayMetrics;
-      this.dayMetrics = {
+      this.yesterday = this.metrics;
+      this.metrics = {
         pull_count: this.yesterday?.pull_count || 0,
         pulls_added: 0,
         pulls_interacted: 0,
@@ -54,9 +54,11 @@ export default class DayMetric
     }
     try
     {
-      await db( 'qa_metrics' )
-        .insert( { ...this.dayMetrics } )
-        .onConflict( "date" ).merge();
+      await prisma.day.upsert({
+        where: { date: this.metrics.date },
+        update: this.metrics,
+        create: this.metrics
+      })
     } catch ( e )
     {
       log.error( "Failed to save Day " + e );
@@ -64,16 +66,16 @@ export default class DayMetric
   }
 
   setNewValues(new_day_values: Day): void {
-    this.dayMetrics = { ...new_day_values, date: this.dayMetrics.date}
+    this.metrics = { ...new_day_values, date: this.metrics.date}
   }
 
   getDayValues(): Day
   {
-    return { ...this.dayMetrics };
+    return { ...this.metrics };
   }
 
   private isNewDay(): boolean{
-    return this.dayMetrics.date !== utils.getDates()[0]
+    return this.metrics.date !== utils.getDates()[0]
   }
 };
 
