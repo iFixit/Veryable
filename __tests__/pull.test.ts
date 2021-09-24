@@ -144,13 +144,12 @@ describe('PullRequest Class', () => {
 
     afterAll(async () => prisma.pull.deleteMany());
 
-    test('getDBPulls retrieves all OPEN pulls from database as Pull[]', async () => {
-      const data = await Pull.getDBPulls()
-      expect(data.length).toBe(3)
+    test('get all open pulls from database', async () => {
+      let pulls: Pull[] = await PullRequest.getDBPulls()
+      expect(pulls.length).toBe(3)
 
-      data.forEach(pull => {
-        expect(pull).toBeInstanceOf(Pull)
-        expect(pull.data.state).toBe('OPEN')
+      pulls.forEach(pull => {
+        expect(pull.state).toBe('OPEN')
       })
     })
 
