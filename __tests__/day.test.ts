@@ -20,12 +20,6 @@ afterAll(async () => {
 })
 
 describe('DayMetric class', () => {
-  test('Connection Established', async () => {
-    const data = await db.raw('Select 1+1 as result')
-    expect(data[0]).toContainEqual({
-      result: 2,
-    })
-  })
 
   describe('Day Value Conditions', () => {
     describe("'today' and 'yesterday' are not in the database", () => {
