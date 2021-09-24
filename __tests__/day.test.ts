@@ -1,7 +1,8 @@
-import { jest } from '@jest/globals'
-import Day from '../db/db_day'
-import db from '../knex/knex'
-import {utils} from '../scripts/utils'
+import DayMetric from '../db/db_day'
+import { utils } from '../scripts/utils'
+
+import { Day } from "@prisma/client"
+import prisma from '../prisma/client'
 
 // Mocking the dates it will be set to for today and yesteday; returning [Wed Aug 04 00:00:00 -0700 2021, Tue Aug 03 00:00:00 -0700 2021]
 jest.spyOn(utils, 'getDates').mockImplementation(() => [1628060400, 1627974000]);
@@ -44,7 +45,7 @@ describe('Day Class', () => {
           pulls_interacted: 0,
           unique_pulls_added: 0,
         }
-        const testDay = new Day()
+        const testDay = new DayMetric()
         const spy = jest.spyOn(testDay, 'save').mockImplementation(() => Promise.resolve())
 
         await testDay.init()
@@ -67,7 +68,7 @@ describe('Day Class', () => {
           pulls_interacted: 0,
           unique_pulls_added: 0,
         }
-        const testDay = new Day()
+        const testDay = new DayMetric()
         await testDay.init()
 
         const data = await db('qa_metrics').select()
@@ -97,7 +98,7 @@ describe('Day Class', () => {
           pulls_interacted: 0,
           unique_pulls_added: 0,
         }
-        const testDay = new Day()
+        const testDay = new DayMetric()
         const spy = jest.spyOn(testDay, 'save').mockImplementation(() => Promise.resolve())
 
 
@@ -118,7 +119,7 @@ describe('Day Class', () => {
           pulls_interacted: 0,
           unique_pulls_added: 0,
         }
-        const testDay = new Day()
+        const testDay = new DayMetric()
 
         await testDay.init()
         const dayValues = testDay.getDayValues()
@@ -173,7 +174,7 @@ describe('Day Class', () => {
           pulls_interacted: 2,
           unique_pulls_added: 3,
         }
-        const testDay = new Day()
+        const testDay = new DayMetric()
         const spy = jest.spyOn(testDay, 'save').mockImplementation(() => Promise.resolve())
 
 
@@ -214,7 +215,7 @@ describe('Day Class', () => {
 
         const dataBefore = await db('qa_metrics').select().orderBy('date', 'desc')
 
-        const testDay = new Day()
+        const testDay = new DayMetric()
 
         await testDay.init()
         const dayValues = testDay.getDayValues()
