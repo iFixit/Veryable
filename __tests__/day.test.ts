@@ -4,12 +4,15 @@ import { utils } from '../scripts/utils'
 import { Day } from "@prisma/client"
 import prisma from '../prisma/client'
 
-// Mocking the dates it will be set to for today and yesteday; returning [Wed Aug 04 00:00:00 -0700 2021, Tue Aug 03 00:00:00 -0700 2021]
-let get_dates_spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [1628060400, 1627974000]);
+const today_unix = 1628060400 //Wed Aug 04 00:00:00 -0700 2021
+const yesterday_unix = 1627974000 //Tue Aug 03 00:00:00 -0700 2021
+
+// Mocking the dates it will be set to for today and yesteday
+let get_dates_spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [today_unix, yesterday_unix]);
 
 beforeEach(async () => {
     await prisma.day.deleteMany();
-    get_dates_spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [1628060400, 1627974000]);
+    get_dates_spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [today_unix, yesterday_unix]);
 })
 
 afterAll(async () => {
@@ -75,7 +78,7 @@ describe('DayMetric class', () => {
         await db('qa_metrics').del()
         await db('qa_metrics').insert([
           {
-            date: 1627974000, //Tue Aug 03 00:00:00 -0700 2021
+            date: yesterday_unix,
             pull_count: 12,
             pulls_added: 49,
             pulls_interacted: 15,
@@ -124,14 +127,14 @@ describe('DayMetric class', () => {
         expect(data.length).toBe(2)
         expect(data).toMatchObject([
           {
-            date: '1628060400',
+            date: 'today_unix',
             pull_count: 12,
             pulls_added: 0,
             pulls_interacted: 0,
             unique_pulls_added: 0,
           },
           {
-            date: '1627974000',
+            date: 'yesterday_unix',
             pull_count: 12,
             pulls_added: 49,
             pulls_interacted: 15,
@@ -145,14 +148,14 @@ describe('DayMetric class', () => {
         await db('qa_metrics').del()
         await db('qa_metrics').insert([
           {
-            date: 1628060400,
+            date: today_unix,
             pull_count: 15,
             pulls_added: 3,
             pulls_interacted: 2,
             unique_pulls_added: 3,
           },
           {
-            date: 1627974000, //Tue Aug 03 00:00:00 -0700 2021
+            date: yesterday_unix, //Tue Aug 03 00:00:00 -0700 2021
             pull_count: 12,
             pulls_added: 49,
             pulls_interacted: 15,
@@ -182,14 +185,14 @@ describe('DayMetric class', () => {
         expect(data.length).toBe(2)
         expect(data).toMatchObject([
           {
-            date: '1628060400',
+            date: 'today_unix',
             pull_count: 15,
             pulls_added: 3,
             pulls_interacted: 2,
             unique_pulls_added: 3,
           },
           {
-            date: '1627974000',
+            date: 'yesterday_unix',
             pull_count: 12,
             pulls_added: 49,
             pulls_interacted: 15,
