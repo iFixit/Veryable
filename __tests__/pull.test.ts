@@ -124,11 +124,11 @@ async function db_insert() {
 }
 
 describe('PullRequest Class', () => {
-  describe('Instance Methods', () => {
-    test('getUniqueID returns "repo owner/name #pull number" ', () => {
-      const testPull = Pull.fromDataBase(mockPullData)
+  describe('Static Methods', () => {
+    test('get unique ID', () => {
+      const unique_id = PullRequest.getUniqueID(mockPullData)
       const expectedUniqueID = 'iFixit/ifixit #39126'
-      expect(testPull.getUniqueID()).toBe(expectedUniqueID)
+      expect(unique_id).toBe(expectedUniqueID)
     })
     test('getGraphQLValues returns repo{ name, owner} pull number', () => {
       const testPull = Pull.fromDataBase(mockPullData)
