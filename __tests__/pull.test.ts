@@ -153,16 +153,18 @@ describe('PullRequest Class', () => {
       })
     })
 
-    test('getQAReadyPullCount returns sum of all pulls who have QA Ready to 1||true', async () => {
-      const data = await Pull.getQAReadyPullCount()
+    test('get QA ready pull count returns sum of all pulls who have QA Ready to true', async () => {
+      const data = await PullRequest.getQAReadyPullCount()
       expect(data).toBe(1)
     })
-    test('getInteractionsCount returns sum of all pulls interacted for the day',async () => {
-      const data = await Pull.getInteractionsCount(1628024709);
+
+    test('get interactions count returns sum of all pulls interacted for the day',async () => {
+      const data = await PullRequest.getInteractionsCount(1628024709);
       expect(data).toBe(3);
     })
-    test('getQAReadyUniquePullCount returns sum of all pulls only added to QA column for the day',async () => {
-      const data = await Pull.getQAReadyUniquePullCount(1628024709);
+
+    test('get QA ready unique pull count returns sum of all pulls only added to QA column for the day',async () => {
+      const data = await PullRequest.getQAReadyUniquePullCount(1628024709);
       expect(data).toBe(2);
     })
   })
