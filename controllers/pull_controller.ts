@@ -68,13 +68,13 @@ function closesDeclared(github_pull: GitHubPullRequest): number | null {
   return closes_pull ?? null;
 }
 // Get Signatures/Stamps
-function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, dev_block: string, interacted: number } {
+function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, dev_block: string, interacted: boolean } {
   let latest_commit_date = github_pull.commits
     ? new Date(github_pull.commits.nodes[0].commit.pushedDate) : new Date();
   let current_tags = {
     QA: false,
     dev_block: '',
-    interacted: 0
+    interacted: false
   }
 
   const comments = github_pull.comments ? github_pull.comments.nodes : []
@@ -96,7 +96,7 @@ function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, de
       date.subtract(latest_commit_date, comment_date).toDays() <= 0 &&
       date.isSameDay(comment_date, new Date(utils.getDates()[0]))
     ) {
-      current_tags.interacted = 1
+      current_tags.interacted = true
     }
   })
 
@@ -134,24 +134,24 @@ function qaRequired(github_pull: GitHubPullRequest): number {
 }
 
 // Iteratres through the Pull Object and retrieves the appropriate base properties
-function isQAReadyAndInteracted(github_pull: GitHubPullRequest): {qa_ready: number, qa_req: number, qa_interacted: number} {
-  let qa_ready = 1
+function isQAReadyAndInteracted(github_pull: GitHubPullRequest): {qa_ready: boolean, qa_req: number, qa_interacted: boolean} {
+  let qa_ready = true
   // Want to skip pulls that are marked as qa_req_0
   let qa_req = qaRequired(github_pull)
   if (!qa_req) {
-    qa_ready = 0
+    qa_ready = false
   }
 
   let build_status = github_pull.commits?.nodes[0].commit.status?.state ?? 'EXPECTED'
   // Want to skip pulls that are failing CI
   if (build_status !== 'SUCCESS' && build_status !== 'EXPECTED') {
-    qa_ready = 0
+    qa_ready = false
   }
 
   // Want to skip pulls that are dev_block and already QA'd
   let  tags = getTagsAndInteracted(github_pull)
   if(tags.dev_block === 'true' || tags.QA) {
-    qa_ready = 0
+    qa_ready = false
   }
 
   return { qa_ready, qa_req, qa_interacted: tags.interacted }
