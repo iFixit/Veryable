@@ -189,10 +189,16 @@ export default class PullRequest {
   // Insert / Update Pull Request into the DB
   async save(): Promise<void> {
     try {
-      await db('qa_pulls')
-        .insert({ ...this.data })
-        .onConflict(['repo', 'pull_number'])
-        .merge()
+     await prisma.pull.upsert({
+        where: {
+          repo_pull_number: {
+            repo: this.data.repo,
+            pull_number: this.data.pull_number,
+          }
+        },
+        update: this.data,
+        create: this.data,
+      })
     } catch (e) {
       log.error(
         "Failed to save Pull #%d '%s\n\t%s",
@@ -239,44 +245,51 @@ export default class PullRequest {
   }
 
   static async getDBPulls(): Promise<Pull[]> {
-    const rows = await db('qa_pulls').select().where({ state: 'OPEN' })
-    const db_pulls: Pull[] = []
-
-    for (let row of rows) {
-      db_pulls.push(Pull.fromDataBase(row))
-    }
-
-    return db_pulls
+    return prisma.pull.findMany({where: {state: 'OPEN'}})
   }
 
   //TODO: Only return QA_ready pulls on pulls that are still open
   // Case is where the qa_ready value does not change but the state does
   static async getQAReadyPullCount(): Promise<number> {
-    let result = await db('qa_pulls')
-      .count('qa_ready as running_pull_total')
-      .where({ qa_ready: 1 })
-      .andWhere({ state: 'OPEN' })
-    return result[0].running_pull_total as number
+    return prisma.pull.count(
+      {
+        where: {
+          qa_ready: true,
+          state: 'OPEN'
+        }
+    })
   }
 
   //TODO: Add conditional to be within single day range
   //Will also include pulls that are still open passed creation date
   static async getQAReadyUniquePullCount(day: number): Promise<number> {
-    let result = await db('qa_pulls')
-      .count('qa_ready_count as unique_pulls_added')
-      .where('qa_ready_count', '>=', 1)
-      .andWhere('created_at', '>=', day)
-    log.data("Get Unique Pull Count Today's value: " + day)
-    return result[0].unique_pulls_added as number
+     return prisma.pull.count(
+      {
+        where: {
+          qa_ready_count: {
+            gte: 1
+          },
+          created_at: {
+            gte: day
+          }
+        }
+    })
   }
 
   //TODO : This query will not work if the pull is updated on the day but no change to interaction has been done.
   // This also does not consider pulls currently marked as non-interacted but have been interacted for the day
   static async getInteractionsCount(day: number): Promise<number> {
-    let result = await db('qa_pulls')
-      .count('interacted_count as pulls_interacted')
-      .where('interacted_count', '>=', 1)
-      .andWhere('updated_at', '>=', day)
-    return result[0].pulls_interacted as number
+    return prisma.pull.count(
+      {
+        where: {
+          interacted_count: {
+            gte: 1
+          },
+          updated_at: {
+            gte: day
+          }
+        }
+      }
+    )
   }
 }
