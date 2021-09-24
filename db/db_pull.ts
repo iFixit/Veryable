@@ -1,5 +1,5 @@
-import date from 'date-and-time'
-import db from '../knex/knex'
+import prisma from "../prisma/client"
+import { Pull } from "@prisma/client"
 
 import logger from '../src/logger'
 import config from '../config/config'
@@ -8,24 +8,6 @@ import { utils } from '../scripts/utils'
 const { signatures } = config
 const { qa_team } = config
 const log = logger('db_pull')
-
-interface PullRequest {
-  closed_at: null | number,
-  closes: null | number,
-  created_at: null | number,
-  head_ref: string,
-  interacted_count: number,
-  interacted: number,
-  merged_at: null | number,
-  pull_number: number,
-  qa_ready_count: number,
-  qa_ready: number,
-  qa_req: number,
-  repo: string,
-  state: string,
-  title: string,
-  updated_at: null | number,
-}
 
 function formatGHDate(utc_date: string | null): number | null {
   if (utc_date) {
@@ -137,8 +119,8 @@ function isQAReadyAndInteracted(github_pull: GitHubPullRequest): {qa_ready: numb
 }
 
 //TODO: move to actual ORM like Prisma for easier model configuration and declaration
-export default class Pull {
-  data: PullRequest;
+export default class PullRequest {
+  data: Pull;
 
   //Empty Constructor
   constructor () {
@@ -148,14 +130,14 @@ export default class Pull {
       created_at: 0,
       head_ref: '',
       interacted_count: 0,
-      interacted: 0,
+      interacted: false,
       merged_at: null,
       pull_number: 0,
       qa_ready_count: 0,
-      qa_ready: 0,
+      qa_ready: false,
       qa_req: 1,
       repo: '',
-      state: '',
+      state: 'OPEN',
       title: '',
       updated_at: 0,
     };
@@ -163,7 +145,7 @@ export default class Pull {
 
    // Create new Pull and map values from GitHub Pull
   static fromGitHub(github_pull: GitHubPullRequest): Pull {
-    const gh_pull = new Pull();
+    const gh_pull = new PullRequest();
     gh_pull.data = {
       closed_at: formatGHDate(github_pull.closedAt),
       closes: null,
@@ -185,7 +167,7 @@ export default class Pull {
   }
 
   static fromDataBase(db_pull: PullRequest): Pull {
-    const pull = new Pull();
+    const pull = new PullRequest();
     pull.data = { ...db_pull };
     return pull;
   }
