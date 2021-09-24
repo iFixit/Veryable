@@ -2,104 +2,48 @@ import prisma from "../prisma/client"
 import { Pull } from "@prisma/client"
 
 import logger from '../src/logger'
-import config from '../config/config'
 
 const log = logger('db_pull')
 
 //TODO: move to actual ORM like Prisma for easier model configuration and declaration
 export default class PullRequest {
-  data: Pull;
-
-  //Empty Constructor
-  constructor () {
-    this.data = {
-      closed_at: null,
-      closes: null,
-      created_at: 0,
-      head_ref: '',
-      interacted_count: 0,
-      interacted: false,
-      merged_at: null,
-      pull_number: 0,
-      qa_ready_count: 0,
-      qa_ready: false,
-      qa_req: 1,
-      repo: '',
-      state: 'OPEN',
-      title: '',
-      updated_at: 0,
-    };
-  }
-
-   // Create new Pull and map values from GitHub Pull
-  static fromGitHub(github_pull: GitHubPullRequest): Pull {
-    const gh_pull = new PullRequest();
-    gh_pull.data = {
-      closed_at: formatGHDate(github_pull.closedAt),
-      closes: null,
-      created_at: formatGHDate(github_pull.createdAt),
-      head_ref: github_pull.headRefOid,
-      interacted_count: 0,
-      interacted: 0,
-      merged_at: formatGHDate(github_pull.mergedAt),
-      pull_number: github_pull.number,
-      qa_ready_count: 0,
-      qa_ready: 0,
-      qa_req: 1,
-      repo: github_pull.baseRepository.nameWithOwner,
-      state: github_pull.state,
-      title: github_pull.title,
-      updated_at: formatGHDate(github_pull.updatedAt),
-    };
-    return gh_pull;
-  }
-
-  static fromDataBase(db_pull: PullRequest): Pull {
-    const pull = new PullRequest();
-    pull.data = { ...db_pull };
-    return pull;
-  }
-  // Returns string formate of primary key
-  getUniqueID():string {
-    return `${this.data.repo} #${this.data.pull_number}`
+  // Returns string format of primary key
+  static getUniqueID(pull_request: Pull): string {
+    return `${pull_request.repo} #${pull_request.pull_number}`
   }
 
   // Retrive values needed for GitHub Graphql call
-  getGraphQLValues(): [{name: string, owner: string}, number] {
-    let split = this.data.repo.split('/')
+  static getGraphQLValues(pull_request: Pull): [{name: string, owner: string}, number] {
+    let split = pull_request.repo.split('/')
     let repo = {
       name: split[1],
       owner: split[0],
     }
-    return [repo, this.data.pull_number]
+    return [repo, pull_request.pull_number]
   }
 
   // Insert / Update Pull Request into the DB
-  async save(): Promise<void> {
+  static async save(pull_request: Pull): Promise<Pull> {
     try {
-     await prisma.pull.upsert({
+      return await prisma.pull.upsert({
         where: {
           repo_pull_number: {
-            repo: this.data.repo,
-            pull_number: this.data.pull_number,
+            repo: pull_request.repo,
+            pull_number: pull_request.pull_number,
           }
         },
-        update: this.data,
-        create: this.data,
+        update: pull_request,
+        create: pull_request,
       })
     } catch (e) {
       log.error(
         "Failed to save Pull #%d '%s\n\t%s",
-        this.data.pull_number,
-        this.data.title,
+        pull_request.pull_number,
+        pull_request.title,
         new Error()
       )
+      throw e
     }
-  }
-
-  async setNewValues(data: PullRequest): Promise<void> {
-    this.data = { ...data }
-    await this.save()
   }
 
   static async getDBPulls(): Promise<Pull[]> {
