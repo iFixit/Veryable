@@ -20,8 +20,6 @@
     "babel-core": "^6.26.3",
     "date-and-time": "^1.0.1",
     "dotenv": "^10.0.0",
-    "knex": "^0.21.20",
-    "mysql": "^2.18.1",
     "winston": "^3.3.3"
   },
   "devDependencies": {
