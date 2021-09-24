@@ -135,18 +135,7 @@ describe('PullRequest Class', () => {
       const expectedGraphQLValues = [{ name: 'ifixit', owner: 'iFixit' }, 39126]
       expect(graphql_values).toMatchObject(expectedGraphQLValues)
     })
-    test('setNewValues changes Pull data', async () => {
-      const testPull = Pull.fromDataBase(mockPullData)
-      const spy = jest.spyOn(testPull, 'save').mockImplementation(() => Promise.resolve());
 
-
-      expect(testPull.data).toMatchObject(mockPullData)
-
-      testPull.setNewValues(updated_pull_data)
-      expect(testPull.data).toMatchObject(updated_pull_data)
-      expect(spy).toHaveBeenCalledTimes(1)
-      spy.mockRestore()
-    })
     describe('Saving Pull data', () => {
       beforeEach(async () => {
         await db('qa_pulls').del()
