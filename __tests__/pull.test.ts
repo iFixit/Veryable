@@ -28,9 +28,9 @@ async function db_insert() {
         closed_at: 1628024709,
         merged_at: 1628024709,
         closes: null,
-        interacted: 1,
+        interacted: true,
         interacted_count: 3,
-        qa_ready: 1,
+        qa_ready: true,
         qa_ready_count: 5,
       },
       {
@@ -45,9 +45,9 @@ async function db_insert() {
         closed_at: 1628024709,
         merged_at: 1628024709,
         closes: null,
-        interacted: 0,
+        interacted: false,
         interacted_count: 0,
-        qa_ready: 0,
+        qa_ready: false,
         qa_ready_count: 0,
       },
       {
@@ -62,9 +62,9 @@ async function db_insert() {
         closed_at: 0,
         merged_at: 0,
         closes: null,
-        interacted: 1,
+        interacted: true,
         interacted_count: 2,
-        qa_ready: 0,
+        qa_ready: false,
         qa_ready_count: 4,
       },
       {
@@ -79,9 +79,9 @@ async function db_insert() {
         closed_at: 0,
         merged_at: 0,
         closes: null,
-        interacted: 0,
+        interacted: false,
         interacted_count: 0,
-        qa_ready: 0,
+        qa_ready: false,
         qa_ready_count: 0,
       },
       {
@@ -96,34 +96,16 @@ async function db_insert() {
         closed_at: 0,
         merged_at: 0,
         closes: 531,
-        interacted: 0,
+        interacted: false,
         interacted_count: 1,
-        qa_ready: 1,
+        qa_ready: true,
         qa_ready_count: 1,
       },
     ]
   })
 }
 
-const defaultData = {
-  repo: '',
-  pull_number: 0,
-  state: '',
-  title: '',
-  head_ref: '',
-  qa_req: 1,
-  created_at: 0,
-  updated_at: 0,
-  closed_at: null,
-  merged_at: null,
-  closes: null,
-  interacted: 0,
-  interacted_count: 0,
-  qa_ready: 0,
-  qa_ready_count: 0,
-}
-
- const mockPullData = {
+ const mockPullData: Pull = {
   repo: 'iFixit/ifixit',
   pull_number: 39126,
   state: 'OPEN',
@@ -135,20 +117,12 @@ const defaultData = {
   closed_at: null,
   merged_at: null,
   closes: null,
-  interacted: 0,
+  interacted: false,
   interacted_count: 0,
-  qa_ready: 0,
+  qa_ready: false,
   qa_ready_count: 0,
 }
 
-const updated_pull_data = {
-  ...mockPullData,
-  updated_at: 1628363900,
-  interacted: 1,
-  interacted_count: 2,
-  qa_ready: 1,
-  qa_ready_count: 3,
-}
 describe('Pull Class', () => {
   test('Connection Established', async () => {
     const data = await db.raw('Select 1+1 as result')
