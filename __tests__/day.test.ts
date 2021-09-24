@@ -42,39 +42,31 @@ describe('DayMetric class', () => {
     })
 
     describe("'today' is not in the database, but 'yesterday' is", () => {
-      beforeEach(async () => {
-        await db('qa_metrics').del()
-        await db('qa_metrics').insert([
-          {
-            date: yesterday_unix,
-            pull_count: 12,
-            pulls_added: 49,
-            pulls_interacted: 15,
-            unique_pulls_added: 4,
-          },
-        ])
-      })
 
       test("should init with today's date but the 'pull_count' will be set to 'yesterday'.'pull_count' value ", async () => {
-        const newDayWithYesterday = {
+        const today: Day = {
           pull_count: 12,
           pulls_added: 0,
           pulls_interacted: 0,
           unique_pulls_added: 0,
+          date: today_unix
         }
+
+        const yesterday: Day = {
+          pull_count: 12,
+          pulls_added: 15,
+          pulls_interacted: 16,
+          unique_pulls_added: 5,
+          date: yesterday_unix
+        }
+
+        await prisma.day.create({ data: yesterday })
+
         const testDay = new DayMetric()
-        const spy = jest.spyOn(testDay, 'save').mockImplementation(() => Promise.resolve())
-
-
         await testDay.init()
-        const dayValues = testDay.getDayValues()
-        expect(dayValues).toMatchObject(newDayWithYesterday)
 
-        expect(spy).toHaveBeenCalledTimes(0)
-        const data = await db('qa_metrics').select()
-        //Should not have saved a new row to the database just yet
-        expect(data.length).toBe(1)
-        spy.mockRestore()
+        const dayValues = testDay.getDayValues()
+        expect(dayValues).toMatchObject(today)
       })
       test("should create a new day row with all values set to zero except for 'pull_count'", async () => {
         const newDayWithYesterday = {
