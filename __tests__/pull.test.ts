@@ -136,76 +136,14 @@ describe('PullRequest Class', () => {
       expect(graphql_values).toMatchObject(expectedGraphQLValues)
     })
 
-    describe('Saving Pull data', () => {
-      beforeEach(async () => {
-        await db('qa_pulls').del()
-      })
-      test('Setting values on new Pull creates new row ', async () => {
-        const dataBefore = await db('qa_pulls').select()
-        expect(dataBefore.length).toBe(0)
-
-        const testPull = Pull.fromDataBase(mockPullData)
-        await testPull.setNewValues(updated_pull_data)
-        expect(testPull.data).toMatchObject(updated_pull_data)
-        const dataAfter = await db('qa_pulls').select()
-        expect(dataAfter.length).toBe(1)
-
-        expect(dataAfter[0]).toMatchObject(testPull.data)
-      })
-      test('Setting new values on existing Pull updates row', async () => {
-        const dataBefore = await db('qa_pulls').select()
-        expect(dataBefore.length).toBe(0)
-
-        const rowData = {
-          repo: 'iFixit/ifixit',
-          pull_number: 39126,
-          state: 'OPEN',
-          title:
-            'Shopify Hotfix: Add order method to get customer email and use it in return emails',
-          head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
-          qa_req: 1,
-          created_at: 1628362800,
-          updated_at: 1628363900,
-          closed_at: 0,
-          merged_at: 0,
-          closes: null,
-          interacted: 1,
-          interacted_count: 2,
-          qa_ready: 1,
-          qa_ready_count: 3,
-        }
-
-        await db('qa_pulls').insert(rowData)
-        const newData = await db('qa_pulls').select()
-        expect(newData.length).toBe(1)
-        expect(newData[0]).toMatchObject(rowData)
-
-        const testPull = Pull.fromDataBase(newData[0])
-        const mockUpdatePullData = {
-          ...mockPullData,
-          updated_at: 1628363900,
-          closed_at: 1628363900,
-          merged_at: 1628363900,
-          interacted: 1,
-          interacted_count: 3,
-          qa_ready: 1,
-          qa_ready_count: 5,
-        }
-        testPull.setNewValues(mockUpdatePullData)
-        expect(testPull.data).toMatchObject(mockUpdatePullData)
-
-        const dataAfter = await db('qa_pulls').select()
-        expect(dataAfter.length).toBe(1)
-        expect(dataAfter[0]).toMatchObject(testPull.data)
-        expect(dataAfter[0]).toMatchObject(mockUpdatePullData)
-      })
-    })
-  })
-  describe('Static Methods', () => {
-    beforeEach(async () => {
-      await db('qa_pulls').del()
+  describe('Database Static Methods', () => {
+    beforeAll(async () => {
+      await prisma.pull.deleteMany();
       await db_insert()
     })
+
+    afterAll(async () => prisma.pull.deleteMany());
+
     test('getDBPulls retrieves all OPEN pulls from database as Pull[]', async () => {
       const data = await Pull.getDBPulls()
       expect(data.length).toBe(3)
