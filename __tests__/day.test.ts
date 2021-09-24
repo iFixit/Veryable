@@ -24,27 +24,19 @@ describe('DayMetric class', () => {
   describe('Day Value Conditions', () => {
     describe("'today' and 'yesterday' are not in the database", () => {
 
-      test("should init today's date with all values set to zero", async () => {
-        const newDay = {
+      test("should init today's date with all other values set to zero", async () => {
+        const newDay: Day = {
           pull_count: 0,
           pulls_added: 0,
           pulls_interacted: 0,
           unique_pulls_added: 0,
+          date: today_unix
         }
         const testDay = new DayMetric()
-        const spy = jest.spyOn(testDay, 'save').mockImplementation(() => Promise.resolve())
 
         await testDay.init()
         const dayValues = testDay.getDayValues()
         expect(dayValues).toMatchObject(newDay)
-
-        expect(spy).toHaveBeenCalled()
-
-        const data = await db('qa_metrics').select()
-        //Should not have saved to the database just yet
-        expect(data.length).toBe(0)
-
-        spy.mockRestore()
       })
 
       test('should create a new day row with all values set to zero', async () => {
