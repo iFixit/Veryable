@@ -124,42 +124,17 @@ describe('DayMetric class', () => {
       })
 
       test("should init with today's date and all values from today's row in the database", async () => {
-        const newDay = {
-          pull_count: 15,
-          pulls_added: 3,
-          pulls_interacted: 2,
-          unique_pulls_added: 3,
-        }
         const testDay = new DayMetric()
-        const spy = jest.spyOn(testDay, 'save').mockImplementation(() => Promise.resolve())
-
 
         await testDay.init()
         const dayValues = testDay.getDayValues()
-        expect(dayValues).toMatchObject(newDay)
+        expect(dayValues).toMatchObject(today)
 
-        expect(spy).toHaveBeenCalledTimes(0)
 
-        const data = await db('qa_metrics').select().orderBy('date', 'desc')
-        //Should not have saved to the database just yet
+         const data = await prisma.day.findMany({ orderBy: { 'date': 'desc' } })
+
         expect(data.length).toBe(2)
-        expect(data).toMatchObject([
-          {
-            date: 'today_unix',
-            pull_count: 15,
-            pulls_added: 3,
-            pulls_interacted: 2,
-            unique_pulls_added: 3,
-          },
-          {
-            date: 'yesterday_unix',
-            pull_count: 12,
-            pulls_added: 49,
-            pulls_interacted: 15,
-            unique_pulls_added: 4,
-          },
-        ])
-        spy.mockRestore()
+        expect(data).toMatchObject([today,yesterday])
       })
       test('should not update the database when initing', async () => {
         const newDay = {
