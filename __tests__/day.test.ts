@@ -68,39 +68,36 @@ describe('DayMetric class', () => {
         const dayValues = testDay.getDayValues()
         expect(dayValues).toMatchObject(today)
       })
+
       test("should create a new day row with all values set to zero except for 'pull_count'", async () => {
-        const newDayWithYesterday = {
+          const today: Day = {
           pull_count: 12,
           pulls_added: 0,
           pulls_interacted: 0,
           unique_pulls_added: 0,
+          date: today_unix
         }
+
+        const yesterday: Day = {
+          pull_count: 12,
+          pulls_added: 15,
+          pulls_interacted: 16,
+          unique_pulls_added: 5,
+          date: yesterday_unix
+        }
+
+        await prisma.day.create({ data: yesterday })
         const testDay = new DayMetric()
 
         await testDay.init()
         const dayValues = testDay.getDayValues()
-        expect(dayValues).toMatchObject(newDayWithYesterday)
+        expect(dayValues).toMatchObject(today)
+
         await testDay.save()
 
-        const data = await db('qa_metrics').select().orderBy('date', 'desc')
-        //Should not have saved a new row to the database just yet
+        const data = await prisma.day.findMany({ orderBy: { 'date': 'desc' } })
         expect(data.length).toBe(2)
-        expect(data).toMatchObject([
-          {
-            date: 'today_unix',
-            pull_count: 12,
-            pulls_added: 0,
-            pulls_interacted: 0,
-            unique_pulls_added: 0,
-          },
-          {
-            date: 'yesterday_unix',
-            pull_count: 12,
-            pulls_added: 49,
-            pulls_interacted: 15,
-            unique_pulls_added: 4,
-          },
-        ])
+        expect(data).toMatchObject([today, yesterday])
       })
     })
     describe("'today' and 'yesterday' are in the database", () => {
