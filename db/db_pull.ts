@@ -5,7 +5,6 @@ import logger from '../src/logger'
 
 const log = logger('db_pull')
 
-//TODO: move to actual ORM like Prisma for easier model configuration and declaration
 export default class PullRequest {
   // Returns string format of primary key
   static getUniqueID(pull_request: Pull): string {
