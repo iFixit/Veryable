@@ -7,5 +7,5 @@
     "outDir": "out",
     "noImplicitAny": false
   },
-  "exclude": ["./out/**/*", "scripts/**/*", "db/db_issue.ts"],
+  "exclude": ["scripts/**/*", "db/db_issue.ts"],
 }
