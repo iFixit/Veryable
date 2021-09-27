@@ -3,8 +3,7 @@ import { Pull, qa_pulls_state } from "@prisma/client"
 
 import PullRequest from '../db/db_pull'
 import config from '../config/config'
-const { signatures } = config
-const { qa_team } = config
+const { qa_team, signatures } = config
 
 import { utils } from '../scripts/utils'
 
