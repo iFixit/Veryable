@@ -8,7 +8,9 @@
     "start": "npm run build && NODE_ENV=dev node ./out/src/index",
     "debug": "npm run build && NODE_ENV=dev DEBUG='prisma*' node ./out/src/index",
     "build": "tsc -p .",
-    "lint:types": "tsc --noEmit -p ."
+    "lint:types": "tsc --noEmit -p .",
+    "prisma:test_setup": "npx dotenv -c test -- npx prisma db push",
+    "prisma:start_setup": "npx dotenv -c dev -- npx prisma db push"
   },
   "keywords": [],
   "author": "",
