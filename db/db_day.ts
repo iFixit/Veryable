@@ -1,13 +1,26 @@
-import date from "date-and-time";
-import db from "./db_manager.js";
+import db from "../knex/knex";
 
-import logger from '../logger.js';
+import logger from '../src/logger';
+
+import { utils } from '../scripts/utils'
+
 const log = logger( 'db_day' );
 
 const TWENTY_FOUR_HOURS = 86400;
 
+type DayMetric = {
+   pull_count: number,
+    pulls_added: number,
+    pulls_interacted: number,
+    unique_pulls_added: number,
+}
+
 export default class Day
 {
+  dayMetrics: DayMetric
+
+  today: number;
+  yesterday: number;
   constructor()
   {
     this.dayMetrics = {
@@ -16,7 +29,7 @@ export default class Day
       pulls_interacted: 0,
       unique_pulls_added: 0
     };
-    let [ t, y ] = this.getDates();
+    let [ t, y ] = utils.getDates();
     this.today = t;
     this.yesterday = y;
     log.data( `Today's values are ${ this.today } and yesterday is ${ this.yesterday }` );
@@ -25,8 +38,7 @@ export default class Day
 
 
   // Initial the day
-  async init()
-  {
+  async init(): Promise<void> {
     let day = await db( 'qa_metrics' ).first().where( { "date": this.today } ).orWhere( { "date": this.yesterday } ).orderBy( "date", "desc" );
 
     log.data( `Day Data ${ JSON.stringify( day, null, 2 ) }` );
@@ -51,14 +63,14 @@ export default class Day
   };
 
   // Insert the new Day in the table and if it exists Update the values accordingly
-  async save( newMetrics = null )
+  async save( newMetrics: DayMetric | null = null ): Promise<void>
   {
     if ( this.today !== Math.floor( new Date().setHours( 0, 0, 0, 0 ) / 1000 ) )
     {
-      [ this.today, this.yesterday ] = this.getDates();
+      [ this.today, this.yesterday ] = utils.getDates();
       this.dayMetrics.pulls_added = 0;
     }
-    this.dayMetrics = newMetrics ? newMetrics : this.dayMetrics;
+    this.dayMetrics = newMetrics || this.dayMetrics;
     try
     {
       await db( 'qa_metrics' )
@@ -66,40 +78,13 @@ export default class Day
         .onConflict( "date" ).merge();
     } catch ( e )
     {
-      log.error( "Failed to save Day " + e.message );
+      log.error( "Failed to save Day " + e );
     }
   }
 
-  getDayValues()
+  getDayValues(): DayMetric
   {
     return { ...this.dayMetrics };
-  }
-
-  getPullCount()
-  {
-    return this.dayMetrtics.pull_count;
-  }
-
-  getPullsAdded()
-  {
-    return this.dayMetrtics.pulls_added;
-  }
-
-  getInteractionsCount()
-  {
-    return this.dayMetrtics.pulls_interacted;
-  }
-
-  getUniquePullsAddedCount()
-  {
-    return this.dayMetrtics.unique_pulls_added;
-  }
-
-  getDates()
-  {
-    let today = Math.floor( new Date().setHours( 0, 0, 0, 0 ) / 1000 );
-    let yesterday = Math.floor( date.addDays( new Date(), -1 ).setHours( 0, 0, 0, 0 ) / 1000 );
-    return [ today, yesterday ];
   }
 };
 

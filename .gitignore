@@ -1,6 +1,8 @@
 .env*
 node_modules
+config.ts
 config.js
+out
 /logs/*
 coverage/*
 /knex/seeds/

@@ -26,16 +26,16 @@ const config = {
   } )
 };
 
-export default function ( moduleName )
+export default function ( moduleName:string ): winston.Logger
 {
-  return new winston.createLogger( {
+  return winston.createLogger( {
     levels: config.levels,
     transports: [
       new winston.transports.Console( {
         level: process.env.NODE_ENV === 'debug' ? 'data' : 'info',
         format: winston.format.combine(
           winston.format.splat(),
-          winston.format.colorize( config.colors ),
+          winston.format.colorize( config ),
           winston.format.label( { label: moduleName } ),
           config.standardFormat
         )

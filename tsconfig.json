@@ -1,0 +1,11 @@
+{
+  "extends": "@tsconfig/node14/tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "removeComments": true, /* Remove comments */
+    "sourceMap": true,
+    "outDir": "out",
+    "noImplicitAny": false
+  },
+  "exclude": ["./out/**/*", "scripts/refreshIssues.ts", "scripts/retrieveDayIssues.ts"],
+}

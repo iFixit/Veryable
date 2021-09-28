@@ -1,26 +1,28 @@
-import { execSync } from 'child_process'
-import config from './config/config.js'
-const REPOS = config.repos
+import config from '../config/config'
+const { repos } = config
 
-import { queryOpenPulls } from './ghgraphql.js'
+import refreshPulls from '../scripts/refreshPulls';
 
-import Day from './db/db_day.js'
+import { queryOpenPulls } from './ghgraphql'
+
+import Day from '../db/db_day'
 const DAY = new Day()
-await DAY.init()
 
-import Pull from './db/db_pull.js'
-const DB_PULLS = await Pull.getDBPulls()
+import Pull from '../db/db_pull'
+let DB_PULLS: Pull[]
 
-import parsePull from './pullParser.js'
+import parsePull from './pullParser'
 
-import logger from './logger.js'
+import logger from './logger'
 const log = logger('main')
 
 // Automatically run script repeatedly
 ;(async () => {
+  await DAY.init();
+  DB_PULLS = await Pull.getDBPulls();
   log.info('Will now refresh current open pulls in DB')
   // Refresh any open pulls since last start up and block code until done
-  execSync('node ./scripts/refreshPulls.js')
+  await refreshPulls()
   log.info('Done refreshing pulls')
   main()
   setInterval(main, 60 * 1000) //Run every 60 seconds
@@ -30,7 +32,7 @@ async function main() {
   log.info('Running script...\n')
 
   // Iterate through the list of repos declared in the config.json file
-  for (const repo of REPOS) {
+  for (const repo of repos) {
     log.data(`Parsing pulls for repo: ${JSON.stringify(repo)}`)
     const all_open_pulls = await queryOpenPulls(repo)
     parsePulls(all_open_pulls.repository.pullRequests.nodes)
@@ -40,14 +42,18 @@ async function main() {
   log.info('Finished script...\n')
 }
 
-function parsePulls(github_pulls) {
+function parsePulls(github_pulls: GitHubPullRequest[]) {
   const unique_id_pulls = DB_PULLS.map(db_pull => {
     return db_pull.getUniqueID()
   })
-  for (const pull of github_pulls) {
-    const found = unique_id_pulls.indexOf(`${pull.baseRepository.nameWithOwner} #${pull.number}`)
-    parsePull(pull, found >= 0 ? DB_PULLS[found] : null)
-  }
+  github_pulls.forEach(github_pull => {
+    let found = unique_id_pulls.indexOf(`${github_pull.baseRepository.nameWithOwner} #${github_pull.number}`)
+    if (found < 0) {
+      DB_PULLS.push(Pull.fromGitHub(github_pull))
+      found = DB_PULLS.length - 1
+    }
+    parsePull(github_pull, DB_PULLS[found])
+  });
 }
 
 async function updateDayMetrics() {
@@ -64,8 +70,8 @@ async function updateDayMetrics() {
   current_metrics.pulls_added += difference > 0 ? difference : 0
   current_metrics.pull_count = running_pull_total
 
-  current_metrics.unique_pulls_added = await Pull.getQAReadyUniquePullCount()
-  current_metrics.pulls_interacted = await Pull.getInteractionsCount()
+  current_metrics.unique_pulls_added = await Pull.getQAReadyUniquePullCount(DAY.today)
+  current_metrics.pulls_interacted = await Pull.getInteractionsCount(DAY.today)
 
   log.info('Current Pulls Today: ' + current_metrics.pull_count)
   log.info('Interactions Today: ' + current_metrics.pulls_interacted)

@@ -1,5 +1,5 @@
 export default {
-  GET_OPEN_PULLS: ( repo, owner, limitsize ) => `
+  GET_OPEN_PULLS: ( repo: string, owner: string, limitsize: number ) => `
     {
         repository(name: "${ repo }", owner: "${ owner }") {
             pullRequests(states: OPEN, first: ${ limitsize }, orderBy: {field: CREATED_AT, direction: DESC} ) {
@@ -12,7 +12,7 @@ export default {
     }
     ${ COMMENT_FRAGMENT }
   `,
-  GET_PULL: ( repo, owner, pullNumber ) => `
+  GET_PULL: ( repo: string, owner: string, pullNumber: number ) => `
     {
         repository(name: "${ repo }", owner: "${ owner }") {
             pullRequest(number: ${ pullNumber }) {
@@ -22,7 +22,7 @@ export default {
     }
     ${ COMMENT_FRAGMENT }
   `,
-  GET_DAY_ISSUES: ( repo, owner, limitsize, day ) => `
+  GET_DAY_ISSUES: ( repo: string, owner: string, limitsize: number, day: string) => `
   {
       repository(name: "${ repo }", owner: "${ owner }") {
         issues(first: ${ limitsize }, orderBy: { field: CREATED_AT, direction: DESC }, filterBy: { since: "${ day }", labels: [ "0 bug" ]}) {
@@ -33,7 +33,7 @@ export default {
       }
     }
   `,
-  GET_ISSUES: ( repo, owner, cursor = null ) => `
+  GET_ISSUES: ( repo: string, owner: string, cursor:string | null = null ) => `
   {
     repository(name: "${ repo }", owner: "${ owner }") {
       issues(first: 100,  orderBy: { field: CREATED_AT, direction: DESC }, ${ cursor !== null ? 'after:"' + cursor + '"' : ''
@@ -49,7 +49,7 @@ export default {
     }
   }
   `,
-  GET_ISSUE: ( repo, owner, issueNumber ) => `
+  GET_ISSUE: ( repo: string, owner: string, issueNumber: number ) => `
   {
   repository( name: "${ repo }", owner: "${ owner }" ) {
     issue( number: ${ issueNumber } ) {
@@ -89,7 +89,7 @@ commits( last: 1 ){
     }
   }
 },
-comments( last: 50 ){
+comments( last: 50, orderBy: { field: UPDATED_AT, direction: DESC } ){
   nodes{
     ...commentFields
   }

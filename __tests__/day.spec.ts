@@ -1,6 +1,10 @@
 import { jest } from '@jest/globals'
-import Day from '../db/db_day.js'
-import db from '../db/db_manager.js'
+import Day from '../db/db_day'
+import db from '../knex/knex'
+import {utils} from '../scripts/utils'
+
+// Mocking the dates it will be set to for today and yesteday; returning [Wed Aug 04 00:00:00 -0700 2021, Tue Aug 03 00:00:00 -0700 2021]
+jest.spyOn(utils, 'getDates').mockImplementation(() => [1628060400, 1627974000]);
 
 beforeAll(async () => {
   await db.schema.dropTableIfExists('qa_metrics').createTable('qa_metrics', table => {
@@ -14,12 +18,13 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
+  await db('qa_metrics').del()
   await db.destroy()
 })
 
 describe('Day Class', () => {
   test('Connection Established', async () => {
-    let data = await db.raw('Select 1+1 as result')
+    const data = await db.raw('Select 1+1 as result')
     expect(data[0]).toContainEqual({
       result: 2,
     })
@@ -28,29 +33,27 @@ describe('Day Class', () => {
   describe('Day Value Conditions', () => {
     describe("'today' and 'yesterday' are not in the database", () => {
       test('should have no values in the database', async () => {
-        let data = await db('qa_metrics').select()
+        const data = await db('qa_metrics').select()
         expect(data.length).toBe(0)
       })
 
       test("should init today's date with all values set to zero", async () => {
-        let newDay = {
+        const newDay = {
           pull_count: 0,
           pulls_added: 0,
           pulls_interacted: 0,
           unique_pulls_added: 0,
         }
-        let testDay = new Day()
-        let spy = jest.spyOn(testDay, 'save').mockImplementation(() => {
-          'Saving to DB'
-        })
+        const testDay = new Day()
+        const spy = jest.spyOn(testDay, 'save').mockImplementation(() => Promise.resolve())
 
         await testDay.init()
-        let dayValues = testDay.getDayValues()
+        const dayValues = testDay.getDayValues()
         expect(dayValues).toMatchObject(newDay)
 
         expect(spy).toHaveBeenCalled()
 
-        let data = await db('qa_metrics').select()
+        const data = await db('qa_metrics').select()
         //Should not have saved to the database just yet
         expect(data.length).toBe(0)
 
@@ -58,16 +61,16 @@ describe('Day Class', () => {
       })
 
       test('should create a new day row with all values set to zero', async () => {
-        let newDay = {
+        const newDay = {
           pull_count: 0,
           pulls_added: 0,
           pulls_interacted: 0,
           unique_pulls_added: 0,
         }
-        let testDay = new Day()
+        const testDay = new Day()
         await testDay.init()
 
-        let data = await db('qa_metrics').select()
+        const data = await db('qa_metrics').select()
         expect(data.length).toBe(1)
         expect(data[0]).toMatchObject(newDay)
       })
@@ -85,52 +88,44 @@ describe('Day Class', () => {
             unique_pulls_added: 4,
           },
         ])
-
-        // Mocking the dates it will be set to for today and yesteday; returning [Wed Aug 04 00:00:00 -0700 2021, Tue Aug 03 00:00:00 -0700 2021]
-        jest.spyOn(Day.prototype, 'getDates').mockImplementation(() => [1628060400, 1627974000])
-      })
-
-      afterEach(() => {
-        jest.restoreAllMocks()
       })
 
       test("should init with today's date but the 'pull_count' will be set to 'yesterday'.'pull_count' value ", async () => {
-        let newDayWithYesterday = {
+        const newDayWithYesterday = {
           pull_count: 12,
           pulls_added: 0,
           pulls_interacted: 0,
           unique_pulls_added: 0,
         }
-        let testDay = new Day()
-        let spy = jest.spyOn(testDay, 'save').mockImplementation(() => {
-          'Saving to DB'
-        })
+        const testDay = new Day()
+        const spy = jest.spyOn(testDay, 'save').mockImplementation(() => Promise.resolve())
+
 
         await testDay.init()
-        let dayValues = testDay.getDayValues()
+        const dayValues = testDay.getDayValues()
         expect(dayValues).toMatchObject(newDayWithYesterday)
 
         expect(spy).toHaveBeenCalledTimes(0)
-        let data = await db('qa_metrics').select()
+        const data = await db('qa_metrics').select()
         //Should not have saved a new row to the database just yet
         expect(data.length).toBe(1)
         spy.mockRestore()
       })
       test("should create a new day row with all values set to zero except for 'pull_count'", async () => {
-        let newDayWithYesterday = {
+        const newDayWithYesterday = {
           pull_count: 12,
           pulls_added: 0,
           pulls_interacted: 0,
           unique_pulls_added: 0,
         }
-        let testDay = new Day()
+        const testDay = new Day()
 
         await testDay.init()
-        let dayValues = testDay.getDayValues()
+        const dayValues = testDay.getDayValues()
         expect(dayValues).toMatchObject(newDayWithYesterday)
         await testDay.save()
 
-        let data = await db('qa_metrics').select().orderBy('date', 'desc')
+        const data = await db('qa_metrics').select().orderBy('date', 'desc')
         //Should not have saved a new row to the database just yet
         expect(data.length).toBe(2)
         expect(data).toMatchObject([
@@ -170,32 +165,25 @@ describe('Day Class', () => {
             unique_pulls_added: 4,
           },
         ])
-        // Mocking the dates it will be set to for today and yesteday; returning [Wed Aug 04 00:00:00 -0700 2021, Tue Aug 03 00:00:00 -0700 2021]
-        jest.spyOn(Day.prototype, 'getDates').mockImplementation(() => [1628060400, 1627974000])
-      })
-
-      afterEach(() => {
-        jest.restoreAllMocks()
       })
       test("should init with today's date and all values from today's row in the database", async () => {
-        let newDay = {
+        const newDay = {
           pull_count: 15,
           pulls_added: 3,
           pulls_interacted: 2,
           unique_pulls_added: 3,
         }
-        let testDay = new Day()
-        let spy = jest.spyOn(testDay, 'save').mockImplementation(() => {
-          'Saving to DB'
-        })
+        const testDay = new Day()
+        const spy = jest.spyOn(testDay, 'save').mockImplementation(() => Promise.resolve())
+
 
         await testDay.init()
-        let dayValues = testDay.getDayValues()
+        const dayValues = testDay.getDayValues()
         expect(dayValues).toMatchObject(newDay)
 
         expect(spy).toHaveBeenCalledTimes(0)
 
-        let data = await db('qa_metrics').select().orderBy('date', 'desc')
+        const data = await db('qa_metrics').select().orderBy('date', 'desc')
         //Should not have saved to the database just yet
         expect(data.length).toBe(2)
         expect(data).toMatchObject([
@@ -217,22 +205,22 @@ describe('Day Class', () => {
         spy.mockRestore()
       })
       test('should not update the database when initing', async () => {
-        let newDay = {
+        const newDay = {
           pull_count: 15,
           pulls_added: 3,
           pulls_interacted: 2,
           unique_pulls_added: 3,
         }
 
-        let dataBefore = await db('qa_metrics').select().orderBy('date', 'desc')
+        const dataBefore = await db('qa_metrics').select().orderBy('date', 'desc')
 
-        let testDay = new Day()
+        const testDay = new Day()
 
         await testDay.init()
-        let dayValues = testDay.getDayValues()
+        const dayValues = testDay.getDayValues()
         expect(dayValues).toMatchObject(newDay)
 
-        let dataAfter = await db('qa_metrics').select().orderBy('date', 'desc')
+        const dataAfter = await db('qa_metrics').select().orderBy('date', 'desc')
         expect(dataAfter).toMatchObject(dataBefore)
       })
     })

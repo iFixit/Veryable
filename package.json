@@ -1,13 +1,14 @@
 {
   "name": "qa-metrics",
   "version": "1.0.0",
-  "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest --runInBand",
-    "start": "NODE_ENV=dev node index.js",
-    "debug": "NODE_ENV=dev DEBUG=true node index.js"
+    "test": "npm run lint:types && NODE_ENV=test jest --no-cache --runInBand",
+    "start": "npm run build && NODE_ENV=dev node ./out/src/index",
+    "debug": "NODE_ENV=dev DEBUG=true node ./out/src/index",
+    "build": "tsc -p .",
+    "lint:types": "tsc --noEmit -p ."
   },
   "keywords": [],
   "author": "",
@@ -23,7 +24,11 @@
     "winston": "^3.3.3"
   },
   "devDependencies": {
+    "@tsconfig/node14": "^1.0.1",
+    "@types/jest": "^27.0.1",
     "jest": "^27.0.6",
-    "rewire": "^5.0.0"
+    "rewire": "^5.0.0",
+    "ts-jest": "^27.0.5",
+    "typescript": "^4.4.3"
   }
 }
