@@ -748,7 +748,7 @@ describe('Parsing Pull Data', () => {
       const spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [1628233200000, 1628146800000]);
       const test_pull = await parsePull(mock_github_data, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
-      expect(spy).toHaveBeenCalledTimes(2);
+      expect(spy).toHaveBeenCalledTimes(1);
       spy.mockRestore();
     });
 
