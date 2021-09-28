@@ -10,7 +10,8 @@
     "build": "tsc -p .",
     "lint:types": "tsc --noEmit -p .",
     "prisma:test_setup": "npx dotenv -c test -- npx prisma db push",
-    "prisma:start_setup": "npx dotenv -c dev -- npx prisma db push"
+    "prisma:start_setup": "npx dotenv -c dev -- npx prisma db push",
+    "prisma:studio": "npx dotenv -c dev -- npx prisma studio"
   },
   "keywords": [],
   "author": "",
