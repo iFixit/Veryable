@@ -39,7 +39,7 @@ export default class PullRequest {
         "Failed to save Pull #%d '%s\n\t%s",
         pull_request.pull_number,
         pull_request.title,
-        new Error()
+        e
       )
       throw e
     }
@@ -62,7 +62,7 @@ export default class PullRequest {
   }
 
   //TODO: Add conditional to be within single day range
-  //Will also include pulls that are still open passed creation date
+  //Will also include pulls that are still open past creation date
   static async getQAReadyUniquePullCount(day: number): Promise<number> {
      return prisma.pull.count(
       {

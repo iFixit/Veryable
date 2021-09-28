@@ -58,65 +58,62 @@ function formatGHDate(utc_date: string | null): number | null {
 function closesDeclared(github_pull: GitHubPullRequest): number | null {
   let body = github_pull.bodyText || ''
   let closes_regex = new RegExp(signatures.closes, 'i')
-  let closes_pull
   let __CLOSE = body.match(closes_regex)
 
   if (__CLOSE?.groups) {
-    closes_pull = parseInt(__CLOSE.groups.closes)
+    return parseInt(__CLOSE.groups.closes)
   }
-  return closes_pull ?? null;
+  return null;
 }
+
 // Get Signatures/Stamps
-function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, dev_block: string, interacted: boolean } {
+function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, dev_block: boolean , interacted: boolean } {
   let latest_commit_date = github_pull.commits
     ? new Date(github_pull.commits.nodes[0].commit.pushedDate) : new Date();
-  let current_tags = {
-    QA: false,
-    dev_block: '',
-    interacted: false
-  }
 
   const comments = github_pull.comments ? github_pull.comments.nodes : []
-  comments.forEach(comment => {
-    let comment_date = new Date(comment.createdAt)
-    if (
-      hasQATag(comment.bodyText) &&
-      date.subtract(latest_commit_date, comment_date).toDays() <= 0
-    ) {
-      current_tags.QA = true
-    }
-    // since comments are in descending order, the first match will define the state
-    else if (current_tags.dev_block === '') {
-      current_tags.dev_block = hasTags(comment.bodyText)
-    }
 
-    if (
-      qa_team.includes(comment.author.login) &&
-      date.subtract(latest_commit_date, comment_date).toDays() <= 0 &&
-      date.isSameDay(comment_date, new Date(utils.getDates()[0]))
-    ) {
-      current_tags.interacted = true
-    }
+  const dev_block = isDevBlocked(comments)
+
+  const QA = comments.some(comment => {
+    let comment_date = new Date(comment.createdAt)
+    return isQAed(comment.bodyText) && date.subtract(latest_commit_date, comment_date).toDays() <= 0
   })
 
-  return current_tags
+  const interacted = comments.some(comment => {
+    let comment_date = new Date(comment.createdAt)
+    return qa_team.includes(comment.author.login) &&
+      date.subtract(latest_commit_date, comment_date).toDays() <= 0 &&
+      date.isSameDay(comment_date, new Date(utils.getDates()[0]))
+  })
+
+  return {
+    QA,
+    dev_block,
+    interacted
+  }
 }
 
-function hasQATag(comment: string): boolean {
+
+function isQAed(comment): boolean {
   let regex = new RegExp(signatures.QA + signatures.emoji, 'i')
   return regex.test(comment)
 }
 
 // Only checking if dev_block or not
-function hasTags(comment: string): string {
-  let dev_block = ''
-  signatures.tags.forEach(tag => {
-    let regex = new RegExp(tag.regex + signatures.emoji, 'i')
-    if (regex.test(comment)) {
-      dev_block = tag.state.toString()
+function isDevBlocked(comments): boolean {
+
+  for (const comment of comments) {
+    const tag = signatures.tags.find(tag => {
+      let regex = new RegExp(tag.regex + signatures.emoji, 'i')
+      return regex.test(comment.bodyText)
+    })
+    if (tag) {
+      return tag.state
     }
-  })
-  return dev_block
+  }
+
+  return false
 }
 
 // Check if the Pull requires QAing
@@ -124,34 +121,42 @@ function qaRequired(github_pull: GitHubPullRequest): number {
   let body = github_pull.bodyText || ''
   let qa_regex = new RegExp(signatures.qa_req, 'i')
   const qa = body.match(qa_regex)
-  let qa_req = 1
 
-  if (qa?.groups) {
-    qa_req = parseInt(qa.groups.qa_req)
+  if (!qa) {
+    return 1
   }
-  return qa_req
+
+  if (!qa?.groups) {
+    throw new Error("Config invalid: `signatures.qa_req` requires exactly one capture group to grab the number")
+  }
+
+  return parseInt(qa.groups.qa_req);
 }
 
 // Iteratres through the Pull Object and retrieves the appropriate base properties
-function isQAReadyAndInteracted(github_pull: GitHubPullRequest): {qa_ready: boolean, qa_req: number, qa_interacted: boolean} {
-  let qa_ready = true
-  // Want to skip pulls that are marked as qa_req_0
-  let qa_req = qaRequired(github_pull)
+function isQAReadyAndInteracted(github_pull: GitHubPullRequest):{ qa_ready: boolean, qa_req: number, qa_interacted: boolean } {
+  const qa_req = qaRequired(github_pull)
+  const tags = getTagsAndInteracted(github_pull)
+  const qa_ready = isQAReady(github_pull, qa_req, tags)
+
+  return { qa_ready, qa_req, qa_interacted: tags.interacted }
+}
+
+function isQAReady(github_pull: GitHubPullRequest, qa_req: number, tags ): boolean {
   if (!qa_req) {
-    qa_ready = false
+    return false
   }
 
-  let build_status = github_pull.commits?.nodes[0].commit.status?.state ?? 'EXPECTED'
+  const build_status = github_pull.commits?.nodes[0].commit.status?.state ?? 'EXPECTED'
   // Want to skip pulls that are failing CI
   if (build_status !== 'SUCCESS' && build_status !== 'EXPECTED') {
-    qa_ready = false
+    return false
   }
 
   // Want to skip pulls that are dev_block and already QA'd
-  let  tags = getTagsAndInteracted(github_pull)
-  if(tags.dev_block === 'true' || tags.QA) {
-    qa_ready = false
+  if(tags.dev_block || tags.QA) {
+    return false
   }
 
-  return { qa_ready, qa_req, qa_interacted: tags.interacted }
+  return true
 }
