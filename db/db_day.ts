@@ -32,7 +32,7 @@ export default class DayMetric
     if (this.yesterday) {
       this.metrics.pull_count = this.yesterday.pull_count
     }
-    this.metrics = await prisma.day.findFirst({ where: { 'date': today }, orderBy: { 'date': 'desc' } }) || {...this.metrics, date: today};
+    this.metrics = await prisma.day.findFirst({ where: { 'date': today }}) || {...this.metrics, date: today};
 
     log.data(`Day Data ${JSON.stringify(this.metrics, null, 2)}`);
   };
@@ -40,7 +40,7 @@ export default class DayMetric
   // Insert the new Day in the table and if it exists Update the values accordingly
   async save(): Promise<void>
   {
-    if ( this.isNewDay() )
+    if ( this.isNotToday() )
     {
      let [ today, yesterday ] = utils.getDates();
       this.yesterday = this.metrics;
@@ -74,7 +74,7 @@ export default class DayMetric
     return { ...this.metrics };
   }
 
-  private isNewDay(): boolean{
+  private isNotToday(): boolean{
     return this.metrics.date !== utils.getDates()[0]
   }
 };
