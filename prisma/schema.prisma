@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Day {
+  date               Int @id
+  pull_count         Int @default(0)
+  pulls_added        Int @default(0)
+  pulls_interacted   Int @default(0)
+  unique_pulls_added Int @default(0)
+
+  @@map("qa_metrics")
+}
+
+model Pull {
+  repo             String         @default("") @db.VarChar(100)
+  pull_number      Int            @db.UnsignedInt
+  state            qa_pulls_state
+  title            String         @db.VarChar(255)
+  head_ref         String         @db.Char(40)
+  qa_req           Int            @default(1)
+  created_at       Int?           @db.UnsignedInt
+  updated_at       Int?           @db.UnsignedInt
+  closed_at        Int?           @db.UnsignedInt
+  merged_at        Int?           @db.UnsignedInt
+  closes           Int?           @db.UnsignedInt
+  interacted       Boolean?       @default(false)
+  interacted_count Int            @default(0)
+  qa_ready         Boolean?       @default(false)
+  qa_ready_count   Int            @default(0)
+
+  @@id([repo, pull_number])
+  @@map("qa_pulls")
+}
+
+enum qa_pulls_state {
+  OPEN
+  CLOSED
+  MERGED
+}
