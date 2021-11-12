@@ -11,7 +11,8 @@
     "lint:types": "tsc --noEmit -p .",
     "prisma:test_setup": "npx dotenv-cli -c test -- npx prisma db push",
     "prisma:start_setup": "npx dotenv-cli -c dev -- npx prisma db push",
-    "prisma:studio": "npx dotenv-cli -c dev -- npx prisma studio"
+    "prisma:studio": "npx dotenv-cli -c dev -- npx prisma studio",
+    "prepare": "husky install"
   },
   "keywords": [],
   "author": "",
@@ -33,6 +34,7 @@
     "prisma": "^3.1.1",
     "rewire": "^5.0.0",
     "ts-jest": "^27.0.5",
-    "typescript": "^4.4.3"
+    "typescript": "^4.4.3",
+    "husky": "^7.0.0"
   }
 }
