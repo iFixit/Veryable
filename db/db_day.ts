@@ -42,7 +42,7 @@ export default class DayMetric
   {
     if ( this.isNotToday() )
     {
-     const [ today, yesterday ] = utils.getDates();
+     const [ today ] = utils.getDates();
       this.yesterday = this.metrics;
       this.metrics = {
         pull_count: this.yesterday?.pull_count || 0,
