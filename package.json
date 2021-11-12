@@ -12,7 +12,8 @@
     "prisma:test_setup": "npx dotenv-cli -c test -- npx prisma db push",
     "prisma:start_setup": "npx dotenv-cli -c dev -- npx prisma db push",
     "prisma:studio": "npx dotenv-cli -c dev -- npx prisma studio",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "pre-commit": "lint-staged"
   },
   "keywords": [],
   "author": "",
@@ -37,6 +38,7 @@
     "eslint": "^8.2.0",
     "husky": "^7.0.0",
     "jest": "^27.0.6",
+    "lint-staged": "^11.2.6",
     "prisma": "^3.1.1",
     "rewire": "^5.0.0",
     "ts-jest": "^27.0.5",
