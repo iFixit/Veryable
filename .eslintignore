@@ -1,0 +1,5 @@
+node_modules
+out
+logs
+scripts/**/*
+db/db_issue.ts
