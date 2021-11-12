@@ -52,7 +52,7 @@ describe('PullRequest Class', () => {
     afterAll(async () => prisma.pull.deleteMany());
 
     test('get all open pulls from database', async () => {
-      let pulls: Pull[] = await PullRequest.getDBPulls()
+      const pulls: Pull[] = await PullRequest.getDBPulls()
       expect(pulls.length).toBe(3)
 
       pulls.forEach(pull => {
