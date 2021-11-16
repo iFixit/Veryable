@@ -6,6 +6,8 @@
   "scripts": {
     "test": "npm run lint && NODE_ENV=test jest --no-cache --runInBand",
     "start": "npm run build && NODE_ENV=dev node ./dist/src/index",
+    "start:docker": "./scripts/docker-start.sh",
+    "stop:docker": "./scripts/docker-stop.sh",
     "debug": "npm run build && NODE_ENV=dev DEBUG='prisma*' node ./dist/src/index",
     "build": "tsc -p .",
     "lint": "eslint -c .eslintrc",
