@@ -1,11 +1,9 @@
 import { PrismaClient } from '@prisma/client'
 
 import path from 'path';
-import dotenv from 'dotenv';
-import dotenvExpand from 'dotenv-expand';
+import dotenv from 'dotenv-with-expand'
 
-const env = dotenv.config({ path: path.resolve(`.env.${process.env.NODE_ENV || 'dev'}`) });
-dotenvExpand(env)
+dotenv.config({ path: path.resolve(`.env.${process.env.NODE_ENV || 'dev'}`) });
 
 const prisma = new PrismaClient();
 
