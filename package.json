@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npm run lint && NODE_ENV=test jest --no-cache --runInBand",
+    "test": "jest --runInBand",
     "start": "npm run build && NODE_ENV=dev node ./dist/src/index",
     "start:docker": "./scripts/docker-start.sh",
     "stop:docker": "./scripts/docker-stop.sh",
