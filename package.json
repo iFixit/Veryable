@@ -4,11 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npm run lint:types && NODE_ENV=test jest --no-cache --runInBand",
+    "test": "npm run lint && NODE_ENV=test jest --no-cache --runInBand",
     "start": "npm run build && NODE_ENV=dev node ./out/src/index",
     "debug": "npm run build && NODE_ENV=dev DEBUG='prisma*' node ./out/src/index",
     "build": "tsc -p .",
-    "lint:types": "tsc --noEmit -p .",
+    "lint": "eslint -c .eslintrc",
     "prisma:test_setup": "npx dotenv-cli -c test -- npx prisma db push",
     "prisma:start_setup": "npx dotenv-cli -c dev -- npx prisma db push",
     "prisma:studio": "npx dotenv-cli -c dev -- npx prisma studio",
