@@ -15,6 +15,7 @@ services:
   app:
     build: .
     image: veryable:base
+    entrypoint: /bin/sh ./scripts/entrypoint.sh
     container_name: veryable-app
     environment:
       DATABASE_URL: $DOCKER_DATABASE_URL #overrides the local database url environment
