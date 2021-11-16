@@ -12,6 +12,6 @@ module.exports = {
     "!**/node_modules/**",
     "!**/coverage/**",
     "!**/logs/**",
-    "!**/out/**"
+    "!**/dist/**"
   ],
 }

@@ -2,8 +2,8 @@
 node_modules
 config.ts
 config.js
-out
+dist
 /logs/*
 coverage/*
-/knex/seeds/
+.vscode
 *.code-workspace

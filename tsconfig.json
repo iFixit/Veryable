@@ -4,8 +4,8 @@
     "allowJs": true,
     "removeComments": true, /* Remove comments */
     "sourceMap": true,
-    "outDir": "out",
+    "outDir": "dist",
     "noImplicitAny": false
   },
-  "exclude": ["./out/**/*", "scripts/**/*", "db/db_issue.ts"],
+  "exclude": ["./dist/**/*", "scripts/**/*", "db/db_issue.ts"],
 }
