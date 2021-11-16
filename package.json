@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --runInBand",
+    "test:docker": "./scripts/docker-tests.sh",
     "start": "npm run build && NODE_ENV=dev node ./dist/src/index",
     "start:docker": "./scripts/docker-start.sh",
     "stop:docker": "./scripts/docker-stop.sh",
