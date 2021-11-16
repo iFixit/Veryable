@@ -12,6 +12,16 @@ services:
     volumes:
       - db-data:/var/lib/mysql
       - db-config:/etc/mysql
+  app:
+    build: .
+    image: veryable:base
+    container_name: veryable-app
+    environment:
+      DATABASE_URL: $DOCKER_DATABASE_URL #overrides the local database url environment
+    links:
+      - db
+    depends_on:
+      - db
 volumes:
   db-data:
   db-config:
