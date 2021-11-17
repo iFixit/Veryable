@@ -24,6 +24,20 @@ services:
       - db
     depends_on:
       - db
+  prisma:
+    build: .
+    image: veryable:base
+    entrypoint: node node_modules/.bin/prisma studio
+    container_name: veryable-prisma-studio
+    tty: true
+    environment:
+      DATABASE_URL: $DOCKER_DATABASE_URL #overrides the local database url environment
+    ports:
+      - 5555:5555
+    links:
+      - db
+    depends_on:
+      - db
 volumes:
   db-data:
   db-config:
