@@ -3,8 +3,8 @@ FROM node:14-alpine
 ## Create app directory
 WORKDIR /app
 
-## A wildcard is used to ensure both package.json AND package-lock.json are copied
-COPY package*.json ./
+COPY package.json ./
+COPY package-lock.json ./
 COPY prisma ./prisma/
 
 ## Install dependencies without executing pre and post scripts
