@@ -14,4 +14,4 @@ echo -e "\033[1;32m======================== Setup Done ========================\
 
 echo -e "\033[1;34m==================== Running Application ===================\e[0m"
 
-npm run start
+npm run start:dev
