@@ -18,7 +18,7 @@ export async function parsePull(github_pull: GitHubPullRequest, db_pull: Pull | 
 }
 
 function grabValues(github_pull: GitHubPullRequest, db_pull: Pull | null): Pull {
-  let { qa_ready, qa_req, qa_interacted } = isQAReadyAndInteracted(github_pull)
+  const { qa_ready, qa_req, qa_interacted } = isQAReadyAndInteracted(github_pull)
 
   let qa_ready_count = 0;
   let interacted_count = 0;
@@ -56,9 +56,9 @@ function formatGHDate(utc_date: string | null): number | null {
 
 // Check if there is an Issue connected with Pull
 function closesDeclared(github_pull: GitHubPullRequest): number | null {
-  let body = github_pull.bodyText || ''
-  let closes_regex = new RegExp(signatures.closes, 'i')
-  let __CLOSE = body.match(closes_regex)
+  const body = github_pull.bodyText || ''
+  const closes_regex = new RegExp(signatures.closes, 'i')
+  const __CLOSE = body.match(closes_regex)
 
   if (__CLOSE?.groups) {
     return parseInt(__CLOSE.groups.closes)
@@ -68,7 +68,7 @@ function closesDeclared(github_pull: GitHubPullRequest): number | null {
 
 // Get Signatures/Stamps
 function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, dev_block: boolean , interacted: boolean } {
-  let latest_commit_date = github_pull.commits
+  const latest_commit_date = github_pull.commits
     ? new Date(github_pull.commits.nodes[0].commit.pushedDate) : new Date();
 
   const comments = github_pull.comments ? github_pull.comments.nodes : []
@@ -76,12 +76,12 @@ function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, de
   const dev_block = isDevBlocked(comments)
 
   const QA = comments.some(comment => {
-    let comment_date = new Date(comment.createdAt)
+    const comment_date = new Date(comment.createdAt)
     return isQAed(comment.bodyText) && date.subtract(latest_commit_date, comment_date).toDays() <= 0
   })
 
   const interacted = comments.some(comment => {
-    let comment_date = new Date(comment.createdAt)
+    const comment_date = new Date(comment.createdAt)
     return qa_team.includes(comment.author.login) &&
       date.subtract(latest_commit_date, comment_date).toDays() <= 0 &&
       date.isSameDay(comment_date, new Date(utils.getDates()[0]))
@@ -96,7 +96,7 @@ function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, de
 
 
 function isQAed(comment): boolean {
-  let regex = new RegExp(signatures.QA + signatures.emoji, 'i')
+  const regex = new RegExp(signatures.QA + signatures.emoji, 'i')
   return regex.test(comment)
 }
 
@@ -105,7 +105,7 @@ function isDevBlocked(comments): boolean {
 
   for (const comment of comments) {
     const tag = signatures.tags.find(tag => {
-      let regex = new RegExp(tag.regex + signatures.emoji, 'i')
+      const regex = new RegExp(tag.regex + signatures.emoji, 'i')
       return regex.test(comment.bodyText)
     })
     if (tag) {
@@ -118,8 +118,8 @@ function isDevBlocked(comments): boolean {
 
 // Check if the Pull requires QAing
 function qaRequired(github_pull: GitHubPullRequest): number {
-  let body = github_pull.bodyText || ''
-  let qa_regex = new RegExp(signatures.qa_req, 'i')
+  const body = github_pull.bodyText || ''
+  const qa_regex = new RegExp(signatures.qa_req, 'i')
   const qa = body.match(qa_regex)
 
   if (!qa) {

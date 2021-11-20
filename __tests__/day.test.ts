@@ -7,12 +7,9 @@ import prisma from '../prisma/client'
 const today_unix = 1628060400 //Wed Aug 04 00:00:00 -0700 2021
 const yesterday_unix = 1627974000 //Tue Aug 03 00:00:00 -0700 2021
 
-// Mocking the dates it will be set to for today and yesteday
-let get_dates_spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [today_unix, yesterday_unix]);
-
 beforeEach(async () => {
     await prisma.day.deleteMany();
-    get_dates_spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [today_unix, yesterday_unix]);
+    jest.spyOn(utils, 'getDates').mockImplementation(() => [today_unix, yesterday_unix]);
 })
 
 afterAll(async () => {

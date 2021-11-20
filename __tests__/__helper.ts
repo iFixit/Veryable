@@ -105,8 +105,6 @@ export async function seed_pulls() {
         }
       })
     }
-  } catch (err) {
-    throw err;
   } finally {
     prisma.$disconnect
   }

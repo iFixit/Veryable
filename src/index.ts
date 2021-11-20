@@ -48,9 +48,9 @@ async function parsePulls(github_pulls: GitHubPullRequest[]) {
     return PullRequest.getUniqueID(db_pull)
   })
   github_pulls.forEach(async github_pull => {
-    let found = unique_id_pulls.indexOf(`${github_pull.baseRepository.nameWithOwner} #${github_pull.number}`)
+    const found = unique_id_pulls.indexOf(`${github_pull.baseRepository.nameWithOwner} #${github_pull.number}`)
     if (found < 0) {
-      let pull = await parsePull(github_pull, null)
+      const pull = await parsePull(github_pull, null)
       DB_PULLS.push(pull)
     } else {
       DB_PULLS[found] = await parsePull(github_pull, DB_PULLS[found])

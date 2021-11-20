@@ -13,8 +13,8 @@ export default class PullRequest {
 
   // Retrive values needed for GitHub Graphql call
   static getGraphQLValues(pull_request: Pull): [{name: string, owner: string}, number] {
-    let split = pull_request.repo.split('/')
-    let repo = {
+    const split = pull_request.repo.split('/')
+    const repo = {
       name: split[1],
       owner: split[0],
     }
