@@ -1,4 +1,6 @@
 import { graphql } from '@octokit/graphql'
+import { Repository } from "@octokit/graphql-schema"
+
 import config from '../config/graphql_config'
 
 const get_open_pulls = config.GET_OPEN_PULLS
@@ -7,9 +9,8 @@ const get_issue = config.GET_ISSUE
 const get_day_issues = config.GET_DAY_ISSUES
 const get_issues = config.GET_ISSUES
 
-export async function queryPull(repo: { name: string, owner: string }, pullNumber: number):
-  Promise<GitHubRepositorySinglePull> {
-  return graphql(
+export async function queryPull(repo: { name: string, owner: string }, pullNumber: number): Promise<{ repository: Repository }> {
+  return graphql < { repository: Repository }>(
     get_pull(repo.name, repo.owner, pullNumber), {
       headers: {
         authorization: `token ${process.env.GITHUB_TOKEN}`,
@@ -53,8 +54,8 @@ export async function queryIssues(repo: { name: string, owner: string },
 }
 
 export async function queryOpenPulls(repo: { name: string, owner: string }):
-  Promise<GitHubRepositoryPulls> {
-  return graphql(
+  Promise<{ repository: Repository }> {
+  return graphql<{ repository: Repository }> (
     get_open_pulls(repo.name, repo.owner, 50), //Limiting it to 50 open pulls,
     {
       headers: {
