@@ -16,10 +16,12 @@ import { updateDayMetrics } from '../controllers/day_controller';
 import { parsePull } from '../controllers/pull_controller'
 
 import logger from './logger'
-const log = logger('main')
+import { PullRequest as GitHubPullRequest, Maybe } from '@octokit/graphql-schema';
+
+const log = logger('main');
 
 // Automatically run script repeatedly
-;(async () => {
+(async () => {
   DB_PULLS = await PullRequest.getDBPulls();
   log.info('Will now refresh current open pulls in DB')
   // Refresh any open pulls since last start up and block code until done
@@ -43,17 +45,21 @@ async function main() {
   log.info('Finished script...\n')
 }
 
-async function parsePulls(github_pulls: GitHubPullRequest[]) {
+async function parsePulls(github_pulls: Maybe<Maybe<GitHubPullRequest>[]> | undefined) {
   const unique_id_pulls = DB_PULLS.map(db_pull => {
     return PullRequest.getUniqueID(db_pull)
   })
-  github_pulls.forEach(async github_pull => {
-    const found = unique_id_pulls.indexOf(`${github_pull.baseRepository.nameWithOwner} #${github_pull.number}`)
-    if (found < 0) {
-      const pull = await parsePull(github_pull, null)
-      DB_PULLS.push(pull)
-    } else {
-      DB_PULLS[found] = await parsePull(github_pull, DB_PULLS[found])
+
+  github_pulls?.forEach(async github_pull => {
+    if (github_pull) {
+      const found = unique_id_pulls.indexOf(`${github_pull.baseRepository?.nameWithOwner} #${github_pull.number}`)
+
+      if (found < 0) {
+        const pull = await parsePull(github_pull, null)
+        DB_PULLS.push(pull)
+      } else {
+        DB_PULLS[found] = await parsePull(github_pull, DB_PULLS[found])
+      }
     }
   });
 }
