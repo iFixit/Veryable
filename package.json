@@ -29,6 +29,7 @@
   "license": "ISC",
   "dependencies": {
     "@octokit/graphql": "^4.6.4",
+    "@octokit/graphql-schema": "^10.73.0",
     "@prisma/client": "^3.1.1",
     "date-and-time": "^1.0.1",
     "dotenv": "^10.0.0",
