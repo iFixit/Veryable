@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql
+    restart: always
+    container_name: veryable-db
+    environment:
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+    ports:
+      - $MYSQL_LOCAL_PORT:$MYSQL_DOCKER_PORT
+    volumes:
+      - db-data:/var/lib/mysql
+      - db-config:/etc/mysql
+  app:
+    build: .
+    image: veryable:base
+    entrypoint: /bin/sh ./scripts/entrypoint.sh
+    tty: true # Allows output to be colorized as well in the docker logs
+    container_name: veryable-app
+    network_mode: host # Allows for network access to mysql container through localhost
+    depends_on:
+      - db
+
+volumes:
+  db-data:
+  db-config:
