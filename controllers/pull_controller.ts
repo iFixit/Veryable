@@ -70,7 +70,7 @@ function closesDeclared(github_pull: GitHubPullRequest): number | null {
 // Get Signatures/Stamps
 function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, dev_block: boolean, interacted: boolean } {
 
-  const latest_commit_date = github_pull.commits.nodes?.[0]
+  const latest_commit_date = github_pull.commits?.nodes?.[0]
     ? new Date(github_pull.commits.nodes[0].commit.pushedDate) : new Date();
 
   const comments = github_pull.comments?.nodes ?? []
@@ -149,7 +149,7 @@ function isQAReady(github_pull: GitHubPullRequest, qa_req: number, tags): boolea
     return false
   }
 
-  const build_status = github_pull.commits.nodes?.[0]?.commit?.status?.state ?? 'EXPECTED'
+  const build_status = github_pull.commits?.nodes?.[0]?.commit?.status?.state ?? 'EXPECTED'
   // Want to skip pulls that are failing CI
   if (build_status !== 'SUCCESS' && build_status !== 'EXPECTED') {
     return false
