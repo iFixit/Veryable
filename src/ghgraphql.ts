@@ -9,7 +9,8 @@ const get_issue = config.GET_ISSUE
 const get_day_issues = config.GET_DAY_ISSUES
 const get_issues = config.GET_ISSUES
 
-export async function queryPull(repo: { name: string, owner: string }, pullNumber: number): Promise<{ repository: Repository }> {
+export async function queryPull(repo: { name: string, owner: string }, pullNumber: number):
+  Promise<{ repository: Repository }> {
   return graphql < { repository: Repository }>(
     get_pull(repo.name, repo.owner, pullNumber), {
       headers: {

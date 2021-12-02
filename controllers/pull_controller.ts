@@ -30,22 +30,22 @@ function grabValues(github_pull: GitHubPullRequest, db_pull: Pull | null): Pull 
     interacted_count = db_pull.interacted_count + (!db_pull.interacted && qa_interacted ? 1 : 0)
   }
   return {
-    closed_at: formatGHDate(github_pull.closedAt),
-    closes: closesDeclared(github_pull),
-    created_at: formatGHDate(github_pull.createdAt),
-    head_ref: github_pull.headRefOid,
-    interacted_count: interacted_count,
-    interacted: qa_interacted,
-    merged_at: formatGHDate(github_pull.mergedAt),
-    pull_number: github_pull.number,
-    qa_ready_count: qa_ready_count,
-    qa_ready: qa_ready,
-    qa_req: qa_req,
-    repo: github_pull.baseRepository?.nameWithOwner ?? 'unknown',
-    state: github_pull.state as qa_pulls_state,
-    title: github_pull.title,
-    updated_at: formatGHDate(github_pull.updatedAt),
-  }
+      closed_at: formatGHDate(github_pull.closedAt),
+      closes: closesDeclared(github_pull),
+      created_at: formatGHDate(github_pull.createdAt),
+      head_ref: github_pull.headRefOid,
+      interacted_count: interacted_count,
+      interacted: qa_interacted,
+      merged_at: formatGHDate(github_pull.mergedAt),
+      pull_number: github_pull.number,
+      qa_ready_count: qa_ready_count,
+      qa_ready: qa_ready,
+      qa_req: qa_req,
+      repo: github_pull.baseRepository?.nameWithOwner ?? 'unknown',
+      state: github_pull.state as qa_pulls_state,
+      title: github_pull.title,
+      updated_at: formatGHDate(github_pull.updatedAt),
+    }
 }
 
 function formatGHDate(utc_date: string | null): number | null {
@@ -68,8 +68,7 @@ function closesDeclared(github_pull: GitHubPullRequest): number | null {
 }
 
 // Get Signatures/Stamps
-function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, dev_block: boolean, interacted: boolean } {
-
+function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, dev_block: boolean , interacted: boolean } {
   const latest_commit_date = github_pull.commits?.nodes?.[0]
     ? new Date(github_pull.commits.nodes[0].commit.pushedDate) : new Date();
 
@@ -83,7 +82,6 @@ function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, de
 
   const interacted = comments.some(comment => {
     const comment_date = new Date(comment?.createdAt)
-
     return qa_team.includes(comment?.author?.login ?? '') &&
       date.subtract(latest_commit_date, comment_date).toDays() <= 0 &&
       date.isSameDay(comment_date, new Date(utils.getDates()[0]))
@@ -136,7 +134,7 @@ function qaRequired(github_pull: GitHubPullRequest): number {
 }
 
 // Iteratres through the Pull Object and retrieves the appropriate base properties
-function isQAReadyAndInteracted(github_pull: GitHubPullRequest): { qa_ready: boolean, qa_req: number, qa_interacted: boolean } {
+function isQAReadyAndInteracted(github_pull: GitHubPullRequest):{ qa_ready: boolean, qa_req: number, qa_interacted: boolean } {
   const qa_req = qaRequired(github_pull)
   const tags = getTagsAndInteracted(github_pull)
   const qa_ready = isQAReady(github_pull, qa_req, tags)
@@ -144,7 +142,7 @@ function isQAReadyAndInteracted(github_pull: GitHubPullRequest): { qa_ready: boo
   return { qa_ready, qa_req, qa_interacted: tags.interacted }
 }
 
-function isQAReady(github_pull: GitHubPullRequest, qa_req: number, tags): boolean {
+function isQAReady(github_pull: GitHubPullRequest, qa_req: number, tags ): boolean {
   if (!qa_req) {
     return false
   }
@@ -156,7 +154,7 @@ function isQAReady(github_pull: GitHubPullRequest, qa_req: number, tags): boolea
   }
 
   // Want to skip pulls that are dev_block and already QA'd
-  if (tags.dev_block || tags.QA) {
+  if(tags.dev_block || tags.QA) {
     return false
   }
 

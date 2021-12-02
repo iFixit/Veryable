@@ -24,7 +24,7 @@ const mockPullData: Pull = {
 
 describe('Parsing Pull Data', () => {
     test('Dates properly updated', async () => {
-    const mock_github_data: RecursivePartial<GitHubPullRequest> = {
+      const mock_github_data: RecursivePartial<GitHubPullRequest> = {
         baseRepository: {
           nameWithOwner: 'iFixit/ifixit',
         },
@@ -37,7 +37,7 @@ describe('Parsing Pull Data', () => {
         title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
         updatedAt: '2021-08-07T19:00:00Z',
       };
-    const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData)
+      const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData)
 
       expect(test_pull.closed_at).toBe(null);
       expect(test_pull.created_at).toBe(1628362800);
@@ -47,7 +47,7 @@ describe('Parsing Pull Data', () => {
 
     test('Parse QA Req', async () => {
       // CLoses and QA Req 0 declared in body text
-    const mock_github_data: RecursivePartial<GitHubPullRequest> = {
+      const mock_github_data: RecursivePartial<GitHubPullRequest> = {
         bodyText: 'Auctor parturient a tortor accumsan mus hac semper Closes #39065 qa_req 0',
         closedAt: null,
         comments: {
@@ -102,13 +102,13 @@ describe('Parsing Pull Data', () => {
         updated_at: 1628295382,
       };
 
-    const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
+      const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
     });
 
     test('Parse Build Status', async () => {
       // Build status is failing
-    const mock_github_data: RecursivePartial<GitHubPullRequest> = {
+      const mock_github_data: RecursivePartial<GitHubPullRequest> = {
         bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
         closedAt: null,
         comments: {
@@ -163,12 +163,12 @@ describe('Parsing Pull Data', () => {
         updated_at: 1628295382,
       };
 
-    const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
+      const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
     });
 
     test('Parse QA made after latest commit', async() => {
-    const mock_github_data: RecursivePartial<GitHubPullRequest> = {
+      const mock_github_data: RecursivePartial<GitHubPullRequest> = {
         bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
         closedAt: null,
         comments: {
@@ -230,12 +230,12 @@ describe('Parsing Pull Data', () => {
         updated_at: 1628295382,
       };
 
-    const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
+      const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
     });
 
     test('Parse QA made before latest commit', async() => {
-    const mock_github_data: RecursivePartial<GitHubPullRequest> = {
+      const mock_github_data: RecursivePartial<GitHubPullRequest> = {
         bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
         closedAt: null,
         comments: {
@@ -296,12 +296,12 @@ describe('Parsing Pull Data', () => {
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
       };
-    const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
+      const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
     });
 
     test('Parse dev_block made after latest commit', async() => {
-    const mock_github_data: RecursivePartial<GitHubPullRequest> = {
+      const mock_github_data: RecursivePartial<GitHubPullRequest> = {
         bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
         closedAt: null,
         comments: { // Comments are sorted in descending order of creation
@@ -362,12 +362,12 @@ describe('Parsing Pull Data', () => {
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
       };
-    const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
+      const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
     });
 
     test('Parse dev_block made before latest commit', async() => {
-    const mock_github_data: RecursivePartial<GitHubPullRequest> = {
+      const mock_github_data: RecursivePartial<GitHubPullRequest> = {
         bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
         closedAt: null,
         comments: { // Comments are sorted in descending order of creation
@@ -428,12 +428,12 @@ describe('Parsing Pull Data', () => {
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
       };
-    const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
+      const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
     });
 
     test('Parse un_dev_block made before latest commit', async() => {
-    const mock_github_data: RecursivePartial<GitHubPullRequest> = {
+      const mock_github_data: RecursivePartial<GitHubPullRequest> = {
         bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
         closedAt: null,
         comments: { // Comments are sorted in descending order of creation
@@ -501,12 +501,12 @@ describe('Parsing Pull Data', () => {
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
       };
-    const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
+      const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
     });
 
     test('Parse multiple comments before dev_block ', async() => {
-    const mock_github_data: RecursivePartial<GitHubPullRequest> = {
+      const mock_github_data: RecursivePartial<GitHubPullRequest> = {
         bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
         closedAt: null,
         comments: { // Comments are sorted in descending order of creation
@@ -595,12 +595,12 @@ describe('Parsing Pull Data', () => {
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
       };
-    const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
+      const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
     });
 
     test('Parse for qa ready and increment qa ready count', async () => {
-    const mock_github_data: RecursivePartial<GitHubPullRequest> = {
+      const mock_github_data: RecursivePartial<GitHubPullRequest> = {
         bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
         closedAt: null,
         comments: { // Comments are sorted in descending order of creation
@@ -673,12 +673,12 @@ describe('Parsing Pull Data', () => {
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
       };
-    const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mock_db_pull_data);
+      const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mock_db_pull_data);
       expect(test_pull).toMatchObject(expected_data);
     });
 
     test('Parse for interaction after new commit', async() => {
-    const mock_github_data: RecursivePartial<GitHubPullRequest> = {
+      const mock_github_data: RecursivePartial<GitHubPullRequest> = {
         bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
         closedAt: null,
         comments: { // Comments are sorted in descending order of creation
@@ -747,14 +747,14 @@ describe('Parsing Pull Data', () => {
         updated_at: 1628295382,
       };
       const spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [1628233200000, 1628146800000]);
-    const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
+      const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
       expect(spy).toHaveBeenCalledTimes(1);
       spy.mockRestore();
     });
 
     test('Parse for interaction with new commit and previous comments', async() => {
-    const mock_github_data: RecursivePartial<GitHubPullRequest> = {
+      const mock_github_data: RecursivePartial<GitHubPullRequest> = {
         bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
         closedAt: null,
         comments: { // Comments are sorted in descending order of creation
@@ -823,7 +823,7 @@ describe('Parsing Pull Data', () => {
         updated_at: 1628295382,
       };
       const spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [1628233200000, 1628146800000]);
-    const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
+      const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
 
       expect(spy).toHaveBeenCalledTimes(0);
@@ -831,7 +831,7 @@ describe('Parsing Pull Data', () => {
     });
 
     test('Parse for interaction with new commit and previous comments', async() => {
-    const mock_github_data: RecursivePartial<GitHubPullRequest> = {
+      const mock_github_data: RecursivePartial<GitHubPullRequest> = {
         bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
         closedAt: null,
         comments: { // Comments are sorted in descending order of creation
@@ -900,7 +900,7 @@ describe('Parsing Pull Data', () => {
         updated_at: 1628295382,
       };
       const spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [1628233200000, 1628146800000]);
-    const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
+      const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
 
       expect(spy).toHaveBeenCalledTimes(0);
@@ -908,7 +908,7 @@ describe('Parsing Pull Data', () => {
     });
 
     test('Parse for interaction and increment interaction count', async() => {
-    const mock_github_data: RecursivePartial<GitHubPullRequest> = {
+      const mock_github_data: RecursivePartial<GitHubPullRequest> = {
         bodyText: 'Auctor parturient a tortor accumsan mus hac semper',
         closedAt: null,
         comments: { // Comments are sorted in descending order of creation
@@ -997,7 +997,7 @@ describe('Parsing Pull Data', () => {
       };
       const spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [1628233200000, 1628146800000]);
 
-    const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mock_db_pull_data);
+      const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mock_db_pull_data);
       expect(test_pull).toMatchObject(expected_data);
 
       expect(spy).toHaveBeenCalledTimes(1);
