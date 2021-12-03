@@ -12,7 +12,9 @@ export default async function ():Promise<void> {
 
   db_pulls.forEach(async (db_pull:Pull) => {
     const github_pull = await queryPull(...PullRequest.getGraphQLValues(db_pull));
-    parsePull(github_pull.repository.pullRequest, db_pull);
+    if (github_pull.repository.pullRequest) {
+      parsePull(github_pull.repository.pullRequest, db_pull);
+    }
   });
 
   log.info('Done refreshing Pulls');

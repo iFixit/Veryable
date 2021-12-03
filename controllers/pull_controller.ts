@@ -8,6 +8,7 @@ const { qa_team, signatures } = config
 import { utils } from '../scripts/utils'
 
 import logger from '../src/logger'
+import { IssueComment, Maybe, PullRequest as GitHubPullRequest } from '@octokit/graphql-schema';
 
 const log = logger('pullParser')
 
@@ -40,7 +41,7 @@ function grabValues(github_pull: GitHubPullRequest, db_pull: Pull | null): Pull 
       qa_ready_count: qa_ready_count,
       qa_ready: qa_ready,
       qa_req: qa_req,
-      repo: github_pull.baseRepository.nameWithOwner,
+      repo: github_pull.baseRepository?.nameWithOwner ?? 'unknown',
       state: github_pull.state as qa_pulls_state,
       title: github_pull.title,
       updated_at: formatGHDate(github_pull.updatedAt),
@@ -68,21 +69,20 @@ function closesDeclared(github_pull: GitHubPullRequest): number | null {
 
 // Get Signatures/Stamps
 function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, dev_block: boolean , interacted: boolean } {
-  const latest_commit_date = github_pull.commits
+  const latest_commit_date = github_pull.commits?.nodes?.[0]
     ? new Date(github_pull.commits.nodes[0].commit.pushedDate) : new Date();
 
-  const comments = github_pull.comments ? github_pull.comments.nodes : []
+  const comments = github_pull.comments?.nodes ?? []
 
   const dev_block = isDevBlocked(comments)
 
   const QA = comments.some(comment => {
-    const comment_date = new Date(comment.createdAt)
-    return isQAed(comment.bodyText) && date.subtract(latest_commit_date, comment_date).toDays() <= 0
+    return isQAed(comment) && date.subtract(latest_commit_date, new Date(comment?.createdAt)).toDays() <= 0
   })
 
   const interacted = comments.some(comment => {
-    const comment_date = new Date(comment.createdAt)
-    return qa_team.includes(comment.author.login) &&
+    const comment_date = new Date(comment?.createdAt)
+    return qa_team.includes(comment?.author?.login ?? '') &&
       date.subtract(latest_commit_date, comment_date).toDays() <= 0 &&
       date.isSameDay(comment_date, new Date(utils.getDates()[0]))
   })
@@ -95,18 +95,18 @@ function getTagsAndInteracted(github_pull: GitHubPullRequest): { QA: boolean, de
 }
 
 
-function isQAed(comment): boolean {
+function isQAed(comment: Maybe<IssueComment>): boolean {
   const regex = new RegExp(signatures.QA + signatures.emoji, 'i')
-  return regex.test(comment)
+  return regex.test(comment?.bodyText ?? '')
 }
 
 // Only checking if dev_block or not
-function isDevBlocked(comments): boolean {
+function isDevBlocked(comments: Maybe<IssueComment>[]): boolean {
 
   for (const comment of comments) {
     const tag = signatures.tags.find(tag => {
       const regex = new RegExp(tag.regex + signatures.emoji, 'i')
-      return regex.test(comment.bodyText)
+      return regex.test(comment?.bodyText ?? '')
     })
     if (tag) {
       return tag.state
@@ -147,7 +147,7 @@ function isQAReady(github_pull: GitHubPullRequest, qa_req: number, tags ): boole
     return false
   }
 
-  const build_status = github_pull.commits?.nodes[0].commit.status?.state ?? 'EXPECTED'
+  const build_status = github_pull.commits?.nodes?.[0]?.commit?.status?.state ?? 'EXPECTED'
   // Want to skip pulls that are failing CI
   if (build_status !== 'SUCCESS' && build_status !== 'EXPECTED') {
     return false
