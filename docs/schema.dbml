@@ -15,10 +15,10 @@ Table Day {
   unique_pulls_added Int [not null, default: 0]
 }
 
-Table Pull {
+Table PullRequest {
   repo String [not null, default: '']
   pull_number Int [not null]
-  state qa_pulls_state [not null]
+  state pull_request_state [not null]
   title String [not null]
   head_ref String [not null]
   qa_req Int [not null, default: 1]
@@ -37,7 +37,7 @@ Table Pull {
   }
 }
 
-Enum qa_pulls_state {
+Enum pull_request_state {
   OPEN
   CLOSED
   MERGED

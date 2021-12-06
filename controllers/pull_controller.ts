@@ -1,7 +1,7 @@
 import date from 'date-and-time';
-import { Pull, pull_request_state } from "@prisma/client"
+import { PullRequest, pull_request_state } from "@prisma/client"
 
-import PullRequest from '../db/db_pull'
+import Pull from '../db/db_pull'
 import config from '../config/config'
 const { qa_team, signatures } = config
 
@@ -12,13 +12,13 @@ import { IssueComment, Maybe, PullRequest as GitHubPullRequest } from '@octokit/
 
 const log = logger('pullParser')
 
-export async function parsePull(github_pull: GitHubPullRequest, db_pull: Pull | null): Promise<Pull> {
+export async function parsePull(github_pull: GitHubPullRequest, db_pull: PullRequest | null): Promise<PullRequest> {
   log.data(`Parsing Pull #${github_pull.number} ${github_pull.title}`)
-  const pull: Pull = grabValues(github_pull, db_pull)
-  return await PullRequest.save(pull)
+  const pull: PullRequest = grabValues(github_pull, db_pull)
+  return await Pull.save(pull)
 }
 
-function grabValues(github_pull: GitHubPullRequest, db_pull: Pull | null): Pull {
+function grabValues(github_pull: GitHubPullRequest, db_pull: PullRequest | null): PullRequest {
   const { qa_ready, qa_req, qa_interacted } = isQAReadyAndInteracted(github_pull)
 
   let qa_ready_count = 0;

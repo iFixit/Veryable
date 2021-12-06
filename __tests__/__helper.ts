@@ -1,9 +1,9 @@
-import { Pull } from "@prisma/client"
+import { PullRequest } from "@prisma/client"
 import prisma from '../prisma/client';
 
 
 export async function seed_pulls() {
-  const pulls: Pull[] = [
+  const pulls: PullRequest[] = [
     {
         repo: 'iFixit/ifixit',
         pull_number: 39126,
@@ -94,7 +94,7 @@ export async function seed_pulls() {
 
  try {
     for (const pull of pulls) {
-      await prisma.pull.upsert({
+      await prisma.pullRequest.upsert({
         create: pull,
         update: pull,
         where: {

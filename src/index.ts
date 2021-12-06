@@ -8,9 +8,9 @@ import { queryOpenPulls } from './ghgraphql'
 import DayMetric from '../db/db_day'
 const DAY = new DayMetric()
 
-import PullRequest from '../db/db_pull'
-import { Pull } from '@prisma/client'
-let DB_PULLS: Pull[]
+import Pull from '../db/db_pull'
+import { PullRequest } from '@prisma/client'
+let DB_PULLS: PullRequest[]
 
 import { updateDayMetrics } from '../controllers/day_controller';
 import { parsePull } from '../controllers/pull_controller'
@@ -22,7 +22,7 @@ const log = logger('main');
 
 // Automatically run script repeatedly
 (async () => {
-  DB_PULLS = await PullRequest.getDBPulls();
+  DB_PULLS = await Pull.getDBPulls();
   log.info('Will now refresh current open pulls in DB')
   // Refresh any open pulls since last start up and block code until done
   await refreshPulls()
@@ -47,7 +47,7 @@ async function main() {
 
 async function parsePulls(github_pulls: Maybe<Maybe<GitHubPullRequest>[]> | undefined) {
   const unique_id_pulls = DB_PULLS.map(db_pull => {
-    return PullRequest.getUniqueID(db_pull)
+    return Pull.getUniqueID(db_pull)
   })
 
   github_pulls?.forEach(async github_pull => {

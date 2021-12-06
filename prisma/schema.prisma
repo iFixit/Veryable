@@ -25,7 +25,7 @@ model Day {
   @@map("qa__daily_metrics")
 }
 
-model Pull {
+model PullRequest {
   repo             String         @default("") @db.VarChar(100)
   pull_number      Int            @db.UnsignedInt
   state            pull_request_state
@@ -43,7 +43,7 @@ model Pull {
   qa_ready_count   Int            @default(0)
 
   @@id([repo, pull_number])
-  @@map("qa_pulls")
+  @@map("qa__pull_requests")
 }
 
 enum pull_request_state {

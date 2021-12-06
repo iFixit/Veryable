@@ -1,10 +1,10 @@
-import { Pull } from "@prisma/client"
+import { PullRequest } from "@prisma/client"
 import { utils } from '../scripts/utils'
 import { parsePull } from '../controllers/pull_controller'
 import { PullRequest as GitHubPullRequest } from "@octokit/graphql-schema"
 
 
-const mockPullData: Pull = {
+const mockPullData: PullRequest = {
   repo: 'iFixit/ifixit',
   pull_number: 39126,
   state: 'OPEN',
@@ -84,7 +84,7 @@ describe('Parsing Pull Data', () => {
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
       };
-      const expected_data: Pull = {
+      const expected_data: PullRequest = {
         closed_at: null,
         closes: 39065,
         created_at: 1628293608,
@@ -145,7 +145,7 @@ describe('Parsing Pull Data', () => {
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
       };
-      const expected_data: Pull = {
+      const expected_data: PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
@@ -212,7 +212,7 @@ describe('Parsing Pull Data', () => {
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
       };
-      const expected_data: Pull = {
+      const expected_data: PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
@@ -279,7 +279,7 @@ describe('Parsing Pull Data', () => {
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
       };
-      const expected_data: Pull= {
+      const expected_data: PullRequest= {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
@@ -345,7 +345,7 @@ describe('Parsing Pull Data', () => {
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
       };
-      const expected_data: Pull = {
+      const expected_data: PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
@@ -411,7 +411,7 @@ describe('Parsing Pull Data', () => {
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
       };
-      const expected_data: Pull= {
+      const expected_data: PullRequest= {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
@@ -484,7 +484,7 @@ describe('Parsing Pull Data', () => {
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
       };
-      const expected_data: Pull = {
+      const expected_data: PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
@@ -578,7 +578,7 @@ describe('Parsing Pull Data', () => {
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
       };
-      const expected_data: Pull = {
+      const expected_data: PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
@@ -638,7 +638,7 @@ describe('Parsing Pull Data', () => {
         updatedAt: '2021-08-07T00:16:22Z',
       };
 
-      const mock_db_pull_data: Pull = {
+      const mock_db_pull_data: PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
@@ -656,7 +656,7 @@ describe('Parsing Pull Data', () => {
         updated_at: 1628293608,
       };
 
-      const expected_data: Pull = {
+      const expected_data: PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
@@ -729,7 +729,7 @@ describe('Parsing Pull Data', () => {
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
       };
-      const expected_data: Pull = {
+      const expected_data: PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
@@ -806,7 +806,7 @@ describe('Parsing Pull Data', () => {
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
       };
-      const expected_data:Pull = {
+      const expected_data:PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
@@ -884,7 +884,7 @@ describe('Parsing Pull Data', () => {
         updatedAt: '2021-08-07T00:16:22Z',
       };
 
-      const mock_db_pull_data: Pull= {
+      const mock_db_pull_data: PullRequest= {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
@@ -902,7 +902,7 @@ describe('Parsing Pull Data', () => {
         updated_at: 1628293608,
       };
 
-      const expected_data: Pull = {
+      const expected_data: PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
