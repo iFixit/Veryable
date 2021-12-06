@@ -22,7 +22,7 @@ model Day {
   pulls_interacted   Int @default(0)
   unique_pulls_added Int @default(0)
 
-  @@map("qa_metrics")
+  @@map("qa__daily_metrics")
 }
 
 model Pull {
