@@ -28,7 +28,7 @@ model Day {
 model Pull {
   repo             String         @default("") @db.VarChar(100)
   pull_number      Int            @db.UnsignedInt
-  state            qa_pulls_state
+  state            pull_request_state
   title            String         @db.VarChar(255)
   head_ref         String         @db.Char(40)
   qa_req           Int            @default(1)
@@ -46,7 +46,7 @@ model Pull {
   @@map("qa_pulls")
 }
 
-enum qa_pulls_state {
+enum pull_request_state {
   OPEN
   CLOSED
   MERGED

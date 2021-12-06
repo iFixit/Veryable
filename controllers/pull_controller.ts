@@ -1,5 +1,5 @@
 import date from 'date-and-time';
-import { Pull, qa_pulls_state } from "@prisma/client"
+import { Pull, pull_request_state } from "@prisma/client"
 
 import PullRequest from '../db/db_pull'
 import config from '../config/config'
@@ -42,7 +42,7 @@ function grabValues(github_pull: GitHubPullRequest, db_pull: Pull | null): Pull 
       qa_ready: qa_ready,
       qa_req: qa_req,
       repo: github_pull.baseRepository?.nameWithOwner ?? 'unknown',
-      state: github_pull.state as qa_pulls_state,
+      state: github_pull.state as pull_request_state,
       title: github_pull.title,
       updated_at: formatGHDate(github_pull.updatedAt),
     }
