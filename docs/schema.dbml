@@ -20,6 +20,7 @@ Table Commit {
   pull_request_id String
   pull_request PullRequest
   pull_request_head_ref PullRequestCommit
+  commit_history PullRequestHistory [not null]
 
   indexes {
     (sha, pull_request_id) [unique]
@@ -58,6 +59,7 @@ Table PullRequest {
   qa_stamped Boolean [default: false]
   commits Commit [not null]
   head_commit PullRequestCommit
+  pull_request_history PullRequestHistory [not null]
 
   indexes {
     (repo, pull_number) [unique]
@@ -69,6 +71,23 @@ Table PullRequestCommit {
   head_ref String [unique]
   head_commit Commit
   pull_request PullRequest [not null]
+}
+
+Table PullRequestHistory {
+  start_date Int [not null]
+  date Int [not null]
+  pull_request_id String [not null]
+  commit_sha String [not null]
+  event pull_request_history_event [not null]
+  actor String
+  pull_request_event_index Int [not null]
+  commit_event_id String [not null]
+  commit Commit [not null]
+  pull_request PullRequest [not null]
+
+  indexes {
+    (date, pull_request_id, event) [pk]
+  }
 }
 
 Enum pull_request_state {
@@ -85,8 +104,22 @@ Enum commit_ci_status {
   EXPECTED
 }
 
+Enum pull_request_history_event {
+  qa_ready
+  non_qa_ready
+  first_interaction
+  interacted
+  dev_blocked
+  un_dev_blocked
+  qa_stamped
+}
+
 Ref: Commit.pull_request_id > PullRequest.pull_request_id [delete: Cascade]
 
 Ref: PullRequestCommit.head_ref - Commit.commit_event_id [delete: Cascade]
 
 Ref: PullRequestCommit.pull_request_id - PullRequest.pull_request_id [delete: Cascade]
+
+Ref: PullRequestHistory.commit_event_id > Commit.commit_event_id [delete: Cascade]
+
+Ref: PullRequestHistory.pull_request_id > PullRequest.pull_request_id [delete: Cascade]

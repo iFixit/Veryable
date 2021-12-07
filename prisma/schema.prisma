@@ -28,6 +28,7 @@ model Commit {
   pull_request_id String?           @db.VarChar(255)
   pull_request    PullRequest?      @relation("qa__commitsToqa__pull_requests", fields: [pull_request_id], references: [pull_request_id], onDelete: Cascade, onUpdate: NoAction, map: "qa__commits_ibfk_1")
   pull_request_head_ref PullRequestCommit? @relation("qa__commitsToqa__pull_request_commit")
+  commit_history        PullRequestHistory[] @relation("qa__commit_historyToqa__commits")
 
   @@unique([sha, pull_request_id])
   @@index([pull_request_id])
@@ -68,6 +69,7 @@ model PullRequest {
   qa_stamped       Boolean?           @default(false)
   commits              Commit[]           @relation("qa__commitsToqa__pull_requests")
   head_commit          PullRequestCommit? @relation("qa__pull_request_commitToqa__pull_requests")
+  pull_request_history PullRequestHistory[]
 
   @@unique([repo, pull_number])
   @@map("qa__pull_requests")
@@ -82,6 +84,25 @@ model PullRequestCommit {
   @@map("qa__pull_request_commit")
 }
 
+model PullRequestHistory {
+  start_date               Int
+  date                     Int
+  pull_request_id          String                     @db.VarChar(255)
+  commit_sha               String                     @db.VarChar(40)
+  event                    pull_request_history_event
+  actor                    String?                    @db.VarChar(40)
+  pull_request_event_index Int
+  commit_event_id          String                     @db.VarChar(255)
+
+  commit       Commit      @relation("qa__commit_historyToqa__commits", fields: [commit_event_id], references: [commit_event_id], onDelete: Cascade, onUpdate: NoAction, map: "qa__commit_history_ibfk_1")
+  pull_request PullRequest @relation(fields: [pull_request_id], references: [pull_request_id], onDelete: Cascade, onUpdate: NoAction, map: "qa__pull_request_history_ibfk_1")
+
+  @@id([date, pull_request_id, event])
+  @@index([commit_sha])
+  @@index([pull_request_id])
+  @@map("qa__pull_request_history")
+}
+
 enum pull_request_state {
   OPEN
   CLOSED
@@ -94,4 +115,14 @@ enum commit_ci_status {
   FAILURE
   SUCCESS
   EXPECTED
+}
+
+enum pull_request_history_event {
+  qa_ready
+  non_qa_ready
+  first_interaction
+  interacted
+  dev_blocked
+  un_dev_blocked
+  qa_stamped
 }
