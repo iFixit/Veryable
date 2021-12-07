@@ -29,10 +29,12 @@ Table PullRequest {
   merged_at Int
   closes Int
   author String [not null]
-  interacted Boolean [default: false]
   interacted_count Int [not null, default: 0]
-  qa_ready Boolean [default: false]
   qa_ready_count Int [not null, default: 0]
+  qa_ready Boolean [default: false]
+  interacted Boolean [default: false]
+  dev_blocked Boolean [default: false]
+  qa_stamped Boolean [default: false]
 
   indexes {
     (repo, pull_number) [unique]
