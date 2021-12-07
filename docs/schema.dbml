@@ -16,6 +16,7 @@ Table Day {
 }
 
 Table PullRequest {
+  pull_request_id String [pk]
   repo String [not null, default: '']
   pull_number Int [not null]
   state pull_request_state [not null]
@@ -33,7 +34,7 @@ Table PullRequest {
   qa_ready_count Int [not null, default: 0]
 
   indexes {
-    (repo, pull_number) [pk]
+    (repo, pull_number) [unique]
   }
 }
 

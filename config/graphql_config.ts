@@ -67,6 +67,7 @@ export default {
  * @comments => Pull comments array (has up to the latest 50 comments from a pull)
  */
 const PULL_INFO = `
+id
 state,
 title,
 number,

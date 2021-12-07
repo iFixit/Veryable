@@ -26,6 +26,7 @@ model Day {
 }
 
 model PullRequest {
+  pull_request_id  String             @id @db.VarChar(255)
   repo             String         @default("") @db.VarChar(100)
   pull_number      Int            @db.UnsignedInt
   state            pull_request_state
@@ -42,7 +43,7 @@ model PullRequest {
   qa_ready         Boolean?       @default(false)
   qa_ready_count   Int            @default(0)
 
-  @@id([repo, pull_number])
+  @@unique([repo, pull_number])
   @@map("qa__pull_requests")
 }
 
