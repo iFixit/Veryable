@@ -15,6 +15,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Commit {
+  commit_event_id String            @id @db.VarChar(255)
+  sha             String            @db.VarChar(40)
+  qa_ready        Boolean?          @default(false)
+  interacted      Boolean?          @default(false)
+  dev_blocked     Boolean?          @default(false)
+  qa_stamped      Boolean?          @default(false)
+  ci_status       commit_ci_status?
+  committed_at    Int
+  pushed_at       Int?
+  pull_request_id String?           @db.VarChar(255)
+  pull_request    PullRequest?      @relation("qa__commitsToqa__pull_requests", fields: [pull_request_id], references: [pull_request_id], onDelete: Cascade, onUpdate: NoAction, map: "qa__commits_ibfk_1")
+
+  @@unique([sha, pull_request_id])
+  @@index([pull_request_id])
+  @@map("qa__commits")
+}
+
 model Day {
   date               Int @id
   pull_count         Int @default(0)
@@ -47,6 +65,7 @@ model PullRequest {
   interacted       Boolean?           @default(false)
   dev_blocked      Boolean?           @default(false)
   qa_stamped       Boolean?           @default(false)
+  commits              Commit[]           @relation("qa__commitsToqa__pull_requests")
 
   @@unique([repo, pull_number])
   @@map("qa__pull_requests")
@@ -56,4 +75,12 @@ enum pull_request_state {
   OPEN
   CLOSED
   MERGED
+}
+
+enum commit_ci_status {
+  PENDING
+  ERROR
+  FAILURE
+  SUCCESS
+  EXPECTED
 }

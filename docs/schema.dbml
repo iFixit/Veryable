@@ -7,6 +7,24 @@ Project "Veryable" {
   Note: 'Database for housing metrics for QA to analyze and use for continuous improvement'
 }
 
+Table Commit {
+  commit_event_id String [pk]
+  sha String [not null]
+  qa_ready Boolean [default: false]
+  interacted Boolean [default: false]
+  dev_blocked Boolean [default: false]
+  qa_stamped Boolean [default: false]
+  ci_status commit_ci_status
+  committed_at Int [not null]
+  pushed_at Int
+  pull_request_id String
+  pull_request PullRequest
+
+  indexes {
+    (sha, pull_request_id) [unique]
+  }
+}
+
 Table Day {
   date Int [pk]
   pull_count Int [not null, default: 0]
@@ -37,6 +55,7 @@ Table PullRequest {
   interacted Boolean [default: false]
   dev_blocked Boolean [default: false]
   qa_stamped Boolean [default: false]
+  commits Commit [not null]
 
   indexes {
     (repo, pull_number) [unique]
@@ -48,3 +67,13 @@ Enum pull_request_state {
   CLOSED
   MERGED
 }
+
+Enum commit_ci_status {
+  PENDING
+  ERROR
+  FAILURE
+  SUCCESS
+  EXPECTED
+}
+
+Ref: Commit.pull_request_id > PullRequest.pull_request_id [delete: Cascade]
