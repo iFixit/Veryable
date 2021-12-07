@@ -74,6 +74,9 @@ number,
 baseRepository{
   nameWithOwner
 }
+author{
+  login
+}
 headRefOid,
 bodyText,
 createdAt,

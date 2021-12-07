@@ -28,6 +28,7 @@ Table PullRequest {
   closed_at Int
   merged_at Int
   closes Int
+  author String [not null]
   interacted Boolean [default: false]
   interacted_count Int [not null, default: 0]
   qa_ready Boolean [default: false]
