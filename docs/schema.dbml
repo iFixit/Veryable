@@ -19,6 +19,7 @@ Table Commit {
   pushed_at Int
   pull_request_id String
   pull_request PullRequest
+  pull_request_head_ref PullRequestCommit
 
   indexes {
     (sha, pull_request_id) [unique]
@@ -56,10 +57,18 @@ Table PullRequest {
   dev_blocked Boolean [default: false]
   qa_stamped Boolean [default: false]
   commits Commit [not null]
+  head_commit PullRequestCommit
 
   indexes {
     (repo, pull_number) [unique]
   }
+}
+
+Table PullRequestCommit {
+  pull_request_id String [pk]
+  head_ref String [unique]
+  head_commit Commit
+  pull_request PullRequest [not null]
 }
 
 Enum pull_request_state {
@@ -77,3 +86,7 @@ Enum commit_ci_status {
 }
 
 Ref: Commit.pull_request_id > PullRequest.pull_request_id [delete: Cascade]
+
+Ref: PullRequestCommit.head_ref - Commit.commit_event_id [delete: Cascade]
+
+Ref: PullRequestCommit.pull_request_id - PullRequest.pull_request_id [delete: Cascade]

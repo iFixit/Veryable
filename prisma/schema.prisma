@@ -27,6 +27,7 @@ model Commit {
   pushed_at       Int?
   pull_request_id String?           @db.VarChar(255)
   pull_request    PullRequest?      @relation("qa__commitsToqa__pull_requests", fields: [pull_request_id], references: [pull_request_id], onDelete: Cascade, onUpdate: NoAction, map: "qa__commits_ibfk_1")
+  pull_request_head_ref PullRequestCommit? @relation("qa__commitsToqa__pull_request_commit")
 
   @@unique([sha, pull_request_id])
   @@index([pull_request_id])
@@ -66,9 +67,19 @@ model PullRequest {
   dev_blocked      Boolean?           @default(false)
   qa_stamped       Boolean?           @default(false)
   commits              Commit[]           @relation("qa__commitsToqa__pull_requests")
+  head_commit          PullRequestCommit? @relation("qa__pull_request_commitToqa__pull_requests")
 
   @@unique([repo, pull_number])
   @@map("qa__pull_requests")
+}
+
+model PullRequestCommit {
+  pull_request_id String      @id @db.VarChar(255)
+  head_ref        String?     @unique(map: "head_ref") @db.VarChar(255)
+  head_commit     Commit?     @relation("qa__commitsToqa__pull_request_commit", fields: [head_ref], references: [commit_event_id], onDelete: Cascade, onUpdate: NoAction, map: "qa__pull_request_commit_ibfk_3")
+  pull_request    PullRequest @relation("qa__pull_request_commitToqa__pull_requests", fields: [pull_request_id], references: [pull_request_id], onDelete: Cascade, onUpdate: NoAction, map: "qa__pull_request_commit_ibfk_2")
+
+  @@map("qa__pull_request_commit")
 }
 
 enum pull_request_state {
