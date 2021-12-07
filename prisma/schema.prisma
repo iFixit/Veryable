@@ -39,8 +39,10 @@ model PullRequest {
   merged_at        Int?           @db.UnsignedInt
   closes           Int?           @db.UnsignedInt
   author           String             @db.VarChar(40)
-  interacted_count Int            @default(0)
-  qa_ready_count   Int            @default(0)
+  agg_interacted_count Int                @default(0)
+  agg_qa_ready_count   Int                @default(0)
+  agg_dev_block_count  Int                @default(0)
+  agg_qa_stamped_count Int                @default(0)
   qa_ready         Boolean?           @default(false)
   interacted       Boolean?           @default(false)
   dev_blocked      Boolean?           @default(false)
