@@ -1,0 +1,44 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Project "Veryable" {
+  database_type: 'MySQL'
+  Note: 'Database for housing metrics for QA to analyze and use for continuous improvement'
+}
+
+Table Day {
+  date Int [pk]
+  pull_count Int [not null, default: 0]
+  pulls_added Int [not null, default: 0]
+  pulls_interacted Int [not null, default: 0]
+  unique_pulls_added Int [not null, default: 0]
+}
+
+Table Pull {
+  repo String [not null, default: '']
+  pull_number Int [not null]
+  state qa_pulls_state [not null]
+  title String [not null]
+  head_ref String [not null]
+  qa_req Int [not null, default: 1]
+  created_at Int
+  updated_at Int
+  closed_at Int
+  merged_at Int
+  closes Int
+  interacted Boolean [default: false]
+  interacted_count Int [not null, default: 0]
+  qa_ready Boolean [default: false]
+  qa_ready_count Int [not null, default: 0]
+
+  indexes {
+    (repo, pull_number) [pk]
+  }
+}
+
+Enum qa_pulls_state {
+  OPEN
+  CLOSED
+  MERGED
+}

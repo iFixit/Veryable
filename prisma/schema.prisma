@@ -2,6 +2,14 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator dbml {
+  provider            = "prisma-dbml-generator"
+  output              = "../docs"
+  projectName         = "Veryable"
+  projectDatabaseType = "MySQL"
+  projectNote         = "Database for housing metrics for QA to analyze and use for continuous improvement"
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
