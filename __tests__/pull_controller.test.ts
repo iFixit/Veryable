@@ -1,10 +1,13 @@
 import { PullRequest } from "@prisma/client"
+import prisma from "../prisma/client"
 import { utils } from '../scripts/utils'
 import { parsePull } from '../controllers/pull_controller'
 import { PullRequest as GitHubPullRequest } from "@octokit/graphql-schema"
 
 
 const mockPullData: PullRequest = {
+  pull_request_id: '88d7f98b-849f-48a2-805c-576bef0b8fda',
+  author: 'mcTestyFace',
   repo: 'iFixit/ifixit',
   pull_number: 39126,
   state: 'OPEN',
@@ -17,12 +20,23 @@ const mockPullData: PullRequest = {
   merged_at: null,
   closes: null,
   interacted: false,
-  interacted_count: 0,
   qa_ready: false,
-  qa_ready_count: 0,
+  dev_blocked: false,
+  qa_stamped: false,
+  agg_interacted_count: 0,
+  agg_qa_ready_count: 0,
+  agg_qa_stamped_count: 0,
+  agg_dev_block_count: 0
 }
 
 describe('Parsing Pull Data', () => {
+
+    beforeEach(async () => {
+      await prisma.pullRequest.deleteMany();
+    })
+
+  afterAll(async () => prisma.pullRequest.deleteMany());
+  
     test('Dates properly updated', async () => {
       const mock_github_data: RecursivePartial<GitHubPullRequest> = {
         baseRepository: {
@@ -36,6 +50,7 @@ describe('Parsing Pull Data', () => {
         state: 'MERGED',
         title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
         updatedAt: '2021-08-07T19:00:00Z',
+        id: '28ddd8f5-b8b8-474c-864d-5373f1442873'
       };
       const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData)
 
@@ -83,23 +98,33 @@ describe('Parsing Pull Data', () => {
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
+        id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: {
+          login: 'mcTestyFace'
+        }
       };
       const expected_data: PullRequest = {
         closed_at: null,
         closes: 39065,
         created_at: 1628293608,
         head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
-        interacted_count: 0,
+        agg_interacted_count: 0,
         interacted: false,
         merged_at: null,
         pull_number: 39124,
-        qa_ready_count: 0,
+        agg_qa_ready_count: 0,
         qa_ready: false,
         qa_req: 0,
         repo: 'iFixit/ifixit',
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
+        pull_request_id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: 'mcTestyFace',
+        agg_dev_block_count: 0,
+        agg_qa_stamped_count: 0,
+        dev_blocked: false,
+        qa_stamped: false
       };
 
       const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
@@ -144,23 +169,33 @@ describe('Parsing Pull Data', () => {
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
+        id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: {
+          login: 'mcTestyFace'
+        }
       };
       const expected_data: PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
         head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
-        interacted_count: 0,
+        agg_interacted_count: 0,
         interacted: false,
         merged_at: null,
         pull_number: 39124,
-        qa_ready_count: 0,
+        agg_qa_ready_count: 0,
         qa_ready: false,
         qa_req: 1,
         repo: 'iFixit/ifixit',
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
+        pull_request_id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: 'mcTestyFace',
+        agg_dev_block_count: 0,
+        agg_qa_stamped_count: 0,
+        dev_blocked: false,
+        qa_stamped: false
       };
 
       const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
@@ -211,23 +246,33 @@ describe('Parsing Pull Data', () => {
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
+        id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: {
+          login: 'mcTestyFace'
+        }
       };
       const expected_data: PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
         head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
-        interacted_count: 0,
+        agg_interacted_count: 0,
         interacted: false,
         merged_at: null,
         pull_number: 39124,
-        qa_ready_count: 0,
+        agg_qa_ready_count: 0,
         qa_ready: false,
         qa_req: 1,
         repo: 'iFixit/ifixit',
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
+        pull_request_id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: 'mcTestyFace',
+        agg_dev_block_count: 0,
+        agg_qa_stamped_count: 0,
+        dev_blocked: false,
+        qa_stamped: false
       };
 
       const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
@@ -278,23 +323,33 @@ describe('Parsing Pull Data', () => {
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
+        id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: {
+          login: 'mcTestyFace'
+        }
       };
       const expected_data: PullRequest= {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
         head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
-        interacted_count: 0,
+        agg_interacted_count: 0,
         interacted: false,
         merged_at: null,
         pull_number: 39124,
-        qa_ready_count: 1,
+        agg_qa_ready_count: 1,
         qa_ready: true,
         qa_req: 1,
         repo: 'iFixit/ifixit',
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
+        pull_request_id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: 'mcTestyFace',
+        agg_dev_block_count: 0,
+        agg_qa_stamped_count: 0,
+        dev_blocked: false,
+        qa_stamped: false
       };
       const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
@@ -344,23 +399,34 @@ describe('Parsing Pull Data', () => {
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
+        id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: {
+          login: 'mcTestyFace'
+        }
+
       };
       const expected_data: PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
         head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
-        interacted_count: 0,
+        agg_interacted_count: 0,
         interacted: false,
         merged_at: null,
         pull_number: 39124,
-        qa_ready_count: 0,
+        agg_qa_ready_count: 0,
         qa_ready: false,
         qa_req: 1,
         repo: 'iFixit/ifixit',
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
+        pull_request_id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: 'mcTestyFace',
+        agg_dev_block_count: 0,
+        agg_qa_stamped_count: 0,
+        dev_blocked: false,
+        qa_stamped: false
       };
       const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
@@ -410,23 +476,33 @@ describe('Parsing Pull Data', () => {
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
+        id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: {
+          login: 'mcTestyFace'
+        }
       };
       const expected_data: PullRequest= {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
         head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
-        interacted_count: 0,
+        agg_interacted_count: 0,
         interacted: false,
         merged_at: null,
         pull_number: 39124,
-        qa_ready_count: 0,
+        agg_qa_ready_count: 0,
         qa_ready: false,
         qa_req: 1,
         repo: 'iFixit/ifixit',
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
+        pull_request_id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: 'mcTestyFace',
+        agg_dev_block_count: 0,
+        agg_qa_stamped_count: 0,
+        dev_blocked: false,
+        qa_stamped: false
       };
       const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
@@ -483,23 +559,33 @@ describe('Parsing Pull Data', () => {
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
+        id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: {
+          login: 'mcTestyFace'
+        }
       };
       const expected_data: PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
         head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
-        interacted_count: 0,
+        agg_interacted_count: 0,
         interacted: false,
         merged_at: null,
         pull_number: 39124,
-        qa_ready_count: 1,
+        agg_qa_ready_count: 1,
         qa_ready: true,
         qa_req: 1,
         repo: 'iFixit/ifixit',
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
+        pull_request_id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: 'mcTestyFace',
+        agg_dev_block_count: 0,
+        agg_qa_stamped_count: 0,
+        dev_blocked: false,
+        qa_stamped: false
       };
       const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
@@ -577,23 +663,33 @@ describe('Parsing Pull Data', () => {
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
+        id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: {
+          login: 'mcTestyFace'
+        }
       };
       const expected_data: PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
         head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
-        interacted_count: 0,
+        agg_interacted_count: 0,
         interacted: false,
         merged_at: null,
         pull_number: 39124,
-        qa_ready_count: 0,
+        agg_qa_ready_count: 0,
         qa_ready: false,
         qa_req: 1,
         repo: 'iFixit/ifixit',
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
+        pull_request_id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: 'mcTestyFace',
+        agg_dev_block_count: 0,
+        agg_qa_stamped_count: 0,
+        dev_blocked: false,
+        qa_stamped: false
       };
       const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
       expect(test_pull).toMatchObject(expected_data);
@@ -636,6 +732,10 @@ describe('Parsing Pull Data', () => {
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
+        id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: {
+          login: 'mcTestyFace'
+        }
       };
 
       const mock_db_pull_data: PullRequest = {
@@ -643,17 +743,23 @@ describe('Parsing Pull Data', () => {
         closes: null,
         created_at: 1628293608,
         head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
-        interacted_count: 2,
+        agg_interacted_count: 2,
         interacted: false,
         merged_at: null,
         pull_number: 39124,
-        qa_ready_count: 3,
+        agg_qa_ready_count: 3,
         qa_ready: false,
         qa_req: 1,
         repo: 'iFixit/ifixit',
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628293608,
+        pull_request_id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: 'mcTestyFace',
+        agg_dev_block_count: 0,
+        agg_qa_stamped_count: 0,
+        dev_blocked: false,
+        qa_stamped: false
       };
 
       const expected_data: PullRequest = {
@@ -661,17 +767,23 @@ describe('Parsing Pull Data', () => {
         closes: null,
         created_at: 1628293608,
         head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
-        interacted_count: 2,
+        agg_interacted_count: 2,
         interacted: false,
         merged_at: null,
         pull_number: 39124,
-        qa_ready_count: 4,
+        agg_qa_ready_count: 4,
         qa_ready: true,
         qa_req: 1,
         repo: 'iFixit/ifixit',
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
+        pull_request_id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: 'mcTestyFace',
+        agg_dev_block_count: 0,
+        agg_qa_stamped_count: 0,
+        dev_blocked: false,
+        qa_stamped: false
       };
       const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mock_db_pull_data);
       expect(test_pull).toMatchObject(expected_data);
@@ -728,23 +840,33 @@ describe('Parsing Pull Data', () => {
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
+        id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: {
+          login: 'mcTestyFace'
+        }
       };
       const expected_data: PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
         head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
-        interacted_count: 1,
+        agg_interacted_count: 1,
         interacted: true,
         merged_at: null,
         pull_number: 39124,
-        qa_ready_count: 1,
+        agg_qa_ready_count: 1,
         qa_ready: true,
         qa_req: 1,
         repo: 'iFixit/ifixit',
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
+        pull_request_id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: 'mcTestyFace',
+        agg_dev_block_count: 0,
+        agg_qa_stamped_count: 0,
+        dev_blocked: false,
+        qa_stamped: false
       };
       const spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [1628233200000, 1628146800000]);
       const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
@@ -805,23 +927,33 @@ describe('Parsing Pull Data', () => {
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
+        id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: {
+          login: 'mcTestyFace'
+        }
       };
       const expected_data:PullRequest = {
         closed_at: null,
         closes: null,
         created_at: 1628293608,
         head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
-        interacted_count: 0,
+        agg_interacted_count: 0,
         interacted: false,
         merged_at: null,
         pull_number: 39124,
-        qa_ready_count: 1,
+        agg_qa_ready_count: 1,
         qa_ready: true,
         qa_req: 1,
         repo: 'iFixit/ifixit',
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
+        pull_request_id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: 'mcTestyFace',
+        agg_dev_block_count: 0,
+        agg_qa_stamped_count: 0,
+        dev_blocked: false,
+        qa_stamped: false
       };
       const spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [1628233200000, 1628146800000]);
       const test_pull = await parsePull(mock_github_data as GitHubPullRequest, mockPullData);
@@ -882,6 +1014,10 @@ describe('Parsing Pull Data', () => {
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updatedAt: '2021-08-07T00:16:22Z',
+        id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: {
+          login: 'mcTestyFace'
+        }
       };
 
       const mock_db_pull_data: PullRequest= {
@@ -889,17 +1025,23 @@ describe('Parsing Pull Data', () => {
         closes: null,
         created_at: 1628293608,
         head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
-        interacted_count: 2,
+        agg_interacted_count: 2,
         interacted: false,
         merged_at: null,
         pull_number: 39124,
-        qa_ready_count: 1,
+        agg_qa_ready_count: 1,
         qa_ready: true,
         qa_req: 1,
         repo: 'iFixit/ifixit',
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628293608,
+        pull_request_id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: 'mcTestyFace',
+        agg_dev_block_count: 0,
+        agg_qa_stamped_count: 0,
+        dev_blocked: false,
+        qa_stamped: false
       };
 
       const expected_data: PullRequest = {
@@ -907,17 +1049,23 @@ describe('Parsing Pull Data', () => {
         closes: null,
         created_at: 1628293608,
         head_ref: 'a63f564828f2e6a93babc6f37346f2e54a42105f',
-        interacted_count: 3,
+        agg_interacted_count: 3,
         interacted: true,
         merged_at: null,
         pull_number: 39124,
-        qa_ready_count: 1,
+        agg_qa_ready_count: 1,
         qa_ready: true,
         qa_req: 1,
         repo: 'iFixit/ifixit',
         state: 'OPEN',
         title: 'Reset cache before each CustomerMapperTest',
         updated_at: 1628295382,
+        pull_request_id: '28ddd8f5-b8b8-474c-864d-5373f1442873',
+        author: 'mcTestyFace',
+        agg_dev_block_count: 0,
+        agg_qa_stamped_count: 0,
+        dev_blocked: false,
+        qa_stamped: false
       };
       const spy = jest.spyOn(utils, 'getDates').mockImplementation(() => [1628233200000, 1628146800000]);
 

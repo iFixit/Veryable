@@ -12,7 +12,8 @@ afterAll(async () => {
   await prisma.pullRequest.deleteMany()
 })
 
- const mockPullData: PullRequest = {
+const mockPullData: PullRequest = {
+  pull_request_id: '3315fd6c-f9ea-491f-b1db-b9a5985511cf',
   repo: 'iFixit/ifixit',
   pull_number: 39126,
   state: 'OPEN',
@@ -24,10 +25,15 @@ afterAll(async () => {
   closed_at: null,
   merged_at: null,
   closes: null,
+  author: 'mcTestyFace',
   interacted: false,
-  interacted_count: 0,
   qa_ready: false,
-  qa_ready_count: 0,
+  dev_blocked: false,
+  qa_stamped: false,
+  agg_interacted_count: 0,
+  agg_qa_ready_count: 0,
+  agg_dev_block_count: 0,
+  agg_qa_stamped_count: 0
 }
 
 describe('PullRequest Class', () => {

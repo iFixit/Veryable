@@ -25,26 +25,32 @@ function grabValues(github_pull: GitHubPullRequest, db_pull: PullRequest | null)
   let interacted_count = 0;
 
   if (db_pull) {
-    qa_ready_count = db_pull.qa_ready_count + (!db_pull.qa_ready && qa_ready ? 1 : 0)
+    qa_ready_count = db_pull.agg_qa_ready_count + (!db_pull.qa_ready && qa_ready ? 1 : 0)
 
-    interacted_count = db_pull.interacted_count + (!db_pull.interacted && qa_interacted ? 1 : 0)
+    interacted_count = db_pull.agg_interacted_count + (!db_pull.interacted && qa_interacted ? 1 : 0)
   }
   return {
       closed_at: formatGHDate(github_pull.closedAt),
       closes: closesDeclared(github_pull),
       created_at: formatGHDate(github_pull.createdAt),
       head_ref: github_pull.headRefOid,
-      interacted_count: interacted_count,
+      agg_interacted_count: interacted_count,
       interacted: qa_interacted,
       merged_at: formatGHDate(github_pull.mergedAt),
       pull_number: github_pull.number,
-      qa_ready_count: qa_ready_count,
+      agg_qa_ready_count: qa_ready_count,
       qa_ready: qa_ready,
       qa_req: qa_req,
       repo: github_pull.baseRepository?.nameWithOwner ?? 'unknown',
       state: github_pull.state as pull_request_state,
       title: github_pull.title,
       updated_at: formatGHDate(github_pull.updatedAt),
+      pull_request_id: github_pull.id,
+      author: github_pull.author?.login ?? 'unknown',
+      agg_dev_block_count: 0,
+      agg_qa_stamped_count: 0,
+      dev_blocked: false,
+      qa_stamped: false
     }
 }
 
