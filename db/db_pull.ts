@@ -67,7 +67,7 @@ export default class Pull {
      return prisma.pullRequest.count(
       {
         where: {
-          qa_ready_count: {
+          agg_qa_ready_count: {
             gte: 1
           },
           created_at: {
@@ -83,7 +83,7 @@ export default class Pull {
     return prisma.pullRequest.count(
       {
         where: {
-          interacted_count: {
+          agg_interacted_count: {
             gte: 1
           },
           updated_at: {
