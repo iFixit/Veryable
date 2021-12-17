@@ -38,7 +38,6 @@ describe('validate GitHub GraphQL Queries', () => {
 
   test('get open pulls with timeline', () => {
     const errors = validate(get_open_pulls_timelines('name', 'owner', 50))
-    console.log(errors)
     expect(errors.length).toEqual(0)
   })
 
