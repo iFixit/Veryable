@@ -15,6 +15,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Commit {
+  commit_event_id String            @id @db.VarChar(255)
+  sha             String            @db.VarChar(40)
+  qa_ready        Boolean?          @default(false)
+  interacted      Boolean?          @default(false)
+  dev_blocked     Boolean?          @default(false)
+  qa_stamped      Boolean?          @default(false)
+  ci_status       commit_ci_status?
+  committed_at    Int
+  pushed_at       Int?
+  pull_request_id String?           @db.VarChar(255)
+  pull_request    PullRequest?      @relation("qa__commitsToqa__pull_requests", fields: [pull_request_id], references: [pull_request_id], onDelete: Cascade, onUpdate: NoAction, map: "qa__commits_ibfk_1")
+  pull_request_head_ref PullRequestCommit? @relation("qa__commitsToqa__pull_request_commit")
+  commit_history        PullRequestHistory[] @relation("qa__commit_historyToqa__commits")
+
+  @@unique([sha, pull_request_id])
+  @@index([pull_request_id])
+  @@map("qa__commits")
+}
+
 model Day {
   date               Int @id
   pull_count         Int @default(0)
@@ -22,13 +42,14 @@ model Day {
   pulls_interacted   Int @default(0)
   unique_pulls_added Int @default(0)
 
-  @@map("qa_metrics")
+  @@map("qa__daily_metrics")
 }
 
-model Pull {
+model PullRequest {
+  pull_request_id  String             @id @db.VarChar(255)
   repo             String         @default("") @db.VarChar(100)
   pull_number      Int            @db.UnsignedInt
-  state            qa_pulls_state
+  state            pull_request_state
   title            String         @db.VarChar(255)
   head_ref         String         @db.Char(40)
   qa_req           Int            @default(1)
@@ -37,17 +58,71 @@ model Pull {
   closed_at        Int?           @db.UnsignedInt
   merged_at        Int?           @db.UnsignedInt
   closes           Int?           @db.UnsignedInt
-  interacted       Boolean?       @default(false)
-  interacted_count Int            @default(0)
-  qa_ready         Boolean?       @default(false)
-  qa_ready_count   Int            @default(0)
+  author           String             @db.VarChar(40)
+  agg_interacted_count Int                @default(0)
+  agg_qa_ready_count   Int                @default(0)
+  agg_dev_block_count  Int                @default(0)
+  agg_qa_stamped_count Int                @default(0)
+  qa_ready         Boolean?           @default(false)
+  interacted       Boolean?           @default(false)
+  dev_blocked      Boolean?           @default(false)
+  qa_stamped       Boolean?           @default(false)
+  commits              Commit[]           @relation("qa__commitsToqa__pull_requests")
+  head_commit          PullRequestCommit? @relation("qa__pull_request_commitToqa__pull_requests")
+  pull_request_history PullRequestHistory[]
 
-  @@id([repo, pull_number])
-  @@map("qa_pulls")
+  @@unique([repo, pull_number])
+  @@map("qa__pull_requests")
 }
 
-enum qa_pulls_state {
+model PullRequestCommit {
+  pull_request_id String      @id @db.VarChar(255)
+  head_ref        String?     @unique(map: "head_ref") @db.VarChar(255)
+  head_commit     Commit?     @relation("qa__commitsToqa__pull_request_commit", fields: [head_ref], references: [commit_event_id], onDelete: Cascade, onUpdate: NoAction, map: "qa__pull_request_commit_ibfk_3")
+  pull_request    PullRequest @relation("qa__pull_request_commitToqa__pull_requests", fields: [pull_request_id], references: [pull_request_id], onDelete: Cascade, onUpdate: NoAction, map: "qa__pull_request_commit_ibfk_2")
+
+  @@map("qa__pull_request_commit")
+}
+
+model PullRequestHistory {
+  start_date               Int
+  date                     Int
+  pull_request_id          String                     @db.VarChar(255)
+  commit_sha               String                     @db.VarChar(40)
+  event                    pull_request_history_event
+  actor                    String?                    @db.VarChar(40)
+  pull_request_event_index Int
+  commit_event_id          String                     @db.VarChar(255)
+
+  commit       Commit      @relation("qa__commit_historyToqa__commits", fields: [commit_event_id], references: [commit_event_id], onDelete: Cascade, onUpdate: NoAction, map: "qa__commit_history_ibfk_1")
+  pull_request PullRequest @relation(fields: [pull_request_id], references: [pull_request_id], onDelete: Cascade, onUpdate: NoAction, map: "qa__pull_request_history_ibfk_1")
+
+  @@id([date, pull_request_id, event])
+  @@index([commit_sha])
+  @@index([pull_request_id])
+  @@map("qa__pull_request_history")
+}
+
+enum pull_request_state {
   OPEN
   CLOSED
   MERGED
+}
+
+enum commit_ci_status {
+  PENDING
+  ERROR
+  FAILURE
+  SUCCESS
+  EXPECTED
+}
+
+enum pull_request_history_event {
+  qa_ready
+  non_qa_ready
+  first_interaction
+  interacted
+  dev_blocked
+  un_dev_blocked
+  qa_stamped
 }

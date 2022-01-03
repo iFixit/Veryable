@@ -6,7 +6,9 @@ const get_pull = config.GET_PULL
 const get_issue = config.GET_ISSUE
 const get_day_issues = config.GET_DAY_ISSUES
 const get_issues = config.GET_ISSUES
-
+const get_open_pulls_timelines = config.GET_OPEN_PULLS_TIMELINES
+const get_pulls_timelines = config.GET_PULLS_TIMELINES
+const get_pull_timeline = config.GET_PULL_TIMELINE
 
 describe('validate GitHub GraphQL Queries', () => {
 
@@ -34,4 +36,18 @@ describe('validate GitHub GraphQL Queries', () => {
     expect(errors.length).toEqual(0)
   })
 
+  test('get open pulls with timeline', () => {
+    const errors = validate(get_open_pulls_timelines('name', 'owner', 50))
+    expect(errors.length).toEqual(0)
+  })
+
+   test('get pulls with timeline', () => {
+      const errors = validate(get_pulls_timelines('name', 'owner', 50))
+    expect(errors.length).toEqual(0)
+   })
+  
+   test('get a pull with timeline', () => {
+      const errors = validate(get_pull_timeline('name', 'owner',3000))
+    expect(errors.length).toEqual(0)
+  })
 })

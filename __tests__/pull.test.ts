@@ -1,18 +1,19 @@
 import { seed_pulls } from './__helper'
 
-import PullRequest from '../db/db_pull'
-import { Pull } from '@prisma/client'
+import Pull from '../db/db_pull'
+import { PullRequest } from '@prisma/client'
 import prisma  from '../prisma/client';
 
 beforeAll(async () => {
-  await prisma.pull.deleteMany()
+  await prisma.pullRequest.deleteMany()
 })
 
 afterAll(async () => {
-  await prisma.pull.deleteMany()
+  await prisma.pullRequest.deleteMany()
 })
 
- const mockPullData: Pull = {
+const mockPullData: PullRequest = {
+  pull_request_id: '3315fd6c-f9ea-491f-b1db-b9a5985511cf',
   repo: 'iFixit/ifixit',
   pull_number: 39126,
   state: 'OPEN',
@@ -24,35 +25,40 @@ afterAll(async () => {
   closed_at: null,
   merged_at: null,
   closes: null,
+  author: 'mcTestyFace',
   interacted: false,
-  interacted_count: 0,
   qa_ready: false,
-  qa_ready_count: 0,
+  dev_blocked: false,
+  qa_stamped: false,
+  agg_interacted_count: 0,
+  agg_qa_ready_count: 0,
+  agg_dev_block_count: 0,
+  agg_qa_stamped_count: 0
 }
 
 describe('PullRequest Class', () => {
   describe('Static Methods', () => {
     test('get unique ID', () => {
-      const unique_id = PullRequest.getUniqueID(mockPullData)
+      const unique_id = Pull.getUniqueID(mockPullData)
       const expectedUniqueID = 'iFixit/ifixit #39126'
       expect(unique_id).toBe(expectedUniqueID)
     })
     test('get GraphQL Values', () => {
-      const graphql_values = PullRequest.getGraphQLValues(mockPullData)
+      const graphql_values = Pull.getGraphQLValues(mockPullData)
       const expectedGraphQLValues = [{ name: 'ifixit', owner: 'iFixit' }, 39126]
       expect(graphql_values).toMatchObject(expectedGraphQLValues)
     })
   })
   describe('Database Static Methods', () => {
     beforeAll(async () => {
-      await prisma.pull.deleteMany();
+      await prisma.pullRequest.deleteMany();
       await seed_pulls()
     })
 
-    afterAll(async () => prisma.pull.deleteMany());
+    afterAll(async () => prisma.pullRequest.deleteMany());
 
     test('get all open pulls from database', async () => {
-      const pulls: Pull[] = await PullRequest.getDBPulls()
+      const pulls: PullRequest[] = await Pull.getDBPulls()
       expect(pulls.length).toBe(3)
 
       pulls.forEach(pull => {
@@ -61,17 +67,17 @@ describe('PullRequest Class', () => {
     })
 
     test('get QA ready pull count returns sum of all pulls who have QA Ready to true', async () => {
-      const data = await PullRequest.getQAReadyPullCount()
+      const data = await Pull.getQAReadyPullCount()
       expect(data).toBe(1)
     })
 
     test('get interactions count returns sum of all pulls interacted for the day',async () => {
-      const data = await PullRequest.getInteractionsCount(1628024709);
+      const data = await Pull.getInteractionsCount(1628024709);
       expect(data).toBe(3);
     })
 
     test('get QA ready unique pull count returns sum of all pulls only added to QA column for the day',async () => {
-      const data = await PullRequest.getQAReadyUniquePullCount(1628024709);
+      const data = await Pull.getQAReadyUniquePullCount(1628024709);
       expect(data).toBe(2);
     })
   })

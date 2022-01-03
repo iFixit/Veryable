@@ -1,7 +1,7 @@
 import date from 'date-and-time';
-import { Pull, qa_pulls_state } from "@prisma/client"
+import { PullRequest, pull_request_state } from "@prisma/client"
 
-import PullRequest from '../db/db_pull'
+import Pull from '../db/db_pull'
 import config from '../config/config'
 const { qa_team, signatures } = config
 
@@ -12,39 +12,45 @@ import { IssueComment, Maybe, PullRequest as GitHubPullRequest } from '@octokit/
 
 const log = logger('pullParser')
 
-export async function parsePull(github_pull: GitHubPullRequest, db_pull: Pull | null): Promise<Pull> {
+export async function parsePull(github_pull: GitHubPullRequest, db_pull: PullRequest | null): Promise<PullRequest> {
   log.data(`Parsing Pull #${github_pull.number} ${github_pull.title}`)
-  const pull: Pull = grabValues(github_pull, db_pull)
-  return await PullRequest.save(pull)
+  const pull: PullRequest = grabValues(github_pull, db_pull)
+  return await Pull.save(pull)
 }
 
-function grabValues(github_pull: GitHubPullRequest, db_pull: Pull | null): Pull {
+function grabValues(github_pull: GitHubPullRequest, db_pull: PullRequest | null): PullRequest {
   const { qa_ready, qa_req, qa_interacted } = isQAReadyAndInteracted(github_pull)
 
   let qa_ready_count = 0;
   let interacted_count = 0;
 
   if (db_pull) {
-    qa_ready_count = db_pull.qa_ready_count + (!db_pull.qa_ready && qa_ready ? 1 : 0)
+    qa_ready_count = db_pull.agg_qa_ready_count + (!db_pull.qa_ready && qa_ready ? 1 : 0)
 
-    interacted_count = db_pull.interacted_count + (!db_pull.interacted && qa_interacted ? 1 : 0)
+    interacted_count = db_pull.agg_interacted_count + (!db_pull.interacted && qa_interacted ? 1 : 0)
   }
   return {
       closed_at: formatGHDate(github_pull.closedAt),
       closes: closesDeclared(github_pull),
       created_at: formatGHDate(github_pull.createdAt),
       head_ref: github_pull.headRefOid,
-      interacted_count: interacted_count,
+      agg_interacted_count: interacted_count,
       interacted: qa_interacted,
       merged_at: formatGHDate(github_pull.mergedAt),
       pull_number: github_pull.number,
-      qa_ready_count: qa_ready_count,
+      agg_qa_ready_count: qa_ready_count,
       qa_ready: qa_ready,
       qa_req: qa_req,
       repo: github_pull.baseRepository?.nameWithOwner ?? 'unknown',
-      state: github_pull.state as qa_pulls_state,
+      state: github_pull.state as pull_request_state,
       title: github_pull.title,
       updated_at: formatGHDate(github_pull.updatedAt),
+      pull_request_id: github_pull.id,
+      author: github_pull.author?.login ?? 'unknown',
+      agg_dev_block_count: 0,
+      agg_qa_stamped_count: 0,
+      dev_blocked: false,
+      qa_stamped: false
     }
 }
 

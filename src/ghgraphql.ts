@@ -8,6 +8,9 @@ const get_pull = config.GET_PULL
 const get_issue = config.GET_ISSUE
 const get_day_issues = config.GET_DAY_ISSUES
 const get_issues = config.GET_ISSUES
+const get_open_pulls_timelines = config.GET_OPEN_PULLS_TIMELINES
+const get_pulls_timelines = config.GET_PULLS_TIMELINES
+const get_pull_timeline = config.GET_PULL_TIMELINE
 
 export async function queryPull(repo: { name: string, owner: string }, pullNumber: number):
   Promise<{ repository: Repository }> {
@@ -64,4 +67,37 @@ export async function queryOpenPulls(repo: { name: string, owner: string }):
       },
     },
   );
+}
+
+export async function queryOpenPullsWithTimeline(repo: { name: string, owner: string }): Promise<{ repository: Repository }>  {
+  return graphql(
+    get_open_pulls_timelines(repo.name, repo.owner, 50),
+    {
+      headers: {
+        authorization: `token ${process.env.GITHUB_TOKEN}`,
+      }
+    }
+  )
+}
+
+export async function queryPullsWithTimeline(repo: { name: string, owner: string }): Promise<{ repository: Repository }>  {
+  return graphql(
+    get_pulls_timelines(repo.name, repo.owner, 50),
+    {
+      headers: {
+        authorization: `token ${process.env.GITHUB_TOKEN}`,
+      }
+    }
+  )
+}
+
+export async function queryPullWithTimeline(repo: { name: string, owner: string },pull_number: number,): Promise<{ repository: Repository }>  {
+  return graphql(
+    get_pull_timeline(repo.name, repo.owner, pull_number),
+    {
+      headers: {
+        authorization: `token ${process.env.GITHUB_TOKEN}`,
+      }
+    }
+  )
 }
