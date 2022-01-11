@@ -6,7 +6,14 @@ import logger from '../src/logger'
 const log = logger('db_pull')
 
 export default class Pull {
+  pull_request: PullRequest
+
+  constructor (pull_request: PullRequest) {
+    this.pull_request = pull_request
+  }
+
   // Returns string format of primary key
+  // Will remove down the line as we change index.ts
   static getUniqueID(pull_request: PullRequest): string {
     return `${pull_request.repo} #${pull_request.pull_number}`
   }
@@ -22,23 +29,20 @@ export default class Pull {
   }
 
   // Insert / Update Pull Request into the DB
-  static async save(pull_request: PullRequest): Promise<PullRequest> {
+  async save(): Promise<void> {
     try {
-      return await prisma.pullRequest.upsert({
+      this.pull_request = await prisma.pullRequest.upsert({
         where: {
-          repo_pull_number: {
-            repo: pull_request.repo,
-            pull_number: pull_request.pull_number,
-          }
+          pull_request_id: this.pull_request.pull_request_id
         },
-        update: pull_request,
-        create: pull_request,
+        update: this.pull_request,
+        create: this.pull_request,
       })
     } catch (e) {
       log.error(
-        "Failed to save Pull #%d '%s\n\t%s",
-        pull_request.pull_number,
-        pull_request.title,
+        "Failed to save PullRequest #%d '%s\n\t%s",
+        this.pull_request.pull_number,
+        this.pull_request.title,
         e
       )
       throw e
