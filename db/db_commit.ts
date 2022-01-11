@@ -47,4 +47,38 @@ export default class CommitDB {
       )
     }
   }
+
+  getPushedDate(): number {
+    return this.commit.pushed_at ?? 0
+  }
+
+  setQAReadyState(new_qa_ready_state: boolean): void {
+    this.commit.qa_ready = new_qa_ready_state
+  }
+
+  getQAReadyState(): boolean {
+    return this.commit.qa_ready ?? false
+  }
+
+  getCommitId(): string {
+    return this.commit.commit_event_id
+  }
+
+  getSha(): string {
+    return this.commit.sha
+  }
+
+  getCommit(): Commit {
+    return { ...this.commit }
+  }
+
+  // Looking at this, it makes me think I should also include gets and setters for this invidual states
+  getCommitState(): { qa_ready: boolean, dev_blocked: boolean, interacted: boolean, qa_stamped: boolean } {
+    return {
+      qa_ready: this.commit.qa_ready ?? false,
+      dev_blocked: this.commit.dev_blocked ?? false,
+      interacted: this.commit.interacted ?? false,
+      qa_stamped: this.commit.qa_stamped ?? false,
+    }
+  }
 }
