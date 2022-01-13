@@ -12,8 +12,8 @@ export default class PullHistoryRecorder {
   pull_request_id: string;
   current_head_commit: CommitDB;
 
-  constructor (pull_request_id?: string, current_head_commit?: CommitDB) {
-    this.pull_request_id = pull_request_id ?? '';
+  constructor (pull_request_id: string, current_head_commit?: CommitDB) {
+    this.pull_request_id = pull_request_id;
     this.current_head_commit = current_head_commit ?? new CommitDB();
   }
 
