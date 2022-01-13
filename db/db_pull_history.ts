@@ -10,11 +10,11 @@ const log = logger('db_pull_history');
 export default class PullHistoryRecorder {
   pull_records: PullRequestHistory[] = [];
   pull_request_id: string;
-  current_commit: CommitDB;
+  current_head_commit: CommitDB;
 
-  constructor (pull_request_id?: string, current_commit?: CommitDB) {
+  constructor (pull_request_id?: string, current_head_commit?: CommitDB) {
     this.pull_request_id = pull_request_id ?? '';
-    this.current_commit = current_commit ?? new CommitDB();
+    this.current_head_commit = current_head_commit ?? new CommitDB();
   }
 
   async save(): Promise<void> {
