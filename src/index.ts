@@ -1,8 +1,6 @@
 import config from '../config/config'
 const { repos } = config
 
-import refreshPulls from '../scripts/refreshPulls';
-
 import { queryOpenPulls } from './ghgraphql'
 
 import DayMetric from '../db/db_day'
@@ -23,10 +21,6 @@ const log = logger('main');
 // Automatically run script repeatedly
 (async () => {
   DB_PULLS = await Pull.getDBPulls();
-  log.info('Will now refresh current open pulls in DB')
-  // Refresh any open pulls since last start up and block code until done
-  await refreshPulls()
-  log.info('Done refreshing pulls')
   main()
   setInterval(main, 60 * 1000) //Run every 60 seconds
 })()
