@@ -3,6 +3,7 @@ import prisma from '../prisma/client'
 import Pull from '../db/db_pull'
 import PullHistoryRecorder from '../db/db_pull_history'
 import { isCommitQAReady, parseCommit } from '../controllers/commit_controller'
+import { parseComment } from './comment_controller'
 
 import {PullRequestTimelineItems} from "@octokit/graphql-schema"
 import logger from '../src/logger'
@@ -32,6 +33,7 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
         break;
       }
       case "IssueComment": {
+        const signatures = parseComment(event, pull.getAuthor())
         break;
       }
       case "PullRequestReview":{
