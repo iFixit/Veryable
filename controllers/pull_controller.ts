@@ -30,13 +30,13 @@ function grabValues(github_pull: GitHubPullRequest, db_pull: PullRequest | null)
     interacted_count = db_pull.agg_interacted_count + (!db_pull.interacted && qa_interacted ? 1 : 0)
   }
   return {
-      closed_at: formatGHDate(github_pull.closedAt),
+      closed_at: utils.getUnixTimeFromISO(github_pull.closedAt) || null,
       closes: closesDeclared(github_pull),
-      created_at: formatGHDate(github_pull.createdAt),
+      created_at: utils.getUnixTimeFromISO(github_pull.createdAt) || null,
       head_ref: github_pull.headRefOid,
       agg_interacted_count: interacted_count,
       interacted: qa_interacted,
-      merged_at: formatGHDate(github_pull.mergedAt),
+      merged_at: utils.getUnixTimeFromISO(github_pull.mergedAt) || null,
       pull_number: github_pull.number,
       agg_qa_ready_count: qa_ready_count,
       qa_ready: qa_ready,
@@ -44,7 +44,7 @@ function grabValues(github_pull: GitHubPullRequest, db_pull: PullRequest | null)
       repo: github_pull.baseRepository?.nameWithOwner ?? 'unknown',
       state: github_pull.state as pull_request_state,
       title: github_pull.title,
-      updated_at: formatGHDate(github_pull.updatedAt),
+      updated_at: utils.getUnixTimeFromISO(github_pull.updatedAt) || null,
       pull_request_id: github_pull.id,
       author: github_pull.author?.login ?? 'unknown',
       agg_dev_block_count: 0,
@@ -52,13 +52,6 @@ function grabValues(github_pull: GitHubPullRequest, db_pull: PullRequest | null)
       dev_blocked: false,
       qa_stamped: false
     }
-}
-
-function formatGHDate(utc_date: string | null): number | null {
-  if (utc_date) {
-    return Math.floor(new Date(utc_date).getTime() / 1000);
-  }
-  return null;
 }
 
 // Check if there is an Issue connected with Pull
