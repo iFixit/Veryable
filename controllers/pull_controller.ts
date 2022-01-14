@@ -12,10 +12,10 @@ import { IssueComment, Maybe, PullRequest as GitHubPullRequest } from '@octokit/
 
 const log = logger('pullParser')
 
-export async function parsePull(github_pull: GitHubPullRequest): Promise<PullRequest> {
+export async function parsePull(github_pull: GitHubPullRequest): Promise<Pull> {
   log.data(`Parsing Pull #${github_pull.number} ${github_pull.title}`)
-  const pull: PullRequest = grabValues(github_pull)
-  return await Pull.save(pull)
+  const pull_request: PullRequest = grabValues(github_pull)
+  return new Pull(pull_request)
 }
 
 function grabValues(github_pull: GitHubPullRequest): PullRequest {
