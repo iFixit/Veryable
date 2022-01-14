@@ -27,6 +27,7 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
         // Need to Check if the Commit is QA Ready
         if (isCommitQAReady(pull_dev_block_state, commit.commit)) {
           // Log Event
+          recorder.logEvent(commit.getPushedDate(),'qa_ready','CI')
         }
         break;
       }
