@@ -1,14 +1,13 @@
-import date from 'date-and-time';
 import { PullRequest, pull_request_state } from "@prisma/client"
 
 import Pull from '../db/db_pull'
 import config from '../config/config'
-const { qa_team, signatures } = config
+const { signatures } = config
 
 import { utils } from '../scripts/utils'
 
 import logger from '../src/logger'
-import { IssueComment, Maybe, PullRequest as GitHubPullRequest } from '@octokit/graphql-schema';
+import { PullRequest as GitHubPullRequest } from '@octokit/graphql-schema';
 
 const log = logger('pullParser')
 
