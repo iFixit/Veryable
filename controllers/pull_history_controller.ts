@@ -17,6 +17,7 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
     switch (event.__typename) {
       case "PullRequestCommit": {
         const commit = parseCommit(pull, event)
+        pull.appendCommit(commit)
         break;
       }
       case "IssueComment": {
