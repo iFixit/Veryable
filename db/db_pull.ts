@@ -2,11 +2,13 @@ import prisma from "../prisma/client"
 import { PullRequest } from "@prisma/client"
 
 import logger from '../src/logger'
+import CommitDB from "./db_commit"
 
 const log = logger('db_pull')
 
 export default class Pull {
   pull_request: PullRequest
+  commits: CommitDB[] = []
 
   constructor (pull_request: PullRequest) {
     this.pull_request = pull_request
@@ -51,6 +53,10 @@ export default class Pull {
 
   getID(): string {
     return this.pull_request.pull_request_id
+  }
+
+  appendCommit(commit: CommitDB) {
+    this.commits.push(commit)
   }
 
   static async getDBPulls(): Promise<PullRequest[]> {
