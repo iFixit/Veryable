@@ -20,27 +20,27 @@ export async function parsePull(github_pull: GitHubPullRequest): Promise<PullReq
 
 function grabValues(github_pull: GitHubPullRequest): PullRequest {
   return {
-      closed_at: utils.getUnixTimeFromISO(github_pull.closedAt) || null,
-      closes: closesDeclared(github_pull),
-      created_at: utils.getUnixTimeFromISO(github_pull.createdAt) || null,
-      head_ref: github_pull.headRefOid,
-      agg_interacted_count: 0,
-      interacted: false,
-      merged_at: utils.getUnixTimeFromISO(github_pull.mergedAt) || null,
-      pull_number: github_pull.number,
-      agg_qa_ready_count: 0,
-      qa_ready: false,
-      qa_req: qaRequired(github_pull),
+      pull_request_id: github_pull.id,
       repo: github_pull.baseRepository?.nameWithOwner ?? 'unknown',
+      closes: closesDeclared(github_pull),
+      pull_number: github_pull.number,
       state: github_pull.state as pull_request_state,
       title: github_pull.title,
+      head_ref: github_pull.headRefOid,
+      created_at: utils.getUnixTimeFromISO(github_pull.createdAt) || null,
       updated_at: utils.getUnixTimeFromISO(github_pull.updatedAt) || null,
-      pull_request_id: github_pull.id,
+      merged_at: utils.getUnixTimeFromISO(github_pull.mergedAt) || null,
+      closed_at: utils.getUnixTimeFromISO(github_pull.closedAt) || null,
       author: github_pull.author?.login ?? 'unknown',
+      qa_req: qaRequired(github_pull),
+      qa_ready: false,
+      interacted: false,
+      dev_blocked: false,
+      qa_stamped: false,
+      agg_qa_ready_count: 0,
+      agg_interacted_count: 0,
       agg_dev_block_count: 0,
       agg_qa_stamped_count: 0,
-      dev_blocked: false,
-      qa_stamped: false
     }
 }
 
