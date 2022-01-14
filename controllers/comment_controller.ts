@@ -18,20 +18,16 @@ function isQAed(comment: IssueComment): boolean {
   return regex.test(comment.bodyText)
 }
 
-// Only checking if dev_block or not
-function isDevBlocked(comments: Maybe<IssueComment>[]): boolean {
-
-  for (const comment of comments) {
-    const tag = signatures.tags.find(tag => {
-      const regex = new RegExp(tag.regex + signatures.emoji, 'i')
-      return regex.test(comment?.bodyText ?? '')
-    })
-    if (tag) {
-      return tag.state
-    }
+// Checking for dev_block or un_dev_block, otherwise return null
+function isDevBlocked(comment: IssueComment): boolean | null {
+  const tag = signatures.tags.find(tag => {
+    const regex = new RegExp(tag.regex + signatures.emoji, 'i')
+    return regex.test(comment.bodyText)
+  })
+  if (tag) {
+    return tag.state
   }
-
-  return false
+  return null
 }
 
 function isInteracted(comment: IssueComment): boolean {
