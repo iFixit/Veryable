@@ -2,7 +2,7 @@ import prisma from '../prisma/client'
 
 import Pull from '../db/db_pull'
 import PullHistoryRecorder from '../db/db_pull_history'
-import { parseCommit } from '../controllers/commit_controller'
+import { isCommitQAReady, parseCommit } from '../controllers/commit_controller'
 
 import {PullRequestTimelineItems} from "@octokit/graphql-schema"
 import logger from '../src/logger'
@@ -13,12 +13,21 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
   // For every Pull we want to keep track of the events
   const recorder = new PullHistoryRecorder(pull.getID())
 
+  // Set the Dev Block state for the Pull to reference for later commits
+  const pull_dev_block_state = false;
+
   timelineItems.forEach(event => {
     switch (event.__typename) {
       case "PullRequestCommit": {
         const commit = parseCommit(pull, event)
         pull.appendCommit(commit)
         recorder.setCurrentCommitRef(commit)
+
+        // Can check the CI status and Pull Dev Block state for a commit without need to review the comments
+        // Need to Check if the Commit is QA Ready
+        if (isCommitQAReady(pull_dev_block_state, commit.commit)) {
+          // Log Event
+        }
         break;
       }
       case "IssueComment": {
