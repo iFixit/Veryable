@@ -49,6 +49,10 @@ export default class Pull {
     }
   }
 
+  getID(): string {
+    return this.pull_request.pull_request_id
+  }
+
   static async getDBPulls(): Promise<PullRequest[]> {
     return prisma.pullRequest.findMany({where: {state: 'OPEN'}})
   }
