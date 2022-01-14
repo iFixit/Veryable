@@ -37,4 +37,8 @@ export default class PullHistoryRecorder {
       }
     }))
   }
+
+  setCurrentCommitRef(commit: CommitDB) {
+    this.current_head_commit = commit
+  }
 }
