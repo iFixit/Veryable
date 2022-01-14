@@ -43,6 +43,10 @@ export default class PullHistoryRecorder {
     this.current_head_commit = commit
   }
 
+  getCurrentCommit(): Commit {
+    return this.current_head_commit.getCommit()
+  }
+
   // date passed should always be from an already parsed GitHub Object
   logEvent(date: number, event: pull_request_history_event, actor: string) {
     this.pull_records.push({

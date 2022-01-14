@@ -64,7 +64,9 @@ function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: Iss
       break
     case false:
       recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'un_dev_blocked', comment.author?.login || "unkown author")
-
+      if (isCommitQAReady(false, recorder.getCurrentCommit())) {
+        recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt),'qa_ready','dev block change')
+      }
       break
   }
 }
