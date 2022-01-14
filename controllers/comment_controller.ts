@@ -1,15 +1,17 @@
 import logger from '../src/logger'
 const log = logger('comment_controller')
 
-import { IssueComment, Maybe } from "@octokit/graphql-schema"
+import { IssueComment} from "@octokit/graphql-schema"
 
 import config from '../config/config'
 const { qa_team, signatures } = config
 
-export function parseComment(comment: IssueComment) {
-  // Check for QA Stamp
-  // Check for Dev Block Stamp
-  // Check for Interaction by QA Team
+export function parseComment(comment: IssueComment, pull_request_author: string): { qaed: boolean, dev_block: boolean | null, interacted: boolean }{
+  return {
+    qaed: isQAed(comment),
+    dev_block: isDevBlocked(comment),
+    interacted: isInteracted(comment,pull_request_author)
+  }
 }
 
 
