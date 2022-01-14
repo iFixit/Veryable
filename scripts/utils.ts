@@ -13,6 +13,6 @@ export const utils = {
   },
 
   getZeroHourFromDate(unix_date: number): number{
-    return moment().set({hour: 0, minute: 0, second: 0}).unix()
+    return moment(unix_date).set({hour: 0, minute: 0, second: 0}).unix()
   }
 }
