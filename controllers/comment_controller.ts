@@ -13,9 +13,9 @@ export function parseComment(comment: IssueComment) {
 }
 
 
-function isQAed(comment: Maybe<IssueComment>): boolean {
+function isQAed(comment: IssueComment): boolean {
   const regex = new RegExp(signatures.QA + signatures.emoji, 'i')
-  return regex.test(comment?.bodyText ?? '')
+  return regex.test(comment.bodyText)
 }
 
 // Only checking if dev_block or not
