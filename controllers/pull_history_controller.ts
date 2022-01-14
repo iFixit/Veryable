@@ -18,7 +18,7 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
   const recorder = new PullHistoryRecorder(pull.getID())
 
   // Set the Dev Block state for the Pull to reference for later commits
-  const pull_dev_block_state = false;
+  let pull_dev_block_state = false;
 
   timelineItems.forEach(event => {
     switch (event.__typename) {
@@ -45,6 +45,7 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
         }
 
         checkAndRecordDevBlockSignature(signatures.dev_block, event, recorder)
+        pull_dev_block_state = signatures.dev_block ?? pull_dev_block_state
 
         break;
       }
