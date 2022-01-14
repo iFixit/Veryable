@@ -9,6 +9,9 @@ import {PullRequestTimelineItems} from "@octokit/graphql-schema"
 import logger from '../src/logger'
 const log = logger('pull_parser_timeline')
 
+import { utils } from '../scripts/utils'
+
+
 // For every Pull, we need to parse all the timeline events
 export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItems[]) {
   // For every Pull we want to keep track of the events
@@ -34,6 +37,12 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
       }
       case "IssueComment": {
         const signatures = parseComment(event, pull.getAuthor())
+
+        if (signatures.qaed) {
+          recorder.logEvent(utils.getUnixTimeFromISO(event.createdAt), 'qa_stamped', event.author?.login || "unkown author")
+
+          recorder.logEvent(utils.getUnixTimeFromISO(event.createdAt), 'non_qa_ready', event.author?.login || "unkown author")
+        }
         break;
       }
       case "PullRequestReview":{
