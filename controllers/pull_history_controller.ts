@@ -36,6 +36,9 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
           // Log Event
           recorder.logEvent(commit.getPushedDate(),'qa_ready','CI')
         }
+
+        // Reset Interacted State
+        pull_interacted_state = false
         break;
       }
       case "IssueComment": {
