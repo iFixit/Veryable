@@ -30,6 +30,6 @@ function isDevBlocked(comment: IssueComment): boolean | null {
   return null
 }
 
-function isInteracted(comment: IssueComment): boolean {
-  return qa_team.includes(comment?.author?.login ?? '')
+function isInteracted(comment: IssueComment, pull_request_author: string): boolean {
+  return qa_team.includes(comment.author?.login ?? '') && pull_request_author !== comment.author?.login
 }
