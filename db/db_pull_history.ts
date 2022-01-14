@@ -5,6 +5,7 @@ import CommitDB from '../db/db_commit'
 import Pull from "./db_pull";
 
 import logger from '../src/logger';
+import { utils } from "../scripts/utils";
 const log = logger('db_pull_history');
 
 export default class PullHistoryRecorder {
@@ -40,5 +41,19 @@ export default class PullHistoryRecorder {
 
   setCurrentCommitRef(commit: CommitDB) {
     this.current_head_commit = commit
+  }
+
+  // date passed will always be from an already parsed GitHub Object
+  logEvent(date: number, event: pull_request_history_event, actor: string) {
+    this.pull_records.push({
+      start_date: utils.getZeroHourFromDate(date),
+      date: date,
+      pull_request_id: this.pull_request_id,
+      commit_event_id: this.current_head_commit.getCommitId(),
+      commit_sha: this.current_head_commit.getSha(),
+      event: event,
+      actor: actor,
+      pull_request_event_index: this.pull_records.length + 1,
+    })
   }
 }
