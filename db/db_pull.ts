@@ -55,6 +55,10 @@ export default class Pull {
     return this.pull_request.pull_request_id
   }
 
+  getAuthor(): string{
+    return this.pull_request.author
+  }
+
   appendCommit(commit: CommitDB) {
     this.commits.push(commit)
   }
