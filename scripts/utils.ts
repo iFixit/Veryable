@@ -10,5 +10,9 @@ export const utils = {
 
   getUnixTimeFromISO(iso_date: string): number{
     return moment(iso_date).unix()
+  },
+
+  getZeroHourFromDate(unix_date: number): number{
+    return moment().set({hour: 0, minute: 0, second: 0}).unix()
   }
 }
