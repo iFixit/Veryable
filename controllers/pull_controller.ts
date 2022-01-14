@@ -12,35 +12,25 @@ import { IssueComment, Maybe, PullRequest as GitHubPullRequest } from '@octokit/
 
 const log = logger('pullParser')
 
-export async function parsePull(github_pull: GitHubPullRequest, db_pull: PullRequest | null): Promise<PullRequest> {
+export async function parsePull(github_pull: GitHubPullRequest): Promise<PullRequest> {
   log.data(`Parsing Pull #${github_pull.number} ${github_pull.title}`)
-  const pull: PullRequest = grabValues(github_pull, db_pull)
+  const pull: PullRequest = grabValues(github_pull)
   return await Pull.save(pull)
 }
 
-function grabValues(github_pull: GitHubPullRequest, db_pull: PullRequest | null): PullRequest {
-  const { qa_ready, qa_req, qa_interacted } = isQAReadyAndInteracted(github_pull)
-
-  let qa_ready_count = 0;
-  let interacted_count = 0;
-
-  if (db_pull) {
-    qa_ready_count = db_pull.agg_qa_ready_count + (!db_pull.qa_ready && qa_ready ? 1 : 0)
-
-    interacted_count = db_pull.agg_interacted_count + (!db_pull.interacted && qa_interacted ? 1 : 0)
-  }
+function grabValues(github_pull: GitHubPullRequest): PullRequest {
   return {
       closed_at: utils.getUnixTimeFromISO(github_pull.closedAt) || null,
       closes: closesDeclared(github_pull),
       created_at: utils.getUnixTimeFromISO(github_pull.createdAt) || null,
       head_ref: github_pull.headRefOid,
-      agg_interacted_count: interacted_count,
-      interacted: qa_interacted,
+      agg_interacted_count: 0,
+      interacted: false,
       merged_at: utils.getUnixTimeFromISO(github_pull.mergedAt) || null,
       pull_number: github_pull.number,
-      agg_qa_ready_count: qa_ready_count,
-      qa_ready: qa_ready,
-      qa_req: qa_req,
+      agg_qa_ready_count: 0,
+      qa_ready: false,
+      qa_req: qaRequired(github_pull),
       repo: github_pull.baseRepository?.nameWithOwner ?? 'unknown',
       state: github_pull.state as pull_request_state,
       title: github_pull.title,
