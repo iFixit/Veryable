@@ -20,6 +20,9 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
   // Set the Dev Block state for the Pull to reference for later commits
   let pull_dev_block_state = false;
 
+  // Set the Interacted state for the Pull to reference for later interactions
+  let pull_interacted_state = false
+
   timelineItems.forEach(event => {
     switch (event.__typename) {
       case "PullRequestCommit": {
@@ -47,6 +50,9 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
         checkAndRecordDevBlockSignature(signatures.dev_block, event, recorder)
         pull_dev_block_state = signatures.dev_block ?? pull_dev_block_state
 
+        checkAndRecordInteraction(signatures.interacted, event, recorder, pull_interacted_state)
+        pull_interacted_state = signatures.interacted || pull_interacted_state
+
         break;
       }
       case "PullRequestReview":{
@@ -69,5 +75,14 @@ function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: Iss
         recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt),'qa_ready','dev block change')
       }
       break
+  }
+}
+
+function checkAndRecordInteraction(interacted: boolean, comment: IssueComment, recorder: PullHistoryRecorder, previous_pull_interacted_state: boolean): void {
+  if (!previous_pull_interacted_state && interacted) {
+    recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt),'first_interaction',comment.author?.login || 'qa team')
+  }
+  else if (interacted) {
+    recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt),'interacted',comment.author?.login || 'qa team')
   }
 }
