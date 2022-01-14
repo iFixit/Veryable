@@ -5,7 +5,7 @@ import PullHistoryRecorder from '../db/db_pull_history'
 import { isCommitQAReady, parseCommit } from '../controllers/commit_controller'
 import { parseComment } from './comment_controller'
 
-import {PullRequestTimelineItems} from "@octokit/graphql-schema"
+import {IssueComment, PullRequestTimelineItems} from "@octokit/graphql-schema"
 import logger from '../src/logger'
 const log = logger('pull_parser_timeline')
 
@@ -43,6 +43,9 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
 
           recorder.logEvent(utils.getUnixTimeFromISO(event.createdAt), 'non_qa_ready', event.author?.login || "unkown author")
         }
+
+        checkAndRecordDevBlockSignature(signatures.dev_block, event, recorder)
+
         break;
       }
       case "PullRequestReview":{
@@ -50,4 +53,18 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
       }
     }
   })
+}
+
+function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: IssueComment, recorder: PullHistoryRecorder) {
+  switch (dev_block) {
+    case true:
+      recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'dev_blocked', comment.
+        author?.login || "unkown author")
+      recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'non_qa_ready', 'dev block change')
+      break
+    case false:
+      recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'un_dev_blocked', comment.author?.login || "unkown author")
+
+      break
+  }
 }
