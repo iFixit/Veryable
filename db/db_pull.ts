@@ -63,6 +63,10 @@ export default class Pull {
     this.commits.push(commit)
   }
 
+  getNumberOfCommits(): number{
+    return this.commits.length
+  }
+
   static async getDBPulls(): Promise<PullRequest[]> {
     return prisma.pullRequest.findMany({where: {state: 'OPEN'}})
   }

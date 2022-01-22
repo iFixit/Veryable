@@ -10,7 +10,7 @@ import logger from '../src/logger'
 const log = logger('pull_parser_timeline')
 
 import { utils } from '../scripts/utils'
-
+import CommitDB from '../db/db_commit'
 
 // For every Pull, we need to parse all the timeline events
 export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItems[]) {
@@ -43,6 +43,27 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
       }
       case "IssueComment": {
         const signatures = parseComment(event, pull.getAuthor())
+
+        // It is possible to have a comment before commit events if there is a force-push
+        if (pull.getNumberOfCommits() === 0) {
+          const ghost_commit = new CommitDB(
+            {
+            commit_event_id: event.id, //use comment id as commit id
+            sha: 'unknown_starting_commit',
+            qa_ready: null,
+            interacted: null,
+            dev_blocked: null,
+            qa_stamped: null,
+            ci_status: null,
+            committed_at: utils.getUnixTimeFromISO(event.createdAt),
+            pushed_at: null,
+            pull_request_id: pull.getID()
+            }
+          )
+
+          pull.appendCommit(ghost_commit)
+          recorder.setCurrentCommitRef(ghost_commit)
+        }
 
         if (signatures.qaed) {
           recorder.logEvent(utils.getUnixTimeFromISO(event.createdAt), 'qa_stamped', event.author?.login || "unkown author")
