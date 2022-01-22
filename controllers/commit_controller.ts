@@ -20,7 +20,7 @@ export function parseCommit(pull: Pull, github_commit: PullRequestCommit): Commi
     ci_status: github_commit.commit.status?.state || null,
     committed_at: utils.getUnixTimeFromISO(github_commit.commit.committedDate),
     pushed_at: github_commit.commit.pushedDate ? utils.getUnixTimeFromISO(github_commit.commit.pushedDate) : null,
-    pull_request_id: null
+    pull_request_id: pull.getID()
   }
 
   return new CommitDB(commit)
