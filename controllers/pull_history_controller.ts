@@ -42,7 +42,7 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
         break;
       }
       case "IssueComment": {
-        const signatures = parseComment(event, pull.getAuthor())
+        const signatures = parseComment(event.bodyText, event.author, pull.getAuthor())
 
         // It is possible to have a comment before commit events if there is a force-push
         if (pull.getNumberOfCommits() === 0) {
