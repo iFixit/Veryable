@@ -5,7 +5,7 @@ import PullHistoryRecorder from '../db/db_pull_history'
 import { isCommitQAReady, parseCommit } from '../controllers/commit_controller'
 import { parseComment } from './comment_controller'
 
-import {IssueComment, PullRequestTimelineItems} from "@octokit/graphql-schema"
+import {IssueComment, PullRequestReview, PullRequestTimelineItems} from "@octokit/graphql-schema"
 import logger from '../src/logger'
 const log = logger('pull_parser_timeline')
 
@@ -86,7 +86,7 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
   })
 }
 
-function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: IssueComment, recorder: PullHistoryRecorder) {
+function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: IssueComment | PullRequestReview, recorder: PullHistoryRecorder) {
   switch (dev_block) {
     case true:
       recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'dev_blocked', comment.
@@ -102,7 +102,7 @@ function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: Iss
   }
 }
 
-function checkAndRecordInteraction(interacted: boolean, comment: IssueComment, recorder: PullHistoryRecorder, previous_pull_interacted_state: boolean): void {
+function checkAndRecordInteraction(interacted: boolean, comment: IssueComment | PullRequestReview, recorder: PullHistoryRecorder, previous_pull_interacted_state: boolean): void {
   if (!previous_pull_interacted_state && interacted) {
     recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt),'first_interaction',comment.author?.login || 'qa team')
   }
