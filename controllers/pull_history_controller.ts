@@ -5,7 +5,7 @@ import PullHistoryRecorder from '../db/db_pull_history'
 import { isCommitQAReady, parseCommit } from '../controllers/commit_controller'
 import { parseComment } from './comment_controller'
 
-import {IssueComment, PullRequestReview, PullRequestTimelineItems} from "@octokit/graphql-schema"
+import {IssueComment, PullRequestReview, PullRequestReviewComment, PullRequestTimelineItems} from "@octokit/graphql-schema"
 import logger from '../src/logger'
 const log = logger('pull_parser_timeline')
 
@@ -79,14 +79,70 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
 
         break;
       }
-      case "PullRequestReview":{
+      case "PullRequestReview": {
+          if (pull.getNumberOfCommits() === 0) {
+            const ghost_commit = new CommitDB(
+            {
+            commit_event_id: event.id, //use comment id as commit id
+            sha: 'unknown_starting_commit',
+            qa_ready: null,
+            interacted: null,
+            dev_blocked: null,
+            qa_stamped: null,
+            ci_status: null,
+            committed_at: utils.getUnixTimeFromISO(event.createdAt),
+            pushed_at: null,
+            pull_request_id: pull.getID()
+            }
+          )
+
+          pull.appendCommit(ghost_commit)
+          recorder.setCurrentCommitRef(ghost_commit)
+        }
+
+        // Check if there is a general review comment, if so parse it
+        if (event.bodyText) {
+          const signatures = parseComment(event, pull.getAuthor())
+          if (signatures.qaed) {
+            recorder.logEvent(utils.getUnixTimeFromISO(event.createdAt), 'qa_stamped', event.author?.login || "unkown author")
+
+            recorder.logEvent(utils.getUnixTimeFromISO(event.createdAt), 'non_qa_ready', event.author?.login || "unkown author")
+          }
+
+
+          checkAndRecordDevBlockSignature(signatures.dev_block, event, recorder)
+          pull_dev_block_state = signatures.dev_block ?? pull_dev_block_state
+
+          checkAndRecordInteraction(signatures.interacted, event, recorder, pull_interacted_state)
+          pull_interacted_state = signatures.interacted || pull_interacted_state
+        }
+
+        event.comments.nodes?.map(comment => {
+          if (!comment) {
+            return
+          }
+
+          const signatures = parseComment(comment, pull.getAuthor())
+          if (signatures.qaed) {
+            recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'qa_stamped', comment.author?.login || "unkown author")
+
+            recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'non_qa_ready', comment.author?.login || "unkown author")
+          }
+
+
+          checkAndRecordDevBlockSignature(signatures.dev_block, comment, recorder)
+          pull_dev_block_state = signatures.dev_block ?? pull_dev_block_state
+
+          checkAndRecordInteraction(signatures.interacted, comment, recorder, pull_interacted_state)
+          pull_interacted_state = signatures.interacted || pull_interacted_state
+        })
         break;
       }
     }
   })
 }
 
-function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: IssueComment | PullRequestReview, recorder: PullHistoryRecorder) {
+function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: IssueComment | PullRequestReview | PullRequestReviewComment, recorder: PullHistoryRecorder) {
   switch (dev_block) {
     case true:
       recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'dev_blocked', comment.
@@ -102,7 +158,7 @@ function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: Iss
   }
 }
 
-function checkAndRecordInteraction(interacted: boolean, comment: IssueComment | PullRequestReview, recorder: PullHistoryRecorder, previous_pull_interacted_state: boolean): void {
+function checkAndRecordInteraction(interacted: boolean, comment: IssueComment | PullRequestReview  | PullRequestReviewComment, recorder: PullHistoryRecorder, previous_pull_interacted_state: boolean): void {
   if (!previous_pull_interacted_state && interacted) {
     recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt),'first_interaction',comment.author?.login || 'qa team')
   }
