@@ -59,6 +59,9 @@ export default class Pull {
     return this.pull_request.author
   }
 
+  getCommits(): CommitDB[]{
+    return this.commits
+  }
   appendCommit(commit: CommitDB) {
     this.commits.push(commit)
   }
