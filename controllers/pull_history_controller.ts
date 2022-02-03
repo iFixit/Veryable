@@ -11,6 +11,8 @@ const log = logger('pull_parser_timeline')
 
 import { utils } from '../scripts/utils'
 import CommitDB from '../db/db_commit'
+import { PullRequestHistory } from '@prisma/client'
+import { backFillCommits } from './backfill_controller'
 
 // For every Pull, we need to parse all the timeline events
 export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItems[]) {
@@ -140,6 +142,8 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
       }
     }
   })
+
+  parseRecordsAndBackFill(recorder.getPullRecords(),pull,pull_dev_block_state)
 }
 
 function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: IssueComment | PullRequestReview | PullRequestReviewComment, recorder: PullHistoryRecorder) {
@@ -165,4 +169,8 @@ function checkAndRecordInteraction(interacted: boolean, comment: IssueComment | 
   else if (interacted) {
     recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt),'interacted',comment.author?.login || 'qa team')
   }
+}
+
+function parseRecordsAndBackFill(records: PullRequestHistory[], pull: Pull, last_pull_dev_block_state: boolean) {
+  const backfilled_commits = backFillCommits(records, pull)
 }
