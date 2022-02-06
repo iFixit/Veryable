@@ -6,24 +6,24 @@ import logger from '../src/logger'
 const log = logger('backfill_controller')
 
 
-export function backFillCommits(records: PullRequestHistory[], pull: Pull): { [commit_event_id: string]: CommitDB } {
-  let current_commit_id: string | null = null;
+export function backFillCommits(records: PullRequestHistory[], pull: Pull): { [commit_sha: string]: CommitDB } {
+  let current_commit_sha: string | null = null;
   let current_commit_state = returnDefaultCommitState();
 
-  const commits: { [commit_event_id: string]: Commit } = generateCommitsDictionary(pull.getCommits())
+  const commits: { [commit_sha: string]: Commit } = generateCommitsDictionary(pull.getCommits())
 
-  const backfilled_commits: { [commit_event_id: string]: CommitDB} = {}
+  const backfilled_commits: { [commit_sha: string]: CommitDB} = {}
 
   records.forEach(record => {
-    current_commit_id = current_commit_id ?? record.commit_event_id
+    current_commit_sha = current_commit_sha ?? record.commit_sha
 
-    if (current_commit_id !== record.commit_event_id) {
-      backfilled_commits[current_commit_id] = new CommitDB({
-        ...commits[current_commit_id],
+    if (current_commit_sha !== record.commit_sha) {
+      backfilled_commits[current_commit_sha] = new CommitDB({
+        ...commits[current_commit_sha],
         ...current_commit_state
       })
 
-      current_commit_id = record.commit_event_id
+      current_commit_sha = record.commit_sha
       current_commit_state = returnDefaultCommitState();
     }
 
@@ -50,9 +50,9 @@ export function backFillCommits(records: PullRequestHistory[], pull: Pull): { [c
     }
   })
 
-  if (current_commit_id) {
-    backfilled_commits[current_commit_id] = new CommitDB({
-      ...commits[current_commit_id],
+  if (current_commit_sha) {
+    backfilled_commits[current_commit_sha] = new CommitDB({
+      ...commits[current_commit_sha],
       ...current_commit_state
     })
   }

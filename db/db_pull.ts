@@ -62,6 +62,11 @@ export default class Pull {
   getCommits(): CommitDB[]{
     return this.commits
   }
+
+  getHeadCommitSha(): string{
+    return this.pull_request.head_ref
+  }
+
   appendCommit(commit: CommitDB) {
     this.commits.push(commit)
   }

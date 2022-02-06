@@ -173,4 +173,7 @@ function checkAndRecordInteraction(interacted: boolean, comment: IssueComment | 
 
 function parseRecordsAndBackFill(records: PullRequestHistory[], pull: Pull, last_pull_dev_block_state: boolean) {
   const backfilled_commits = backFillCommits(records, pull)
+  const head_commit = backfilled_commits[pull.getHeadCommitSha()]
+
+
 }
