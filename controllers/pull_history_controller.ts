@@ -12,7 +12,7 @@ const log = logger('pull_parser_timeline')
 import { utils } from '../scripts/utils'
 import CommitDB from '../db/db_commit'
 import { PullRequestHistory } from '@prisma/client'
-import { backFillCommits } from './backfill_controller'
+import { backFillCommits, backFillPullRequest } from './backfill_controller'
 
 // For every Pull, we need to parse all the timeline events
 export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItems[]) {
@@ -175,5 +175,7 @@ function parseRecordsAndBackFill(records: PullRequestHistory[], pull: Pull, last
   const backfilled_commits = backFillCommits(records, pull)
   const head_commit = backfilled_commits[pull.getHeadCommitSha()]
 
+  const backfilled_pull_request = backFillPullRequest(records, pull.getPullRequest(), head_commit, last_pull_dev_block_state)
 
+  pull.setPullRequest(backfilled_pull_request)
 }

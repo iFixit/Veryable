@@ -1,4 +1,4 @@
-import { PullRequestHistory, Commit } from '@prisma/client'
+import { PullRequestHistory, Commit, PullRequest } from '@prisma/client'
 import CommitDB from '../db/db_commit'
 import Pull from '../db/db_pull';
 
@@ -58,6 +58,25 @@ export function backFillCommits(records: PullRequestHistory[], pull: Pull): { [c
   }
 
   return backfilled_commits
+}
+
+export function backFillPullRequest(records: PullRequestHistory[], pull_request: PullRequest, head_commit: CommitDB, last_pull_dev_block_state: boolean): PullRequest{
+  const agg_qa_ready_count = records.filter(record => record.event === 'qa_ready').length;
+  const agg_dev_block_count = records.filter(record => record.event === 'dev_blocked').length;
+  const agg_qa_stamped_count = records.filter(record => record.event === 'qa_stamped').length;
+  const agg_interacted_count = records.filter(record => record.event === 'first_interaction').length
+
+  const backfilled_pull_request = {
+    ...pull_request,
+    ...head_commit.getCommitState(),
+    dev_blocked: last_pull_dev_block_state,
+    agg_qa_ready_count,
+    agg_dev_block_count,
+    agg_interacted_count,
+    agg_qa_stamped_count,
+  }
+
+  return backfilled_pull_request
 }
 
 function generateCommitsDictionary(commits: CommitDB[]): { [commit_event_id: string]: Commit } {

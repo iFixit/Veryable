@@ -79,6 +79,14 @@ export default class Pull {
     return this.pull_request.qa_req > 0 ? true : false;
   }
 
+  setPullRequest(pull_request: PullRequest): void{
+    this.pull_request = {...pull_request}
+  }
+
+  getPullRequest(): PullRequest {
+    return { ...this.pull_request }
+  }
+  
   static async getDBPulls(): Promise<PullRequest[]> {
     return prisma.pullRequest.findMany({where: {state: 'OPEN'}})
   }
