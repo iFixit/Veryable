@@ -34,7 +34,7 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
 
         // Can check the CI status and Pull Dev Block state for a commit without need to review the comments
         // Need to Check if the Commit is QA Ready
-        if (isCommitQAReady(pull_dev_block_state, commit.commit)) {
+        if (isCommitQAReady(pull_dev_block_state, commit.commit,pull.isQARequired())) {
           // Log Event
           recorder.logEvent(commit.getPushedDate(),'qa_ready','CI')
         }
@@ -69,11 +69,10 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
 
         if (signatures.qaed) {
           recorder.logEvent(utils.getUnixTimeFromISO(event.createdAt), 'qa_stamped', event.author?.login || "unkown author")
-
           recorder.logEvent(utils.getUnixTimeFromISO(event.createdAt), 'non_qa_ready', event.author?.login || "unkown author")
         }
 
-        checkAndRecordDevBlockSignature(signatures.dev_block, event, recorder)
+        checkAndRecordDevBlockSignature(signatures.dev_block, event, recorder, pull.isQARequired())
         pull_dev_block_state = signatures.dev_block ?? pull_dev_block_state
 
         checkAndRecordInteraction(signatures.interacted, event, recorder, pull_interacted_state)
@@ -107,12 +106,11 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
           const signatures = parseComment(event, pull.getAuthor())
           if (signatures.qaed) {
             recorder.logEvent(utils.getUnixTimeFromISO(event.createdAt), 'qa_stamped', event.author?.login || "unkown author")
-
             recorder.logEvent(utils.getUnixTimeFromISO(event.createdAt), 'non_qa_ready', event.author?.login || "unkown author")
           }
 
 
-          checkAndRecordDevBlockSignature(signatures.dev_block, event, recorder)
+          checkAndRecordDevBlockSignature(signatures.dev_block, event, recorder, pull.isQARequired())
           pull_dev_block_state = signatures.dev_block ?? pull_dev_block_state
 
           checkAndRecordInteraction(signatures.interacted, event, recorder, pull_interacted_state)
@@ -127,12 +125,11 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
           const signatures = parseComment(comment, pull.getAuthor())
           if (signatures.qaed) {
             recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'qa_stamped', comment.author?.login || "unkown author")
-
             recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'non_qa_ready', comment.author?.login || "unkown author")
           }
 
 
-          checkAndRecordDevBlockSignature(signatures.dev_block, comment, recorder)
+          checkAndRecordDevBlockSignature(signatures.dev_block, comment, recorder, pull.isQARequired())
           pull_dev_block_state = signatures.dev_block ?? pull_dev_block_state
 
           checkAndRecordInteraction(signatures.interacted, comment, recorder, pull_interacted_state)
@@ -146,16 +143,19 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
   parseRecordsAndBackFill(recorder.getPullRecords(),pull,pull_dev_block_state)
 }
 
-function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: IssueComment | PullRequestReview | PullRequestReviewComment, recorder: PullHistoryRecorder) {
+function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: IssueComment | PullRequestReview | PullRequestReviewComment, recorder: PullHistoryRecorder, pull_qa_req: boolean) {
   switch (dev_block) {
     case true:
       recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'dev_blocked', comment.
         author?.login || "unkown author")
-      recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'non_qa_ready', 'dev block change')
+      //If there is no QA required, then there is no point in recording the event of the commit not being QA ready from a dev block
+      if (pull_qa_req) {
+        recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'non_qa_ready', 'dev block change')
+      }
       break
     case false:
       recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'un_dev_blocked', comment.author?.login || "unkown author")
-      if (isCommitQAReady(false, recorder.getCurrentCommit())) {
+      if (isCommitQAReady(false, recorder.getCurrentCommit(),pull_qa_req)) {
         recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt),'qa_ready','dev block change')
       }
       break

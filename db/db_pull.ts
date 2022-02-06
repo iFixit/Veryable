@@ -70,6 +70,10 @@ export default class Pull {
     return this.commits.length
   }
 
+  isQARequired(): boolean{
+    return this.pull_request.qa_req > 0 ? true : false;
+  }
+
   static async getDBPulls(): Promise<PullRequest[]> {
     return prisma.pullRequest.findMany({where: {state: 'OPEN'}})
   }

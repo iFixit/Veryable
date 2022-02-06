@@ -28,8 +28,8 @@ export function parseCommit(pull: Pull, github_commit: PullRequestCommit): Commi
 
 // Non-null pushed_at date means it was the last commit pushed to the remote repo from a batch of locally created commits
 // Therefore, it is the commit that will have CI ran on it
-export function isCommitQAReady(dev_blocked: boolean, commit: Commit): boolean {
-  return commit.pushed_at !== null && isCommitStatusGood(commit) && !dev_blocked;
+export function isCommitQAReady(dev_blocked: boolean, commit: Commit, pull_qa_req: boolean): boolean {
+  return commit.pushed_at !== null && isCommitStatusGood(commit) && !dev_blocked && pull_qa_req;
 }
 
 export function isCommitStatusGood(commit: Commit): boolean {
