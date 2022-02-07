@@ -11,7 +11,7 @@ import { PullRequest as GitHubPullRequest } from '@octokit/graphql-schema';
 
 const log = logger('pullParser')
 
-export async function parsePull(github_pull: GitHubPullRequest): Promise<Pull> {
+export function parsePull(github_pull: GitHubPullRequest): Pull {
   log.data(`Parsing Pull #${github_pull.number} ${github_pull.title}`)
   const pull_request: PullRequest = grabValues(github_pull)
   return new Pull(pull_request)
