@@ -139,8 +139,12 @@ export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimeli
       }
     }
   })
+  const updated_pull = parseRecordsAndBackFill(recorder.getPullRecords(), pull, pull_dev_block_state)
 
-  parseRecordsAndBackFill(recorder.getPullRecords(),pull,pull_dev_block_state)
+  return {
+    pull_to_save: updated_pull,
+    pull_history_to_save: recorder
+  }
 }
 
 function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: IssueComment | PullRequestReview | PullRequestReviewComment, recorder: PullHistoryRecorder, pull_qa_req: boolean) {
@@ -171,11 +175,10 @@ function checkAndRecordInteraction(interacted: boolean, comment: IssueComment | 
   }
 }
 
-function parseRecordsAndBackFill(records: PullRequestHistory[], pull: Pull, last_pull_dev_block_state: boolean) {
+function parseRecordsAndBackFill(records: PullRequestHistory[], pull: Pull, last_pull_dev_block_state: boolean): Pull {
   const backfilled_commits = backFillCommits(records, pull)
   const head_commit = backfilled_commits[pull.getHeadCommitSha()]
-
   const backfilled_pull_request = backFillPullRequest(records, pull.getPullRequest(), head_commit, last_pull_dev_block_state)
 
-  pull.setPullRequest(backfilled_pull_request)
+  return new Pull(backfilled_pull_request, Object.values(backfilled_commits))
 }

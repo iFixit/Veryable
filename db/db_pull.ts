@@ -10,8 +10,9 @@ export default class Pull {
   pull_request: PullRequest
   commits: CommitDB[] = []
 
-  constructor (pull_request: PullRequest) {
+  constructor (pull_request: PullRequest, commits: CommitDB[] | null = null) {
     this.pull_request = pull_request
+    this.commits = commits ? [...commits] : []
   }
 
   // Returns string format of primary key
