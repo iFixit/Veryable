@@ -18,6 +18,7 @@ import { PullRequest as GitHubPullRequest, Maybe } from '@octokit/graphql-schema
 
 import { queryOpenPullsWithTimeline } from './ghgraphql'
 import { parseTimeline } from '../controllers/pull_history_controller'
+import PullHistoryRecorder from '../db/db_pull_history'
 
 const log = logger('main');
 
@@ -42,11 +43,19 @@ async function main() {
   log.info('Finished script...\n')
 }
 
-async function parsePulls(github_pulls: GitHubPullRequest[] | undefined) {
+function parsePulls(github_pulls: GitHubPullRequest[] | undefined):{ pull_to_save: Pull, pull_history_to_save: PullHistoryRecorder | null }[] {
+  const items_to_save: { pull_to_save: Pull, pull_history_to_save: PullHistoryRecorder | null }[] = []
   github_pulls?.forEach(github_pull => {
     const pull = parsePull(github_pull)
     const sanitized_timeline_items = removeMaybeNulls(github_pull.timelineItems.nodes)
+    if (sanitized_timeline_items) {
+      items_to_save.push(parseTimeline(pull, sanitized_timeline_items))
+    } else {
+      items_to_save.push({pull_to_save:pull, pull_history_to_save: null})
+    }
   });
+
+  return items_to_save
 }
 
 
