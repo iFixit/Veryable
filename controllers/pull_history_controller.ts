@@ -15,7 +15,7 @@ import { PullRequestHistory } from '@prisma/client'
 import { backFillCommits, backFillPullRequest } from './backfill_controller'
 
 // For every Pull, we need to parse all the timeline events
-export async function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItems[]) {
+export function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItems[]) {
   // For every Pull we want to keep track of the events
   const recorder = new PullHistoryRecorder(pull.getID())
 
