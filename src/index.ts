@@ -19,6 +19,7 @@ import { PullRequest as GitHubPullRequest, Maybe } from '@octokit/graphql-schema
 import { queryOpenPullsWithTimeline } from './ghgraphql'
 import { parseTimeline } from '../controllers/pull_history_controller'
 import PullHistoryRecorder from '../db/db_pull_history'
+import { saveParsedItems } from '../controllers/save_controller'
 
 const log = logger('main');
 
@@ -39,7 +40,9 @@ async function main() {
     return parsePulls(sanitized_github_pulls)
   }))
 
-  const fulfilled_parsed_items = retrieveValuesOfFulFilledPromises(setteld_parsed_items)
+  const fulfilled_parsed_items = retrieveValuesOfFulFilledPromises(setteld_parsed_items).flat(1)
+
+  await saveParsedItems(fulfilled_parsed_items)
   await updateDayMetrics(DAY)
   log.info('Finished script...\n')
 }
@@ -59,7 +62,6 @@ function parsePulls(github_pulls: GitHubPullRequest[] | undefined):{ pull_to_sav
   return items_to_save
 }
 
-
 function removeMaybeNulls<Type>(unchecked_nodes: Maybe<Maybe<Type>[]> | undefined):Type[] | undefined {
   if (unchecked_nodes) {
     return unchecked_nodes.filter((node): node is Type => {
@@ -67,6 +69,7 @@ function removeMaybeNulls<Type>(unchecked_nodes: Maybe<Maybe<Type>[]> | undefine
     })
   }
 }
+
 function retrieveValuesOfFulFilledPromises<Type>(settled_promises: PromiseSettledResult<Type>[]) {
   const fulfilled_promises = settled_promises.filter((promise) => promise.status === 'fulfilled') as PromiseFulfilledResult<Type>[]
 
