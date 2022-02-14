@@ -5,15 +5,18 @@ import logger from '../src/logger'
 import CommitDB from "./db_commit"
 
 import {utils} from "../scripts/utils"
+
 const log = logger('db_pull')
 
 export default class Pull {
   pull_request: PullRequest
   commits: CommitDB[] = []
+  head_commit: CommitDB
 
-  constructor (pull_request: PullRequest, commits: CommitDB[] | null = null) {
+  constructor (pull_request: PullRequest, commits: CommitDB[] | null = null, head_commit: CommitDB | null = null) {
     this.pull_request = utils.deepCopy(pull_request);
     this.commits = commits ? utils.deepCopy(commits) : []
+    this.head_commit = head_commit ? utils.deepCopy(head_commit) : new CommitDB()
   }
 
   // Returns string format of primary key
@@ -69,6 +72,10 @@ export default class Pull {
     return this.pull_request.head_ref
   }
 
+  getHeadCommit(): CommitDB {
+    return utils.deepCopy(this.head_commit)
+  }
+
   appendCommit(commit: CommitDB) {
     this.commits.push(utils.deepCopy(commit))
   }
@@ -88,7 +95,7 @@ export default class Pull {
   getPullRequest(): PullRequest {
     return utils.deepCopy(this.pull_request)
   }
-  
+
   static async getDBPulls(): Promise<PullRequest[]> {
     return prisma.pullRequest.findMany({where: {state: 'OPEN'}})
   }

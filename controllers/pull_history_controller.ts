@@ -180,5 +180,5 @@ function parseRecordsAndBackFill(records: PullRequestHistory[], pull: Pull, last
   const head_commit = backfilled_commits[pull.getHeadCommitSha()]
   const backfilled_pull_request = backFillPullRequest(records, pull.getPullRequest(), head_commit, last_pull_dev_block_state)
 
-  return new Pull(backfilled_pull_request, Object.values(backfilled_commits))
+  return new Pull(backfilled_pull_request, Object.values(backfilled_commits), head_commit)
 }
