@@ -23,7 +23,7 @@ export default class DayMetric
         create: this.metrics
       })
     } catch (e) {
-      log.error('Failed to save Day %d\n\t%s', this.metrics.date, e);
+      log.error('Failed to save Day %s\n\t%s', utils.getISOTimeFromUnix(this.metrics.date), e);
     }
   }
 
