@@ -154,6 +154,9 @@ author{
 baseRepository {
   nameWithOwner
 }
+headRef{
+  id
+}
 headRefOid
 createdAt
 closedAt

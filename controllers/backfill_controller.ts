@@ -68,6 +68,7 @@ export function backFillPullRequest(records: PullRequestHistory[], pull_request:
 
   const backfilled_pull_request = {
     ...pull_request,
+    head_commit_id: head_commit.getCommitId(),
     ...head_commit.getCommitState(),
     dev_blocked: last_pull_dev_block_state,
     agg_qa_ready_count,

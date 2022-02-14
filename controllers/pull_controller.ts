@@ -26,6 +26,7 @@ function grabValues(github_pull: GitHubPullRequest): PullRequest {
       state: github_pull.state as pull_request_state,
       title: github_pull.title,
       head_ref: github_pull.headRefOid,
+      head_commit_id: github_pull.headRef?.id ?? 'unknown',
       created_at: utils.getUnixTimeFromISO(github_pull.createdAt) || null,
       updated_at: utils.getUnixTimeFromISO(github_pull.updatedAt) || null,
       merged_at: utils.getUnixTimeFromISO(github_pull.mergedAt) || null,
