@@ -68,7 +68,7 @@ Table PullRequest {
 
 Table PullRequestCommit {
   pull_request_id String [pk]
-  head_ref String [unique]
+  head_commit_id String [unique]
   head_commit Commit
   pull_request PullRequest [not null]
 }
@@ -116,7 +116,7 @@ Enum pull_request_history_event {
 
 Ref: Commit.pull_request_id > PullRequest.pull_request_id [delete: Cascade]
 
-Ref: PullRequestCommit.head_ref - Commit.commit_event_id [delete: Cascade]
+Ref: PullRequestCommit.head_commit_id - Commit.commit_event_id [delete: Cascade]
 
 Ref: PullRequestCommit.pull_request_id - PullRequest.pull_request_id [delete: Cascade]
 
