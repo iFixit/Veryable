@@ -1,23 +1,16 @@
-import date from 'date-and-time';
-import moment from 'moment';
+import {formatISO, getUnixTime, startOfDay} from 'date-fns';
 
 export const utils = {
-  getDates(): [today:number,yesterday:number] {
-    const today = Math.floor(new Date().setHours(0, 0, 0, 0) / 1000);
-    const yesterday = Math.floor(date.addDays(new Date(), -1).setHours(0, 0, 0, 0) / 1000);
-    return [today, yesterday];
-  },
-
   getUnixTimeFromISO(iso_date: string): number{
-    return moment(iso_date).unix()
+    return getUnixTime(new Date(iso_date))
   },
 
   getISOTimeFromUnix(unix_date: number): string{
-    return moment(unix_date).toISOString()
+    return formatISO(new Date(unix_date))
   },
 
   getZeroHourFromDate(unix_date: number): number{
-    return moment(unix_date).set({hour: 0, minute: 0, second: 0}).unix()
+    return getUnixTime(startOfDay(new Date(unix_date)))
   },
 
   deepCopy<T>(target: T): T{
