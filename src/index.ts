@@ -1,15 +1,10 @@
 import config from '../config/config'
 const { repos } = config
 
-import { queryOpenPulls } from './ghgraphql'
-
 import DayMetric from '../db/db_day'
 const DAY = new DayMetric()
 
 import Pull from '../db/db_pull'
-import { PullRequest } from '@prisma/client'
-let DB_PULLS: PullRequest[]
-
 import { updateDayMetrics } from '../controllers/day_controller';
 import { parsePull } from '../controllers/pull_controller'
 
@@ -25,7 +20,6 @@ const log = logger('main');
 
 // Automatically run script repeatedly
 (async () => {
-  DB_PULLS = await Pull.getDBPulls();
   main()
   setInterval(main, 60 * 1000) //Run every 60 seconds
 })()
