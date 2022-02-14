@@ -1,5 +1,6 @@
 import { Commit } from "@prisma/client";
 import prisma from "../prisma/client"
+import { utils } from "../scripts/utils";
 
 import logger from '../src/logger';
 const log = logger('db_commit');
@@ -8,7 +9,7 @@ export default class CommitDB {
   commit: Commit
 
    constructor (commit?: Commit) {
-    this.commit = commit ? { ...commit } : {
+    this.commit = commit ? utils.deepCopy(commit) : {
       commit_event_id: '',
       sha: '',
       qa_ready: null,
@@ -69,7 +70,7 @@ export default class CommitDB {
   }
 
   getCommit(): Commit {
-    return { ...this.commit }
+    return utils.deepCopy(this.commit)
   }
 
   // Looking at this, it makes me think I should also include gets and setters for this invidual states

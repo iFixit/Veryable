@@ -15,7 +15,7 @@ export default class PullHistoryRecorder {
 
   constructor (pull_request_id: string, current_head_commit?: CommitDB) {
     this.pull_request_id = pull_request_id;
-    this.current_head_commit = current_head_commit ?? new CommitDB();
+    this.current_head_commit = current_head_commit ? utils.deepCopy(current_head_commit) :new CommitDB();
   }
 
   async save(): Promise<void> {
@@ -40,15 +40,15 @@ export default class PullHistoryRecorder {
   }
 
   setCurrentCommitRef(commit: CommitDB) {
-    this.current_head_commit = commit
+    this.current_head_commit = utils.deepCopy(commit)
   }
 
   getCurrentCommit(): Commit {
-    return this.current_head_commit.getCommit()
+    return utils.deepCopy(this.current_head_commit.getCommit())
   }
 
   getPullRecords(): PullRequestHistory[] {
-    return this.pull_records
+    return utils.deepCopy(this.pull_records)
   }
 
   // date passed should always be from an already parsed GitHub Object

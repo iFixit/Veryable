@@ -4,6 +4,7 @@ import { PullRequest } from "@prisma/client"
 import logger from '../src/logger'
 import CommitDB from "./db_commit"
 
+import {utils} from "../scripts/utils"
 const log = logger('db_pull')
 
 export default class Pull {
@@ -11,8 +12,8 @@ export default class Pull {
   commits: CommitDB[] = []
 
   constructor (pull_request: PullRequest, commits: CommitDB[] | null = null) {
-    this.pull_request = pull_request
-    this.commits = commits ? [...commits] : []
+    this.pull_request = utils.deepCopy(pull_request);
+    this.commits = commits ? utils.deepCopy(commits) : []
   }
 
   // Returns string format of primary key
@@ -61,7 +62,7 @@ export default class Pull {
   }
 
   getCommits(): CommitDB[]{
-    return this.commits
+    return utils.deepCopy(this.commits)
   }
 
   getHeadCommitSha(): string{
@@ -69,7 +70,7 @@ export default class Pull {
   }
 
   appendCommit(commit: CommitDB) {
-    this.commits.push(commit)
+    this.commits.push(utils.deepCopy(commit))
   }
 
   getNumberOfCommits(): number{
@@ -81,11 +82,11 @@ export default class Pull {
   }
 
   setPullRequest(pull_request: PullRequest): void{
-    this.pull_request = {...pull_request}
+    this.pull_request = utils.deepCopy(pull_request);
   }
 
   getPullRequest(): PullRequest {
-    return { ...this.pull_request }
+    return utils.deepCopy(this.pull_request)
   }
   
   static async getDBPulls(): Promise<PullRequest[]> {
