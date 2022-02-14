@@ -52,6 +52,7 @@ model PullRequest {
   state            pull_request_state
   title            String         @db.VarChar(255)
   head_ref         String         @db.Char(40)
+  head_commit_id   String         @db.Char(255)
   qa_req           Int            @default(1)
   created_at       Int?           @db.UnsignedInt
   updated_at       Int?           @db.UnsignedInt

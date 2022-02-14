@@ -42,6 +42,7 @@ Table PullRequest {
   state pull_request_state [not null]
   title String [not null]
   head_ref String [not null]
+  head_commit_id String [not null]
   qa_req Int [not null, default: 1]
   created_at Int
   updated_at Int
