@@ -1,4 +1,4 @@
-import {formatISO, getUnixTime, startOfDay} from 'date-fns';
+import {formatISO, getUnixTime, startOfDay, fromUnixTime} from 'date-fns';
 
 export const utils = {
   getUnixTimeFromISO(iso_date: string): number{
@@ -10,7 +10,7 @@ export const utils = {
   },
 
   getZeroHourFromDate(unix_date: number): number{
-    return getUnixTime(startOfDay(new Date(unix_date)))
+    return getUnixTime(startOfDay(fromUnixTime(unix_date)))
   },
 
   deepCopy<T>(target: T): T{
