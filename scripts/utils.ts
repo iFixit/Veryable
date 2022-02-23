@@ -13,25 +13,17 @@ export const utils = {
     return getUnixTime(startOfDay(fromUnixTime(unix_date)))
   },
 
-  deepCopy<T>(target: T): T{
-    if (target === null) {
-      return target;
-    }
-    if (target instanceof Date) {
-      return new Date(target.getTime()) as any;
-    }
-    if (target instanceof Array) {
-      const cp = [] as any[];
-      (target as any[]).forEach((v) => { cp.push(v); });
-      return cp.map((n: any) => utils.deepCopy<any>(n)) as any;
-    }
-    if (typeof target === 'object' && target !== {}) {
-      const cp = { ...(target as { [key: string]: any }) } as { [key: string]: any };
-      Object.keys(cp).forEach(k => {
-        cp[k] = utils.deepCopy<any>(cp[k]);
-      });
-      return cp as T;
-    }
-    return target;
-  },
+  deepCopy<T>(source: T): T {
+    return Array.isArray(source)
+    ? source.map(item => this.deepCopy(item))
+    : source instanceof Date
+    ? new Date(source.getTime())
+    : source && typeof source === 'object'
+          ? Object.getOwnPropertyNames(source).reduce((o, prop) => {
+             Object.defineProperty(o, prop, Object.getOwnPropertyDescriptor(source, prop)!);
+             o[prop] = this.deepCopy((source as { [key: string]: any })[prop]);
+             return o;
+          }, Object.create(Object.getPrototypeOf(source)))
+    : source as T;
+  }
 }
