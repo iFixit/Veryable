@@ -3,33 +3,29 @@ import Pull from '../db/db_pull';
 import PullHistoryRecorder from '../db/db_pull_history';
 import PullRequestCommitDB from '../db/db_pull_commit';
 
+import logger from '../src/logger';
+import prisma from '../prisma/client';
+const log = logger('save_controller');
+
 export async function saveParsedItems(items: { pull_to_save: Pull, pull_history_to_save: PullHistoryRecorder | null }[]) {
-  const db_transactions: Promise<void>[] = []
-  items.forEach(async (item) => {
+  for (const item of items) {
     const pull = item.pull_to_save
     const pull_history = item.pull_history_to_save
     const commits = pull.getCommits()
+    log.info('Saving Pull %o', pull)
+    try {
+      await prisma.$transaction(async () => {
+        await pull.save()
+        commits.map(commit => commit.save())
+      })
+      if (pull_history) {
+        await pull_history.save()
+      }
 
-    await pull.save()
-
-    db_transactions.push(...saveCommits(commits))
-
-    if (pull_history) {
-      db_transactions.push(pull_history.save())
+      await PullRequestCommitDB.save(pull)
+    } catch (err) {
+      log.error(err)
     }
-
-    db_transactions.push(PullRequestCommitDB.save(pull))
-  })
-
-  await Promise.allSettled(db_transactions)
-}
-
-function saveCommits(commits: CommitDB[]): Promise<void>[] {
-  const db_transactions: Promise<void>[] = []
-
-  commits.forEach((commit) => {
-    db_transactions.push(commit.save())
-  })
-
-  return db_transactions
+  }
+  log.info('Finished saving Pulls')
 }
