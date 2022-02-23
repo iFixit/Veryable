@@ -5,7 +5,7 @@ import PullHistoryRecorder from '../db/db_pull_history'
 import { isCommitQAReady, parseCommit } from '../controllers/commit_controller'
 import { parseComment } from './comment_controller'
 
-import {IssueComment, PullRequestReview, PullRequestReviewComment, PullRequestTimelineItems} from "@octokit/graphql-schema"
+import {IssueComment, PullRequestCommit, PullRequestReview, PullRequestReviewComment, PullRequestTimelineItems} from "@octokit/graphql-schema"
 import logger from '../src/logger'
 const log = logger('pull_parser_timeline')
 
@@ -24,12 +24,14 @@ export function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItem
 
   // Set the Interacted state for the Pull to reference for later interactions
   let pull_interacted_state = false
-
   timelineItems.forEach(event => {
     switch (event.__typename) {
       case "PullRequestCommit": {
         const commit = parseCommit(pull, event)
         pull.appendCommit(commit)
+        if (commit.getSha() === pull.getHeadCommitSha()) {
+          pull.head_commit = commit
+        }
         recorder.setCurrentCommitRef(commit)
 
         // Can check the CI status and Pull Dev Block state for a commit without need to review the comments
@@ -139,7 +141,7 @@ export function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItem
       }
     }
   })
-  const updated_pull = parseRecordsAndBackFill(recorder.getPullRecords(), pull, pull_dev_block_state)
+  const updated_pull = getUpdatedPull(recorder.getPullRecords(), pull, pull_dev_block_state)
 
   return {
     pull_to_save: updated_pull,
@@ -175,10 +177,33 @@ function checkAndRecordInteraction(interacted: boolean, comment: IssueComment | 
   }
 }
 
+
+function getUpdatedPull(recorder: PullRequestHistory[], pull: Pull, pull_dev_block_state: boolean) {
+  if (recorder.length) {
+    return  parseRecordsAndBackFill(recorder, pull, pull_dev_block_state)
+  }
+  return new Pull(pull.getPullRequest(), pull.getCommits(), pull.getHeadCommit())
+}
+
+
 function parseRecordsAndBackFill(records: PullRequestHistory[], pull: Pull, last_pull_dev_block_state: boolean): Pull {
   const backfilled_commits = backFillCommits(records, pull)
-  const head_commit = backfilled_commits[pull.getHeadCommitSha()]
+
+  const head_commit = backfilled_commits[pull.getHeadCommit().getCommitId()]
+
   const backfilled_pull_request = backFillPullRequest(records, pull.getPullRequest(), head_commit, last_pull_dev_block_state)
 
   return new Pull(backfilled_pull_request, Object.values(backfilled_commits), head_commit)
+}
+
+
+export async function getQAReadyEventsSinceDate(n_days: number) {
+  return await prisma.pullRequestHistory.groupBy({
+    by: ['start_date', 'pull_request_id', 'event', 'date'], where: {
+      start_date: {
+        gte: n_days
+      },
+      event: { in: ['qa_ready', 'non_qa_ready'] },
+    }
+  })
 }
