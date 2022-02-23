@@ -1,84 +1,42 @@
-import { seed_pulls } from './__helper'
-
 import Pull from '../db/db_pull'
 import { PullRequest } from '@prisma/client'
-import prisma  from '../prisma/client';
 
-beforeAll(async () => {
-  await prisma.pullRequest.deleteMany()
-})
-
-afterAll(async () => {
-  await prisma.pullRequest.deleteMany()
-})
-
-const mockPullData: PullRequest = {
-  pull_request_id: '3315fd6c-f9ea-491f-b1db-b9a5985511cf',
-  repo: 'iFixit/ifixit',
-  pull_number: 39126,
-  state: 'OPEN',
-  title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
-  head_ref: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
-  qa_req: 1,
-  created_at: 1628362800,
-  updated_at: 1628362800,
-  closed_at: null,
-  merged_at: null,
-  closes: null,
-  author: 'mcTestyFace',
-  interacted: false,
-  qa_ready: false,
-  dev_blocked: false,
-  qa_stamped: false,
-  agg_interacted_count: 0,
-  agg_qa_ready_count: 0,
-  agg_dev_block_count: 0,
-  agg_qa_stamped_count: 0
-}
+const mockPullRequestData: PullRequest =   {
+    "repo": "iFixit/ifixit",
+    "pull_number": 41917,
+    "state": "OPEN",
+    "title": "Add Feature Switch to Role Out Select Manage Section Permissions.",
+    "head_ref": "93cbb4375eeefca70f83e909d6d20959de4b49c1",
+    "qa_req": 1,
+    "created_at": 1645218079,
+    "updated_at": 1645575990,
+    "closed_at": null,
+    "merged_at": null,
+    "closes": null,
+    "interacted": false,
+    "qa_ready": true,
+    "pull_request_id": "PR_kwDOACywbc4zH04S",
+    "author": "danielcliu",
+    "dev_blocked": false,
+    "qa_stamped": false,
+    "agg_dev_block_count": 0,
+    "agg_interacted_count": 0,
+    "agg_qa_ready_count": 1,
+    "agg_qa_stamped_count": 0,
+    "head_commit_id": "PURC_lADOACywbc4zH04S2gAoOTNjYmI0Mzc1ZWVlZmNhNzBmODNlOTA5ZDZkMjA5NTlkZTRiNDljMQ"
+  }
 
 describe('PullRequest Class', () => {
-  describe('Static Methods', () => {
+  describe('Class Methods', () => {
     test('get unique ID', () => {
-      const unique_id = Pull.getUniqueID(mockPullData)
-      const expectedUniqueID = 'iFixit/ifixit #39126'
+      const unique_id = Pull.getUniqueID(mockPullRequestData)
+      const expectedUniqueID = `${mockPullRequestData.repo} #${mockPullRequestData.pull_number}`
       expect(unique_id).toBe(expectedUniqueID)
     })
     test('get GraphQL Values', () => {
-      const graphql_values = Pull.getGraphQLValues(mockPullData)
-      const expectedGraphQLValues = [{ name: 'ifixit', owner: 'iFixit' }, 39126]
+      const graphql_values = Pull.getGraphQLValues(mockPullRequestData)
+      const expectedGraphQLValues = [{ name: 'ifixit', owner: 'iFixit' }, mockPullRequestData.pull_number]
       expect(graphql_values).toMatchObject(expectedGraphQLValues)
-    })
-  })
-  describe('Database Static Methods', () => {
-    beforeAll(async () => {
-      await prisma.pullRequest.deleteMany();
-      await seed_pulls()
-    })
-
-    afterAll(async () => prisma.pullRequest.deleteMany());
-
-    test('get all open pulls from database', async () => {
-      const pulls: PullRequest[] = await Pull.getDBPulls()
-      expect(pulls.length).toBe(3)
-
-      pulls.forEach(pull => {
-        expect(pull.state).toBe('OPEN')
-      })
-    })
-
-    test('get QA ready pull count returns sum of all pulls who have QA Ready to true', async () => {
-      const data = await Pull.getQAReadyPullCount()
-      expect(data).toBe(1)
-    })
-
-    test('get interactions count returns sum of all pulls interacted for the day',async () => {
-      const data = await Pull.getInteractionsCount(1628024709);
-      expect(data).toBe(3);
-    })
-
-    test('get QA ready unique pull count returns sum of all pulls only added to QA column for the day',async () => {
-      const data = await Pull.getQAReadyUniquePullCount(1628024709);
-      expect(data).toBe(2);
     })
   })
 })
