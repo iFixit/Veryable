@@ -36,7 +36,8 @@ export function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItem
 
         // Can check the CI status and Pull Dev Block state for a commit without need to review the comments
         // Need to Check if the Commit is QA Ready
-        if (isCommitQAReady(pull_dev_block_state, commit.commit,pull.isQARequired())) {
+
+        if (isCommitQAReady(pull_dev_block_state, commit.getCommit(),pull.isQARequired())) {
           // Log Event
           recorder.logEvent(commit.getPushedDate(),'qa_ready','CI')
         }
@@ -189,7 +190,7 @@ function getUpdatedPull(recorder: PullRequestHistory[], pull: Pull, pull_dev_blo
 function parseRecordsAndBackFill(records: PullRequestHistory[], pull: Pull, last_pull_dev_block_state: boolean): Pull {
   const backfilled_commits = backFillCommits(records, pull)
 
-  const head_commit = backfilled_commits[pull.getHeadCommit().getCommitId()]
+  const head_commit = backfilled_commits[pull.getHeadCommit().getID()]
 
   const backfilled_pull_request = backFillPullRequest(records, pull.getPullRequest(), head_commit, last_pull_dev_block_state)
 

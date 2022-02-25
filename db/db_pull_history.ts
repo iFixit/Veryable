@@ -57,7 +57,7 @@ export default class PullHistoryRecorder {
       start_date: utils.getZeroHourFromDate(date),
       date: date,
       pull_request_id: this.pull_request_id,
-      commit_event_id: this.current_head_commit.getCommitId(),
+      commit_event_id: this.current_head_commit.getID(),
       commit_sha: this.current_head_commit.getSha(),
       event: event,
       actor: actor,

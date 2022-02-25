@@ -55,8 +55,8 @@ export function backFillCommits(records: PullRequestHistory[], pull: Pull): { [c
     })
   }
 
-  if (!backfilled_commits[pull.getHeadCommit().getCommitId()]) {
-    backfilled_commits[pull.getHeadCommit().getCommitId()] = pull.getHeadCommit()
+  if (!backfilled_commits[pull.getHeadCommit().getID()]) {
+    backfilled_commits[pull.getHeadCommit().getID()] = pull.getHeadCommit()
   }
   return backfilled_commits
 }
@@ -69,8 +69,8 @@ export function backFillPullRequest(records: PullRequestHistory[], pull_request:
 
   const backfilled_pull_request = {
     ...pull_request,
-    head_commit_id: head_commit.getCommitId(),
-    ...head_commit.getCommitState(),
+    head_commit_id: head_commit.getID(),
+    ...head_commit.getState(),
     dev_blocked: last_pull_dev_block_state,
     agg_qa_ready_count,
     agg_dev_block_count,
@@ -84,7 +84,7 @@ export function backFillPullRequest(records: PullRequestHistory[], pull_request:
 function generateCommitsDictionary(commits: CommitDB[]): { [commit_event_id: string]: Commit } {
   return commits.reduce(
     (commit_dictionary, commit) => {
-      commit_dictionary[commit.getCommitId()] = commit.getCommit()
+      commit_dictionary[commit.getID()] = commit.getCommit()
       return commit_dictionary
     },
     {}

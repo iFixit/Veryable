@@ -13,11 +13,11 @@ export default class PullRequestCommitDB {
         pull_request_id: pull.getID()
       },
       update: {
-        head_commit_id: pull.getHeadCommit().getCommitId()
+        head_commit_id: pull.getHeadCommit().getID()
       },
       create: {
         pull_request_id: pull.getID(),
-        head_commit_id: pull.getHeadCommit().getCommitId()
+        head_commit_id: pull.getHeadCommit().getID()
       }})
   } catch (e) {
       log.error("Error Saving PullRequestCommit %O",e)

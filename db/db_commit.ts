@@ -61,7 +61,7 @@ export default class CommitDB {
     return this.commit.qa_ready ?? false
   }
 
-  getCommitId(): string {
+  getID(): string {
     return this.commit.commit_event_id
   }
 
@@ -85,7 +85,7 @@ export default class CommitDB {
     return this.commit.qa_stamped ?? false
   }
 
-  getCommitState(): { qa_ready: boolean, dev_blocked: boolean, interacted: boolean, qa_stamped: boolean } {
+  getState(): { qa_ready: boolean, dev_blocked: boolean, interacted: boolean, qa_stamped: boolean } {
     return {
       qa_ready: this.getQAReadyState(),
       dev_blocked: this.getDevBlockedState(),
