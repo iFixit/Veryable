@@ -11,13 +11,14 @@ import { PullRequest as GitHubPullRequest } from '@octokit/graphql-schema';
 
 const log = logger('pullParser')
 
-export function parsePull(github_pull: GitHubPullRequest): Pull {
+function parsePull(github_pull: GitHubPullRequest): Pull {
   log.data(`Parsing Pull #${github_pull.number} ${github_pull.title}`)
   const pull_request: PullRequest = grabValues(github_pull)
   return new Pull(pull_request)
 }
 
 function grabValues(github_pull: GitHubPullRequest): PullRequest {
+  log.info('GitHub Pull %o', github_pull)
   return {
       pull_request_id: github_pull.id,
       repo: github_pull.baseRepository?.nameWithOwner ?? 'unknown',
@@ -72,3 +73,5 @@ function qaRequired(github_pull: GitHubPullRequest): number {
 
   return parseInt(qa.groups.qa_req);
 }
+
+export { parsePull, grabValues, closesDeclared, qaRequired}
