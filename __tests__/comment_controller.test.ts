@@ -1,5 +1,5 @@
 import { IssueComment } from "@octokit/graphql-schema";
-import { parseComment } from "../controllers/comment_controller";
+import { parseComment, isQAed, isDevBlocked, isInteracted } from "../controllers/comment_controller";
 
 describe('Validate Parsing of Signatures in a Comment', () => {
   describe('Validate QA Stamp Signatures', () => {
@@ -10,8 +10,7 @@ describe('Validate Parsing of Signatures in a Comment', () => {
         bodyText: "I don't know about this comment",
         createdAt: '2021-12-01T18:58:53Z'
       }
-      const signatures = parseComment(comment as IssueComment, 'mcTestyFace')
-      expect(signatures.qaed).toBe(false)
+      expect(isQAed(comment as IssueComment)).toBe(false)
     })
 
     test('QA Stamp in Comment', () => {
@@ -25,8 +24,7 @@ describe('Validate Parsing of Signatures in a Comment', () => {
           "Don't save to the database",
         createdAt: '2021-12-01T18:58:53Z',
       }
-      const signatures = parseComment(comment as IssueComment, 'mcTestyFace')
-      expect(signatures.qaed).toBe(true)
+      expect(isQAed(comment as IssueComment)).toBe(true)
     })
   })
 
@@ -42,8 +40,7 @@ describe('Validate Parsing of Signatures in a Comment', () => {
           "Don't save to the database",
         createdAt: '2021-12-01T18:58:53Z'
       }
-      const signatures = parseComment(comment as IssueComment, 'mcTestyFace')
-      expect(signatures.dev_block).toBe(null)
+      expect(isDevBlocked(comment as IssueComment)).toBe(null)
     })
 
     test('Dev Block Stamp in Comment', () => {
@@ -53,8 +50,7 @@ describe('Validate Parsing of Signatures in a Comment', () => {
         bodyText: 'dev_block 🦚\n',
         createdAt: '2021-12-01T18:58:53Z',
       }
-      const signatures = parseComment(comment as IssueComment, 'mcTestyFace')
-       expect(signatures.dev_block).toBe(true)
+      expect(isDevBlocked(comment as IssueComment)).toBe(true)
     })
 
      test('Un Dev Block Stamp in Comment', () => {
@@ -64,8 +60,7 @@ describe('Validate Parsing of Signatures in a Comment', () => {
         bodyText: 'Thanks for the feedback! un_dev_block ✌🏻\n' ,
         createdAt: '2021-12-01T18:58:53Z',
       }
-      const signatures = parseComment(comment as IssueComment, 'mcTestyFace')
-       expect(signatures.dev_block).toBe(false)
+     expect(isDevBlocked(comment as IssueComment)).toBe(false)
     })
   })
 
@@ -78,8 +73,7 @@ describe('Validate Parsing of Signatures in a Comment', () => {
         createdAt: '2021-12-01T18:58:53Z',
       }
 
-      const signatures = parseComment(comment as IssueComment, 'mcTestyFace')
-      expect(signatures.interacted).toBe(true)
+      expect(isInteracted(comment as IssueComment,'mcTestyFace')).toBe(true)
     })
 
     test('Interacted by non-QA Team Member', () => {
@@ -90,8 +84,7 @@ describe('Validate Parsing of Signatures in a Comment', () => {
         createdAt: '2021-12-01T18:58:53Z',
       }
 
-      const signatures = parseComment(comment as IssueComment, 'tester')
-      expect(signatures.interacted).toBe(false)
+      expect(isInteracted(comment as IssueComment,'tester')).toBe(false)
     })
 
      test('Interacted by QA Team member but is Pull Author', () => {
@@ -102,8 +95,26 @@ describe('Validate Parsing of Signatures in a Comment', () => {
         createdAt: '2021-12-01T18:58:53Z',
       }
 
-      const signatures = parseComment(comment as IssueComment, 'ardelato')
-      expect(signatures.interacted).toBe(false)
+      expect(isInteracted(comment as IssueComment,'ardelato')).toBe(false)
+    })
+  })
+
+  test('Validate Signature Object', () => {
+    const comment: RecursivePartial<IssueComment> = {
+        id: 'IC_kwDOAldSuM46phLj',
+        author: { login: 'deltuh-vee' },
+        bodyText: 'QA 🎬\n' +
+          'Creating orders with custom items:\n' +
+          '\n' +
+          "Doesn't trigger any exceptions\n" +
+          "Don't save to the database",
+        createdAt: '2021-12-01T18:58:53Z'
+    }
+    const signatures = parseComment(comment as IssueComment, 'mcTestyFace')
+    expect(signatures).toMatchObject({
+      qaed: expect.any(Boolean),
+      dev_block: null,
+      interacted: expect.any(Boolean),
     })
   })
 })
