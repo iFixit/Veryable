@@ -1,115 +1,79 @@
 import Pull from '../db/db_pull'
 import { Commit, PullRequest } from '@prisma/client'
 import CommitDB from '../db/db_commit'
+import { mock_pull_request, mock_commit_data } from "./fixtures"
 
-const mockPullRequestData: PullRequest =   {
-    "repo": "iFixit/ifixit",
-    "pull_number": 41917,
-    "state": "OPEN",
-    "title": "Add Feature Switch to Role Out Select Manage Section Permissions.",
-    "head_ref": "93cbb4375eeefca70f83e909d6d20959de4b49c1",
-    "qa_req": 1,
-    "created_at": 1645218079,
-    "updated_at": 1645575990,
-    "closed_at": null,
-    "merged_at": null,
-    "closes": null,
-    "interacted": false,
-    "qa_ready": true,
-    "pull_request_id": "PR_kwDOACywbc4zH04S",
-    "author": "danielcliu",
-    "dev_blocked": false,
-    "qa_stamped": false,
-    "agg_dev_block_count": 0,
-    "agg_interacted_count": 0,
-    "agg_qa_ready_count": 1,
-    "agg_qa_stamped_count": 0,
-    "head_commit_id": "PURC_lADOACywbc4zH04S2gAoOTNjYmI0Mzc1ZWVlZmNhNzBmODNlOTA5ZDZkMjA5NTlkZTRiNDljMQ"
-}
-
-const mockCommit: Commit =   {
-  "commit_event_id": "PURC_lADOACywbc4zH04S2gAoOTNjYmI0Mzc1ZWVlZmNhNzBmODNlOTA5ZDZkMjA5NTlkZTRiNDljMQ",
-  "sha": "93cbb4375eeefca70f83e909d6d20959de4b49c1",
-  "qa_ready": true,
-  "interacted": false,
-  "dev_blocked": false,
-  "qa_stamped": false,
-  "ci_status": "SUCCESS",
-  "committed_at": 1645218654,
-  "pushed_at": 1645218685,
-  "pull_request_id": "PR_kwDOACywbc4zH04S"
-}
 
 describe('Pull Class', () => {
     test('get unique ID', () => {
-      const unique_id = Pull.getUniqueID(mockPullRequestData)
-      const expectedUniqueID = `${mockPullRequestData.repo} #${mockPullRequestData.pull_number}`
+      const unique_id = Pull.getUniqueID(mock_pull_request)
+      const expectedUniqueID = `${mock_pull_request.repo} #${mock_pull_request.pull_number}`
       expect(unique_id).toBe(expectedUniqueID)
     })
     test('get GraphQL Values', () => {
-      const graphql_values = Pull.getGraphQLValues(mockPullRequestData)
-      const expectedGraphQLValues = [{ name: 'ifixit', owner: 'iFixit' }, mockPullRequestData.pull_number]
+      const graphql_values = Pull.getGraphQLValues(mock_pull_request)
+      const expectedGraphQLValues = [{ name: 'ifixit', owner: 'iFixit' }, mock_pull_request.pull_number]
       expect(graphql_values).toMatchObject(expectedGraphQLValues)
     })
 
     test('Get ID', () => {
-      const pull = new Pull(mockPullRequestData)
-      expect(pull.getID()).toEqual(mockPullRequestData.pull_request_id)
+      const pull = new Pull(mock_pull_request)
+      expect(pull.getID()).toEqual(mock_pull_request.pull_request_id)
     })
     test('Get Author', () => {
-      const pull = new Pull(mockPullRequestData)
-      expect(pull.getAuthor()).toEqual(mockPullRequestData.author)
+      const pull = new Pull(mock_pull_request)
+      expect(pull.getAuthor()).toEqual(mock_pull_request.author)
     })
     test('Get Commits on null commits constructor', () => {
-      const pull = new Pull(mockPullRequestData)
+      const pull = new Pull(mock_pull_request)
       const expected: CommitDB[] = []
       expect(pull.getCommits()).toEqual(expected)
     })
 
     test('Get Commits on passed commits constructor', () => {
-      const commits: CommitDB[] = [new CommitDB(mockCommit),new CommitDB()]
-      const pull = new Pull(mockPullRequestData,commits)
+      const commits: CommitDB[] = [new CommitDB(mock_commit_data),new CommitDB()]
+      const pull = new Pull(mock_pull_request,commits)
       expect(pull.getCommits()).toEqual(commits)
     })
 
     test('Get Number of Commits', () => {
 
-      const commits: CommitDB[] = [new CommitDB(mockCommit),new CommitDB()]
-      const pull = new Pull(mockPullRequestData,commits)
+      const commits: CommitDB[] = [new CommitDB(mock_commit_data),new CommitDB()]
+      const pull = new Pull(mock_pull_request,commits)
       expect(pull.getNumberOfCommits()).toBe(2)
     })
     test('Get Head Commit Sha', () => {
-      const pull = new Pull(mockPullRequestData)
-      expect(pull.getHeadCommitSha()).toEqual(mockPullRequestData.head_ref)
+      const pull = new Pull(mock_pull_request)
+      expect(pull.getHeadCommitSha()).toEqual(mock_pull_request.head_ref)
     })
     test('Get Head Commit', () => {
-      const commits: CommitDB[] = [new CommitDB(mockCommit),new CommitDB()]
-      const pull = new Pull(mockPullRequestData,commits,commits[0])
+      const commits: CommitDB[] = [new CommitDB(mock_commit_data),new CommitDB()]
+      const pull = new Pull(mock_pull_request,commits,commits[0])
       expect(pull.getHeadCommit()).toEqual(commits[0])
       expect(pull.getHeadCommit()).not.toEqual(commits[1])
     })
     test('Get Pull Request', () => {
-      const pull = new Pull(mockPullRequestData)
-      expect(pull.getPullRequest()).toEqual(mockPullRequestData)
+      const pull = new Pull(mock_pull_request)
+      expect(pull.getPullRequest()).toEqual(mock_pull_request)
     })
     test('Append Commit', () => {
-      const pull = new Pull(mockPullRequestData)
+      const pull = new Pull(mock_pull_request)
       expect(pull.getNumberOfCommits()).toBe(0)
 
-      pull.appendCommit(new CommitDB(mockCommit))
+      pull.appendCommit(new CommitDB(mock_commit_data))
 
       expect(pull.getNumberOfCommits()).toBe(1)
-      expect(pull.getCommits()).toEqual([new CommitDB(mockCommit)])
+      expect(pull.getCommits()).toEqual([new CommitDB(mock_commit_data)])
     })
     test('QA Required', () => {
-      const pull = new Pull(mockPullRequestData)
+      const pull = new Pull(mock_pull_request)
       expect(pull.isQARequired()).toEqual(true)
 
-      const no_qa_req_pull = new Pull({ ...mockPullRequestData, qa_req: 0 })
+      const no_qa_req_pull = new Pull({ ...mock_pull_request, qa_req: 0 })
       expect(no_qa_req_pull.isQARequired()).toEqual(false)
     })
     test('Set Pull Request', () => {
-      const newMockPullRequest: PullRequest =  {
+      const new_mock_pull_request: PullRequest =  {
         "repo": "iFixit/ifixit",
         "pull_number": 41744,
         "state": "OPEN",
@@ -133,10 +97,10 @@ describe('Pull Class', () => {
         "agg_qa_stamped_count": 2,
         "head_commit_id": "PURC_lADOACywbc4yDlj32gAoMWMzYjhlYzExNjMyYzEzYzJlZDZlNTc1YzU4NDM4MzcyMTAyNjk5NQ"
       }
-      const pull = new Pull(mockPullRequestData)
-      expect(pull.getPullRequest()).toEqual(mockPullRequestData)
-      pull.setPullRequest(newMockPullRequest)
-      expect(pull.getPullRequest()).not.toEqual(mockPullRequestData)
-      expect(pull.getPullRequest()).toEqual(newMockPullRequest)
+      const pull = new Pull(mock_pull_request)
+      expect(pull.getPullRequest()).toEqual(mock_pull_request)
+      pull.setPullRequest(new_mock_pull_request)
+      expect(pull.getPullRequest()).not.toEqual(mock_pull_request)
+      expect(pull.getPullRequest()).toEqual(new_mock_pull_request)
     })
 })

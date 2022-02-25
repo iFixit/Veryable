@@ -3,27 +3,18 @@ import prisma from "../prisma/client"
 import { utils } from '../scripts/utils'
 import { parsePull, grabValues, closesDeclared, qaRequired} from '../controllers/pull_controller'
 import { PullRequest as GitHubPullRequest } from "@octokit/graphql-schema"
+import { extended_mock_github_data, mock_github_data, mock_pull_request } from "./fixtures"
 
-const mock_github_data: RecursivePartial<GitHubPullRequest> = {
-  closedAt: null,
-  createdAt: '2021-08-07T19:00:00Z',
-  headRefOid: '1a76cf540ec175ba6874cc3b4915955c40dab2da',
-  mergedAt: '2021-08-07T19:00:00Z',
-  number: 39126,
-  state: 'MERGED',
-  title: 'Shopify Hotfix: Add order method to get customer email and use it in return emails',
-  updatedAt: '2021-08-07T19:00:00Z',
-  id: '28ddd8f5-b8b8-474c-864d-5373f1442873'
-};
+
 
 describe('Parsing Pull Data', () => {
   test('Dates properly updated', () => {
     const pull_request = grabValues(mock_github_data as GitHubPullRequest)
 
     expect(pull_request.closed_at).toBe(null);
-    expect(pull_request.created_at).toBe(1628362800);
-    expect(pull_request.updated_at).toBe(1628362800);
-    expect(pull_request.merged_at).toBe(1628362800);
+    expect(pull_request.created_at).toBe(1644361367);
+    expect(pull_request.updated_at).toBe(1645642245);
+    expect(pull_request.merged_at).toBe(null);
   });
 
   test('Default QA Req', async () => {
@@ -105,47 +96,7 @@ describe('Parsing Pull Data', () => {
   });
 
   test('Create Parsed Pull Model', () => {
-    const extended_mock_github_data = {
-        id: 'PR_kwDOAldSuM4zIXnQ',
-        title: 'build(deps): bump browserslist from 4.16.0 to 4.19.2',
-        number: 235,
-        bodyText: 'Bumps browserslist from 4.16.0 to 4.19.2.',
-        state: 'OPEN',
-        author: { login: 'dependabot' },
-        baseRepository: { nameWithOwner: 'iFixit/pulldasher' },
-        headRef: {
-        id: 'MDM6UmVmMzkyNzcyNDA6cmVmcy9oZWFkcy9kZXBlbmRhYm90L25wbV9hbmRfeWFybi9icm93c2Vyc2xpc3QtNC4xOS4y'
-      },
-      headRefOid: '42e7f57167068b84825cd2bb1c0df0f4a5f3da3f',
-      createdAt: '2022-02-18T23:18:22Z',
-      closedAt: null,
-      updatedAt: '2022-02-21T19:34:13Z',
-      mergedAt: null,
-    }
     const pull = parsePull(extended_mock_github_data as GitHubPullRequest);
-    expect(pull.getPullRequest()).toEqual({
-        "repo": "iFixit/pulldasher",
-        "pull_number": 235,
-        "state": "OPEN",
-        "title": "build(deps): bump browserslist from 4.16.0 to 4.19.2",
-        "head_ref": "42e7f57167068b84825cd2bb1c0df0f4a5f3da3f",
-        "qa_req": 1,
-        "created_at": 1645226302,
-        "updated_at": 1645472053,
-        "closed_at": null,
-        "merged_at": null,
-        "closes": null,
-        "interacted": false,
-      "qa_ready": false,
-        "pull_request_id": "PR_kwDOAldSuM4zIXnQ",
-        "author": "dependabot",
-        "dev_blocked": false,
-        "qa_stamped": false,
-        "agg_dev_block_count": 0,
-        "agg_interacted_count": 0,
-        "agg_qa_ready_count": 0,
-        "agg_qa_stamped_count": 0,
-        "head_commit_id": "MDM6UmVmMzkyNzcyNDA6cmVmcy9oZWFkcy9kZXBlbmRhYm90L25wbV9hbmRfeWFybi9icm93c2Vyc2xpc3QtNC4xOS4y"
-    })
+    expect(pull.getPullRequest()).toEqual(mock_pull_request)
   })
 });
