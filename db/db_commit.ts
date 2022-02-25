@@ -73,13 +73,24 @@ export default class CommitDB {
     return utils.deepCopy(this.commit)
   }
 
-  // Looking at this, it makes me think I should also include gets and setters for this invidual states
+  getDevBlockedState(): boolean {
+    return this.commit.dev_blocked ?? false
+  }
+
+  getInteractedState(): boolean {
+    return this.commit.interacted ?? false
+  }
+
+  getQAStampedState(): boolean {
+    return this.commit.qa_stamped ?? false
+  }
+
   getCommitState(): { qa_ready: boolean, dev_blocked: boolean, interacted: boolean, qa_stamped: boolean } {
     return {
-      qa_ready: this.commit.qa_ready ?? false,
-      dev_blocked: this.commit.dev_blocked ?? false,
-      interacted: this.commit.interacted ?? false,
-      qa_stamped: this.commit.qa_stamped ?? false,
+      qa_ready: this.getQAReadyState(),
+      dev_blocked: this.getDevBlockedState(),
+      interacted: this.getInteractedState(),
+      qa_stamped: this.getQAStampedState()
     }
   }
 }
