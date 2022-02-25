@@ -1,27 +1,5 @@
 import { Commit, PullRequest, PullRequestHistory } from "@prisma/client";
-import {PullRequest as GitHubPullRequest } from '@octokit/graphql-schema'
-import CommitDB from "../db/db_commit";
-
-export const mock_github_data: RecursivePartial<GitHubPullRequest> = {
-  closedAt: null,
-  createdAt: '2022-02-08T23:02:47Z',
-  headRefOid: "553464588b7b2178b6b12b27d14ff642e40d6df0",
-  mergedAt: null,
-  number: 41780,
-  state: 'OPEN',
-  title: "Tiptap: add answers preset",
-  updatedAt: '2022-02-23T18:50:45Z',
-  id: "PR_kwDOACywbc4yRAoi"
-};
-
-export const extended_mock_github_data: RecursivePartial<GitHubPullRequest> = {
-  ...mock_github_data,
-  author: { login: 'josmfred' },
-  baseRepository: { nameWithOwner: "iFixit/ifixit" },
-  headRef: {
-    id: "PURC_lADOACywbc4yRAoi2gAoNTUzNDY0NTg4YjdiMjE3OGI2YjEyYjI3ZDE0ZmY2NDJlNDBkNmRmMA"
-  },
-}
+import {IssueComment, PullRequest as GitHubPullRequest } from '@octokit/graphql-schema'
 
 export const mock_pull_request: PullRequest = {
   "repo": "iFixit/ifixit",
@@ -48,7 +26,7 @@ export const mock_pull_request: PullRequest = {
   "head_commit_id": "PURC_lADOACywbc4yRAoi2gAoNTUzNDY0NTg4YjdiMjE3OGI2YjEyYjI3ZDE0ZmY2NDJlNDBkNmRmMA"
 }
 
-export const mock_commit_data: Commit = {
+export const mock_commit: Commit = {
   commit_event_id: 'PURC_lADOACywbc4y8jV92gAoNzdkYmRkYjJkMjQxNmI5NTMyMjdlZTdiOTNkM2ZjNjNlNTQzZjU4MQ',
   sha: '77dbddb2d2416b953227ee7b93d3fc63e543f581',
   ci_status: 'SUCCESS',
@@ -61,7 +39,28 @@ export const mock_commit_data: Commit = {
   qa_stamped: false
 }
 
-export const mock_github_commit =  {
+const github_pull_request: RecursivePartial<GitHubPullRequest> = {
+  closedAt: null,
+  createdAt: '2022-02-08T23:02:47Z',
+  headRefOid: "553464588b7b2178b6b12b27d14ff642e40d6df0",
+  mergedAt: null,
+  number: 41780,
+  state: 'OPEN',
+  title: "Tiptap: add answers preset",
+  updatedAt: '2022-02-23T18:50:45Z',
+  id: "PR_kwDOACywbc4yRAoi"
+};
+
+const extended_github_pull_request: RecursivePartial<GitHubPullRequest> = {
+  ...github_pull_request,
+  author: { login: 'josmfred' },
+  baseRepository: { nameWithOwner: "iFixit/ifixit" },
+  headRef: {
+    id: "PURC_lADOACywbc4yRAoi2gAoNTUzNDY0NTg4YjdiMjE3OGI2YjEyYjI3ZDE0ZmY2NDJlNDBkNmRmMA"
+  },
+}
+
+const github_commit =  {
   id: 'PURC_lADOACywbc4y8jV92gAoNzdkYmRkYjJkMjQxNmI5NTMyMjdlZTdiOTNkM2ZjNjNlNTQzZjU4MQ',
   pr_commit: {
     oid: '77dbddb2d2416b953227ee7b93d3fc63e543f581',
@@ -73,28 +72,79 @@ export const mock_github_commit =  {
   }
 }
 
-export const mock_github_commit_no_ci = {
-  ...mock_github_commit,
+const github_commit_no_ci = {
+  ...github_commit,
   pr_commit: {
-    ...mock_github_commit.pr_commit,
+    ...github_commit.pr_commit,
     status: null
   }
 }
 
-export const mock_github_commit_no_pushed_date = {
-  ...mock_github_commit,
+const github_commit_no_pushed_date = {
+  ...github_commit,
   pr_commit: {
-    ...mock_github_commit.pr_commit,
+    ...github_commit.pr_commit,
     pushedDate: null
   }
 }
 
-export const mock_github_commit_bad_ci = {
-  ...mock_github_commit,
+const github_commit_bad_ci = {
+  ...github_commit,
   pr_commit: {
-    ...mock_github_commit.pr_commit,
+    ...github_commit.pr_commit,
     status: {
       state: 'FAILURE'
     }
+  }
+}
+
+const github_comment: RecursivePartial<IssueComment> = {
+  id: 'IC_kwDOAldSuM46phLj',
+  author: { login: 'mcTestyFace' },
+  bodyText: "I don't know about this comment",
+  createdAt: '2021-12-01T18:58:53Z'
+}
+
+const github_comment_qaed: RecursivePartial<IssueComment> = {
+  ...github_comment,
+  bodyText: 'QA 🎬\n' +
+    'Creating orders with custom items:\n' +
+    '\n' +
+    "Doesn't trigger any exceptions\n" +
+    "Don't save to the database"
+}
+
+const github_comment_dev_blocked: RecursivePartial<IssueComment> = {
+  ...github_comment,
+  bodyText: 'dev_block 🦚\n'
+}
+
+const github_comment_un_dev_blocked: RecursivePartial<IssueComment> = {
+  ...github_comment,
+  bodyText: 'Thanks for the feedback! un_dev_block ✌🏻\n'
+}
+
+const github_comment_interacted: RecursivePartial<IssueComment> = {
+  ...github_comment,
+  author: { login: 'ardelato'}
+}
+
+export const GitHubMocks = {
+  PullRequest: {
+    base: github_pull_request,
+    extended: extended_github_pull_request
+  },
+  Commit: {
+    base: github_commit,
+    no_ci: github_commit_no_ci,
+    no_pushed_date: github_commit_no_pushed_date,
+    bad_ci: github_commit_bad_ci
+  },
+  Comment: {
+    no_signatures: github_comment,
+    qaed: github_comment_qaed,
+    dev_blocked: github_comment_dev_blocked,
+    un_dev_blocked: github_comment_un_dev_blocked,
+    interacted: github_comment_interacted
   }
 }

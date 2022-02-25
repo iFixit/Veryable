@@ -1,10 +1,10 @@
 import CommitDB from "../db/db_commit"
 import PullHistoryRecorder from "../db/db_pull_history"
-import { mock_commit_data, mock_pull_request } from "./fixtures"
+import { mock_commit, mock_pull_request } from "./fixtures"
 
 
 const pull_request_id = mock_pull_request.pull_request_id
-const commit = new CommitDB(mock_commit_data)
+const commit = new CommitDB(mock_commit)
 
 describe("Pull History Recorder Class", () => {
   test('Set and Get Current Commit Ref', () => {
@@ -27,8 +27,8 @@ describe("Pull History Recorder Class", () => {
         start_date: 1636531200,
         date: 1636608908,
         pull_request_id: mock_pull_request.pull_request_id,
-        commit_event_id: mock_commit_data.commit_event_id,
-        commit_sha: mock_commit_data.sha,
+        commit_event_id: mock_commit.commit_event_id,
+        commit_sha: mock_commit.sha,
         event: 'qa_ready',
         actor: 'test',
         pull_request_event_index: 1
@@ -37,8 +37,8 @@ describe("Pull History Recorder Class", () => {
         start_date: 1636531200,
         date: 1636609102,
         pull_request_id: mock_pull_request.pull_request_id,
-        commit_event_id: mock_commit_data.commit_event_id,
-        commit_sha: mock_commit_data.sha,
+        commit_event_id: mock_commit.commit_event_id,
+        commit_sha: mock_commit.sha,
         event: 'dev_blocked',
         actor: 'testing',
         pull_request_event_index: 2
@@ -74,8 +74,8 @@ describe("Pull History Recorder Class", () => {
         start_date: 1636531200,
         date: 1636608908,
         pull_request_id: mock_pull_request.pull_request_id,
-        commit_event_id: mock_commit_data.commit_event_id,
-        commit_sha: mock_commit_data.sha,
+        commit_event_id: mock_commit.commit_event_id,
+        commit_sha: mock_commit.sha,
         event: 'qa_ready',
         actor: 'test',
         pull_request_event_index: 1
@@ -84,8 +84,8 @@ describe("Pull History Recorder Class", () => {
         start_date: 1636531200,
         date: 1636609102,
         pull_request_id: mock_pull_request.pull_request_id,
-        commit_event_id: mock_commit_data.commit_event_id,
-        commit_sha: mock_commit_data.sha,
+        commit_event_id: mock_commit.commit_event_id,
+        commit_sha: mock_commit.sha,
         event: 'dev_blocked',
         actor: 'testing',
         pull_request_event_index: 2

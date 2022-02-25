@@ -1,7 +1,7 @@
 import Pull from '../db/db_pull'
 import { Commit, PullRequest } from '@prisma/client'
 import CommitDB from '../db/db_commit'
-import { mock_pull_request, mock_commit_data } from "./fixtures"
+import { mock_pull_request, mock_commit } from "./fixtures"
 
 
 describe('Pull Class', () => {
@@ -31,14 +31,14 @@ describe('Pull Class', () => {
     })
 
     test('Get Commits on passed commits constructor', () => {
-      const commits: CommitDB[] = [new CommitDB(mock_commit_data),new CommitDB()]
+      const commits: CommitDB[] = [new CommitDB(mock_commit),new CommitDB()]
       const pull = new Pull(mock_pull_request,commits)
       expect(pull.getCommits()).toEqual(commits)
     })
 
     test('Get Number of Commits', () => {
 
-      const commits: CommitDB[] = [new CommitDB(mock_commit_data),new CommitDB()]
+      const commits: CommitDB[] = [new CommitDB(mock_commit),new CommitDB()]
       const pull = new Pull(mock_pull_request,commits)
       expect(pull.getNumberOfCommits()).toBe(2)
     })
@@ -47,7 +47,7 @@ describe('Pull Class', () => {
       expect(pull.getHeadCommitSha()).toEqual(mock_pull_request.head_ref)
     })
     test('Get Head Commit', () => {
-      const commits: CommitDB[] = [new CommitDB(mock_commit_data),new CommitDB()]
+      const commits: CommitDB[] = [new CommitDB(mock_commit),new CommitDB()]
       const pull = new Pull(mock_pull_request,commits,commits[0])
       expect(pull.getHeadCommit()).toEqual(commits[0])
       expect(pull.getHeadCommit()).not.toEqual(commits[1])
@@ -60,10 +60,10 @@ describe('Pull Class', () => {
       const pull = new Pull(mock_pull_request)
       expect(pull.getNumberOfCommits()).toBe(0)
 
-      pull.appendCommit(new CommitDB(mock_commit_data))
+      pull.appendCommit(new CommitDB(mock_commit))
 
       expect(pull.getNumberOfCommits()).toBe(1)
-      expect(pull.getCommits()).toEqual([new CommitDB(mock_commit_data)])
+      expect(pull.getCommits()).toEqual([new CommitDB(mock_commit)])
     })
     test('QA Required', () => {
       const pull = new Pull(mock_pull_request)
