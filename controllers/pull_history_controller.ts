@@ -27,22 +27,8 @@ function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItems[]) {
   timelineItems.forEach(event => {
     switch (event.__typename) {
       case "PullRequestCommit": {
-        const commit = parseCommit(pull, event)
-        pull.appendCommit(commit)
-        if (commit.getSha() === pull.getHeadCommitSha()) {
-          pull.head_commit = commit
-        }
-        recorder.setCurrentCommitRef(commit)
+        handlePullRequestCommitEvent(pull,event,recorder,pull_dev_block_state)
 
-        // Can check the CI status and Pull Dev Block state for a commit without need to review the comments
-        // Need to Check if the Commit is QA Ready
-
-        if (isCommitQAReady(pull_dev_block_state, commit.getCommit(),pull.isQARequired())) {
-          // Log Event
-          recorder.logEvent(commit.getPushedDate(),'qa_ready','CI')
-        }
-
-        // Reset Interacted State
         pull_interacted_state = false
         break;
       }
@@ -178,6 +164,22 @@ function checkAndRecordInteraction(interacted: boolean, comment: IssueComment | 
   }
 }
 
+function handlePullRequestCommitEvent(pull: Pull, pull_request_commit_event: PullRequestCommit, recorder: PullHistoryRecorder, pull_dev_block_state: boolean) {
+  log.info('Pull request commit event %o',pull_request_commit_event)
+  const commit = parseCommit(pull, pull_request_commit_event)
+  pull.appendCommit(commit)
+  if (commit.getSha() === pull.getHeadCommitSha()) {
+    pull.head_commit = commit
+  }
+  recorder.setCurrentCommitRef(commit)
+
+  // Can check the CI status and Pull Dev Block state for a commit without need to review the comments
+  // Need to Check if the Commit is QA Ready
+  if (isCommitQAReady(pull_dev_block_state, commit.getCommit(),pull.isQARequired())) {
+    // Log Event
+    recorder.logEvent(commit.getPushedDate(),'qa_ready','CI')
+  }
+}
 
 function getUpdatedPull(recorder: PullRequestHistory[], pull: Pull, pull_dev_block_state: boolean) {
   if (recorder.length) {
