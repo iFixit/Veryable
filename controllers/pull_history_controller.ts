@@ -15,7 +15,7 @@ import { PullRequestHistory } from '@prisma/client'
 import { backFillCommits, backFillPullRequest } from './backfill_controller'
 
 // For every Pull, we need to parse all the timeline events
-export function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItems[]) {
+function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItems[]) {
   // For every Pull we want to keep track of the events
   const recorder = new PullHistoryRecorder(pull.getID())
 
@@ -197,6 +197,7 @@ function parseRecordsAndBackFill(records: PullRequestHistory[], pull: Pull, last
   return new Pull(backfilled_pull_request, Object.values(backfilled_commits), head_commit)
 }
 
+export {parseTimeline, checkAndRecordDevBlockSignature, checkAndRecordInteraction, getUpdatedPull, parseRecordsAndBackFill}
 
 export async function getQAReadyEventsSinceDate(n_days: number) {
   return await prisma.pullRequestHistory.groupBy({
