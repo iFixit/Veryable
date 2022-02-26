@@ -54,7 +54,7 @@ export default class PullHistoryRecorder {
   // date passed should always be from an already parsed GitHub Object
   logEvent(date: number, event: pull_request_history_event, actor: string) {
     this.pull_records.push({
-      start_date: utils.getZeroHourFromDate(date),
+      start_date: utils.getStartOfDayInUnixTime(date),
       date: date,
       pull_request_id: this.pull_request_id,
       commit_event_id: this.current_head_commit.getID(),

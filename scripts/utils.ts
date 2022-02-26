@@ -6,10 +6,11 @@ export const utils = {
   },
 
   getISOTimeFromUnix(unix_date: number): string{
-    return formatISO(new Date(unix_date))
+    return formatISO(fromUnixTime(unix_date))
   },
 
-  getZeroHourFromDate(unix_date: number): number{
+  // Will be zeroed to local time -- +8HRS for PST
+  getStartOfDayInUnixTime(unix_date: number): number{
     return getUnixTime(startOfDay(fromUnixTime(unix_date)))
   },
 
