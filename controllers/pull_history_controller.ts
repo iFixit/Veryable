@@ -191,7 +191,6 @@ function getUpdatedPull(recorder: PullRequestHistory[], pull: Pull, pull_dev_blo
   return new Pull(pull.getPullRequest(), pull.getCommits(), pull.getHeadCommit())
 }
 
-
 function parseRecordsAndBackFill(records: PullRequestHistory[], pull: Pull, last_pull_dev_block_state: boolean): Pull {
   const backfilled_commits = backFillCommits(records, pull)
 
@@ -202,7 +201,7 @@ function parseRecordsAndBackFill(records: PullRequestHistory[], pull: Pull, last
   return new Pull(backfilled_pull_request, Object.values(backfilled_commits), head_commit)
 }
 
-export {parseTimeline, checkAndRecordDevBlockSignature, checkAndRecordInteraction, getUpdatedPull, parseRecordsAndBackFill}
+export {parseTimeline, checkAndRecordQAedSignature, checkAndRecordDevBlockSignature, checkAndRecordInteraction, getUpdatedPull, parseRecordsAndBackFill, handleCommentEvent, handleIssueCommentEvent, handlePullRequestCommitEvent, handlePullRequestReviewEvent}
 
 export async function getQAReadyEventsSinceDate(n_days: number) {
   return await prisma.pullRequestHistory.groupBy({
