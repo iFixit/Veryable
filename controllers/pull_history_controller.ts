@@ -40,60 +40,10 @@ function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItems[]) {
         break;
       }
       case "PullRequestReview": {
-          if (pull.getNumberOfCommits() === 0) {
-            const ghost_commit = new CommitDB(
-            {
-            commit_event_id: event.id, //use comment id as commit id
-            sha: 'unknown_starting_commit',
-            qa_ready: null,
-            interacted: null,
-            dev_blocked: null,
-            qa_stamped: null,
-            ci_status: null,
-            committed_at: utils.getUnixTimeFromISO(event.createdAt),
-            pushed_at: null,
-            pull_request_id: pull.getID()
-            }
-          )
+        const { updated_dev_block_state, updated_interacted_state } = handlePullRequestReviewEvent(pull, event, recorder, pull_dev_block_state, pull_interacted_state)
 
-          pull.appendCommit(ghost_commit)
-          recorder.setCurrentCommitRef(ghost_commit)
-        }
-
-        // Check if there is a general review comment, if so parse it
-        if (event.bodyText) {
-          const signatures = parseComment(event, pull.getAuthor())
-          if (signatures.qaed) {
-            recorder.logEvent(utils.getUnixTimeFromISO(event.createdAt), 'qa_stamped', event.author?.login || "unkown author")
-            recorder.logEvent(utils.getUnixTimeFromISO(event.createdAt), 'non_qa_ready', event.author?.login || "unkown author")
-          }
-
-
-          checkAndRecordDevBlockSignature(signatures.dev_block, event, recorder, pull.isQARequired())
-          pull_dev_block_state = signatures.dev_block ?? pull_dev_block_state
-
-          checkAndRecordInteraction(signatures.interacted, event, recorder, pull_interacted_state)
-          pull_interacted_state = signatures.interacted || pull_interacted_state
-        }
-
-        event.comments.nodes?.map(comment => {
-          if (!comment) {
-            return
-          }
-
-          const signatures = parseComment(comment, pull.getAuthor())
-          if (signatures.qaed) {
-            recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'qa_stamped', comment.author?.login || "unkown author")
-            recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'non_qa_ready', comment.author?.login || "unkown author")
-          }
-
-
-          checkAndRecordDevBlockSignature(signatures.dev_block, comment, recorder, pull.isQARequired())
-          pull_dev_block_state = signatures.dev_block ?? pull_dev_block_state
-
-          checkAndRecordInteraction(signatures.interacted, comment, recorder, pull_interacted_state)
-          pull_interacted_state = signatures.interacted || pull_interacted_state
-        })
+        pull_dev_block_state = updated_dev_block_state
+        pull_interacted_state = updated_interacted_state
         break;
       }
     }
@@ -165,6 +115,33 @@ function handleIssueCommentEvent(pull: Pull, issue_comment_event: IssueComment, 
     }
     return handleCommentEvent(pull, issue_comment_event, recorder, pull_dev_block_state, pull_interacted_state)
 }
+
+function handlePullRequestReviewEvent(pull: Pull, pull_request_review_event: PullRequestReview, recorder: PullHistoryRecorder, pull_dev_block_state: boolean, pull_interacted_state: boolean) {
+  if (hasNoCurrentCommitReference(pull)) {
+    setGhostCommitForReference(pull, recorder, pull_request_review_event)
+  }
+
+  if (reviewHasBodyText(pull_request_review_event)) {
+    const { updated_dev_block_state, updated_interacted_state } = handleCommentEvent(pull, pull_request_review_event, recorder, pull_dev_block_state, pull_interacted_state)
+
+    pull_dev_block_state = updated_dev_block_state
+    pull_interacted_state = updated_interacted_state
+  }
+
+  pull_request_review_event.comments.nodes?.map(review_comment => {
+    if (!review_comment) {
+      return
+    }
+
+    const { updated_dev_block_state, updated_interacted_state } = handleCommentEvent(pull, review_comment, recorder, pull_dev_block_state, pull_interacted_state)
+
+    pull_dev_block_state = updated_dev_block_state
+    pull_interacted_state = updated_interacted_state
+  })
+
+  return { updated_dev_block_state: pull_dev_block_state, updated_interacted_state: pull_interacted_state}
+}
+
 function handleCommentEvent(pull: Pull, comment_event: IssueComment | PullRequestReview  | PullRequestReviewComment, recorder: PullHistoryRecorder, pull_dev_block_state: boolean, pull_interacted_state: boolean) {
   const signatures = parseComment(comment_event, pull.getAuthor())
 
@@ -182,6 +159,11 @@ function handleCommentEvent(pull: Pull, comment_event: IssueComment | PullReques
 function hasNoCurrentCommitReference(pull: Pull): boolean {
   return pull.getNumberOfCommits() === 0
 }
+
+function reviewHasBodyText(review: PullRequestReview): boolean {
+  return review.bodyText !== undefined || review.bodyText !== ''
+}
+
 function setGhostCommitForReference(pull: Pull, recorder: PullHistoryRecorder, event: IssueComment | PullRequestReview): void {
   const ghost_commit = new CommitDB(
     {
