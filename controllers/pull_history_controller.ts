@@ -33,40 +33,10 @@ function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItems[]) {
         break;
       }
       case "IssueComment": {
-        const signatures = parseComment(event, pull.getAuthor())
+        const { updated_dev_block_state, updated_interacted_state } = handleIssueCommentEvent(pull, event, recorder, pull_dev_block_state, pull_interacted_state)
 
-        // It is possible to have a comment before commit events if there is a force-push
-        if (pull.getNumberOfCommits() === 0) {
-          const ghost_commit = new CommitDB(
-            {
-            commit_event_id: event.id, //use comment id as commit id
-            sha: 'unknown_starting_commit',
-            qa_ready: null,
-            interacted: null,
-            dev_blocked: null,
-            qa_stamped: null,
-            ci_status: null,
-            committed_at: utils.getUnixTimeFromISO(event.createdAt),
-            pushed_at: null,
-            pull_request_id: pull.getID()
-            }
-          )
-
-          pull.appendCommit(ghost_commit)
-          recorder.setCurrentCommitRef(ghost_commit)
-        }
-
-        if (signatures.qaed) {
-          recorder.logEvent(utils.getUnixTimeFromISO(event.createdAt), 'qa_stamped', event.author?.login || "unkown author")
-          recorder.logEvent(utils.getUnixTimeFromISO(event.createdAt), 'non_qa_ready', event.author?.login || "unkown author")
-        }
-
-        checkAndRecordDevBlockSignature(signatures.dev_block, event, recorder, pull.isQARequired())
-        pull_dev_block_state = signatures.dev_block ?? pull_dev_block_state
-
-        checkAndRecordInteraction(signatures.interacted, event, recorder, pull_interacted_state)
-        pull_interacted_state = signatures.interacted || pull_interacted_state
-
+        pull_dev_block_state = updated_dev_block_state
+        pull_interacted_state = updated_interacted_state
         break;
       }
       case "PullRequestReview": {
@@ -136,6 +106,13 @@ function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItems[]) {
   }
 }
 
+function checkAndRecordQAedSignature(qaed: boolean, comment: IssueComment | PullRequestReview | PullRequestReviewComment, recorder: PullHistoryRecorder) {
+   if (qaed) {
+    recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'qa_stamped', comment.author?.login || "unkown author")
+    recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'non_qa_ready', comment.author?.login || "unkown author")
+  }
+}
+
 function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: IssueComment | PullRequestReview | PullRequestReviewComment, recorder: PullHistoryRecorder, pull_qa_req: boolean) {
   switch (dev_block) {
     case true:
@@ -179,6 +156,50 @@ function handlePullRequestCommitEvent(pull: Pull, pull_request_commit_event: Pul
     // Log Event
     recorder.logEvent(commit.getPushedDate(),'qa_ready','CI')
   }
+}
+
+function handleIssueCommentEvent(pull: Pull, issue_comment_event: IssueComment, recorder: PullHistoryRecorder, pull_dev_block_state: boolean, pull_interacted_state: boolean) {
+   // It is possible to have a comment before commit events if there is a force-push
+    if (hasNoCurrentCommitReference(pull)) {
+      setGhostCommitForReference(pull, recorder, issue_comment_event)
+    }
+    return handleCommentEvent(pull, issue_comment_event, recorder, pull_dev_block_state, pull_interacted_state)
+}
+function handleCommentEvent(pull: Pull, comment_event: IssueComment | PullRequestReview  | PullRequestReviewComment, recorder: PullHistoryRecorder, pull_dev_block_state: boolean, pull_interacted_state: boolean) {
+  const signatures = parseComment(comment_event, pull.getAuthor())
+
+  checkAndRecordQAedSignature(signatures.qaed, comment_event, recorder)
+
+  checkAndRecordDevBlockSignature(signatures.dev_block, comment_event, recorder, pull.isQARequired())
+
+  checkAndRecordInteraction(signatures.interacted, comment_event, recorder, pull_interacted_state)
+
+  return {
+    updated_dev_block_state: signatures.dev_block ?? pull_dev_block_state, updated_interacted_state: signatures.interacted || pull_interacted_state
+  }
+}
+
+function hasNoCurrentCommitReference(pull: Pull): boolean {
+  return pull.getNumberOfCommits() === 0
+}
+function setGhostCommitForReference(pull: Pull, recorder: PullHistoryRecorder, event: IssueComment | PullRequestReview): void {
+  const ghost_commit = new CommitDB(
+    {
+    commit_event_id: event.id, //use comment id as commit id
+    sha: 'unknown_starting_commit',
+    qa_ready: null,
+    interacted: null,
+    dev_blocked: null,
+    qa_stamped: null,
+    ci_status: null,
+    committed_at: utils.getUnixTimeFromISO(event.createdAt),
+    pushed_at: null,
+    pull_request_id: pull.getID()
+    }
+  )
+
+  pull.appendCommit(ghost_commit)
+  recorder.setCurrentCommitRef(ghost_commit)
 }
 
 function getUpdatedPull(recorder: PullRequestHistory[], pull: Pull, pull_dev_block_state: boolean) {
