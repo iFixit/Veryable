@@ -5,35 +5,37 @@ import Pull from "../db/db_pull"
 import PullHistoryRecorder from "../db/db_pull_history"
 import { GitHubMocks, mock_commit, mock_pull_request } from "./fixtures"
 
-const pull = new Pull(mock_pull_request)
 const commit = new CommitDB(mock_commit)
 
 describe('Validate Parsing Pull Timeline Items', () => {
   describe('Validate QAed Recording', () => {
     test('No Events Recorded if No QAed Signature', () => {
-      const recorder = new PullHistoryRecorder(pull.getID(), commit)
+      const local_pull = new Pull(mock_pull_request)
+
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
       const qaed = false
       expect(recorder.getPullRecords().length).toBe(0)
 
-      checkAndRecordQAedSignature(qaed, GitHubMocks.Comment.no_signatures as IssueComment, recorder)
+      checkAndRecordQAedSignature(qaed, GitHubMocks.Comment.no_signatures as IssueComment, recorder, local_pull)
 
       const records = recorder.getPullRecords()
       expect(records.length).toBe(0)
     })
 
-    test('Record QAed Event', () => {
-      const recorder = new PullHistoryRecorder(pull.getID(), commit)
+    test('Record QAed Event and Non QA Ready', () => {
+      const local_pull = new Pull(mock_pull_request)
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
       const qaed = true
       expect(recorder.getPullRecords().length).toBe(0)
 
-      checkAndRecordQAedSignature(qaed, GitHubMocks.Comment.qaed as IssueComment, recorder)
+      checkAndRecordQAedSignature(qaed, GitHubMocks.Comment.qaed as IssueComment, recorder, local_pull)
 
       const records = recorder.getPullRecords()
       expect(records.length).toBe(2)
       expect(records).toEqual([{
         start_date: 1638345600,
         date: 1638385133,
-        pull_request_id: pull.getID(),
+        pull_request_id: local_pull.getID(),
         commit_event_id: commit.getID(),
         commit_sha: commit.getSha(),
         event: 'qa_stamped',
@@ -43,7 +45,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
       {
         start_date: 1638345600,
         date: 1638385133,
-        pull_request_id: pull.getID(),
+        pull_request_id: local_pull.getID(),
         commit_event_id: commit.getID(),
         commit_sha: commit.getSha(),
         event: 'non_qa_ready',
@@ -51,36 +53,65 @@ describe('Validate Parsing Pull Timeline Items', () => {
         pull_request_event_index: 2
       }])
     })
+
+    test('Record QAed Event but no Non QA Ready if Dev Blocked', () => {
+      const local_pull = new Pull(mock_pull_request)
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
+      const qaed = true
+
+      local_pull.setDevBlockedState(true)
+      expect(recorder.getPullRecords().length).toBe(0)
+
+      checkAndRecordQAedSignature(qaed, GitHubMocks.Comment.qaed as IssueComment, recorder, local_pull)
+
+      const records = recorder.getPullRecords()
+
+      expect(records.length).toBe(1)
+      expect(records).toEqual([{
+        start_date: 1638345600,
+        date: 1638385133,
+        pull_request_id: local_pull.getID(),
+        commit_event_id: commit.getID(),
+        commit_sha: commit.getSha(),
+        event: 'qa_stamped',
+        actor: 'mcTestyFace',
+        pull_request_event_index: 1
+      }])
+    })
   })
   describe('Validate Dev Block Recording', () => {
+
     test('No Events Recorded if No Dev Block Signatures', () => {
-      const recorder = new PullHistoryRecorder(pull.getID(), commit)
+      const local_pull = new Pull(mock_pull_request)
+
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
       const dev_block = null
-      const pull_qa_req = false
+      local_pull.setQARequired(0);
 
       expect(recorder.getPullRecords().length).toBe(0)
 
-      checkAndRecordDevBlockSignature(dev_block, GitHubMocks.Comment.no_signatures as IssueComment, recorder, pull_qa_req)
+      checkAndRecordDevBlockSignature(dev_block, GitHubMocks.Comment.no_signatures as IssueComment, recorder, local_pull)
 
       const records = recorder.getPullRecords()
       expect(records.length).toBe(0)
     })
 
     test('Record Dev Block Event Only', () => {
-      const recorder = new PullHistoryRecorder(pull.getID(), commit)
+      const local_pull = new Pull(mock_pull_request)
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
       const dev_block = true
-      const pull_qa_req = false
+      local_pull.setQARequired(0);
 
       expect(recorder.getPullRecords().length).toBe(0)
 
-      checkAndRecordDevBlockSignature(dev_block, GitHubMocks.Comment.dev_blocked as IssueComment, recorder, pull_qa_req)
+      checkAndRecordDevBlockSignature(dev_block, GitHubMocks.Comment.dev_blocked as IssueComment, recorder, local_pull)
 
       const records = recorder.getPullRecords()
       expect(records.length).toBe(1)
       expect(records).toEqual([{
         start_date: 1638345600,
         date: 1638385133,
-        pull_request_id: pull.getID(),
+        pull_request_id: local_pull.getID(),
         commit_event_id: commit.getID(),
         commit_sha: commit.getSha(),
         event: 'dev_blocked',
@@ -89,14 +120,15 @@ describe('Validate Parsing Pull Timeline Items', () => {
       }])
     })
 
-    test('Record Dev Block Event and Non QA Ready Event', () => {
-      const recorder = new PullHistoryRecorder(pull.getID(), commit)
+    test('Record Dev Block Event and Non QA Ready Event if QA Ready', () => {
+      const local_pull = new Pull(mock_pull_request)
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
       const dev_block = true
-      const pull_qa_req = true
 
+      local_pull.setQAReadyState(true)
       expect(recorder.getPullRecords().length).toBe(0)
 
-      checkAndRecordDevBlockSignature(dev_block, GitHubMocks.Comment.dev_blocked as IssueComment, recorder, pull_qa_req)
+      checkAndRecordDevBlockSignature(dev_block, GitHubMocks.Comment.dev_blocked as IssueComment, recorder, local_pull)
 
       const records = recorder.getPullRecords()
       expect(records.length).toBe(2)
@@ -104,7 +136,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
         {
           start_date: 1638345600,
           date: 1638385133,
-          pull_request_id: pull.getID(),
+          pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
           commit_sha: commit.getSha(),
           event: 'dev_blocked',
@@ -114,7 +146,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
         {
           start_date: 1638345600,
           date: 1638385133,
-          pull_request_id: pull.getID(),
+          pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
           commit_sha: commit.getSha(),
           event: 'non_qa_ready',
@@ -123,22 +155,47 @@ describe('Validate Parsing Pull Timeline Items', () => {
         }
       ])
     })
-
-    test('Record Un Dev Block Event Only', () => {
-      const recorder = new PullHistoryRecorder(pull.getID(), commit)
-      const dev_block = false
-      const pull_qa_req = false
+    test('Record Dev Block Event but No Non QA Ready Event', () => {
+      const local_pull = new Pull(mock_pull_request)
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
+      const dev_block = true
 
       expect(recorder.getPullRecords().length).toBe(0)
 
-      checkAndRecordDevBlockSignature(dev_block, GitHubMocks.Comment.un_dev_blocked as IssueComment, recorder, pull_qa_req)
+      checkAndRecordDevBlockSignature(dev_block, GitHubMocks.Comment.dev_blocked as IssueComment, recorder, local_pull)
+
+      const records = recorder.getPullRecords()
+      expect(records.length).toBe(1)
+      expect(records).toEqual([
+        {
+          start_date: 1638345600,
+          date: 1638385133,
+          pull_request_id: local_pull.getID(),
+          commit_event_id: commit.getID(),
+          commit_sha: commit.getSha(),
+          event: 'dev_blocked',
+          actor: 'mcTestyFace',
+          pull_request_event_index: 1
+        }
+      ])
+    })
+
+    test('Record Un Dev Block Event Only', () => {
+      const local_pull = new Pull(mock_pull_request)
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
+      const dev_block = false
+      local_pull.setQARequired(0);
+
+      expect(recorder.getPullRecords().length).toBe(0)
+
+      checkAndRecordDevBlockSignature(dev_block, GitHubMocks.Comment.un_dev_blocked as IssueComment, recorder, local_pull)
 
       const records = recorder.getPullRecords()
       expect(records.length).toBe(1)
       expect(records).toEqual([{
         start_date: 1638345600,
         date: 1638385133,
-        pull_request_id: pull.getID(),
+        pull_request_id: local_pull.getID(),
         commit_event_id: commit.getID(),
         commit_sha: commit.getSha(),
         event: 'un_dev_blocked',
@@ -146,14 +203,15 @@ describe('Validate Parsing Pull Timeline Items', () => {
         pull_request_event_index: 1
       }])
     })
+
     test('Record Un Dev Block Event and QA Ready Event', () => {
-      const recorder = new PullHistoryRecorder(pull.getID(), commit)
+      const local_pull = new Pull(mock_pull_request)
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
       const dev_block = false
-      const pull_qa_req = true
 
       expect(recorder.getPullRecords().length).toBe(0)
 
-      checkAndRecordDevBlockSignature(dev_block, GitHubMocks.Comment.un_dev_blocked as IssueComment, recorder, pull_qa_req)
+      checkAndRecordDevBlockSignature(dev_block, GitHubMocks.Comment.un_dev_blocked as IssueComment, recorder, local_pull)
 
       const records = recorder.getPullRecords()
       expect(records.length).toBe(2)
@@ -161,7 +219,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
         {
           start_date: 1638345600,
           date: 1638385133,
-          pull_request_id: pull.getID(),
+          pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
           commit_sha: commit.getSha(),
           event: 'un_dev_blocked',
@@ -171,7 +229,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
         {
           start_date: 1638345600,
           date: 1638385133,
-          pull_request_id: pull.getID(),
+          pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
           commit_sha: commit.getSha(),
           event: 'qa_ready',
@@ -180,35 +238,62 @@ describe('Validate Parsing Pull Timeline Items', () => {
         }
       ])
     })
+
+    test('Record Un Dev Block Event but No QA Ready Event if QAed', () => {
+      const local_pull = new Pull(mock_pull_request)
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
+      const dev_block = false
+
+      local_pull.setQAStampedState(true)
+
+      expect(recorder.getPullRecords().length).toBe(0)
+
+      checkAndRecordDevBlockSignature(dev_block, GitHubMocks.Comment.un_dev_blocked as IssueComment, recorder, local_pull)
+
+      const records = recorder.getPullRecords()
+      expect(records.length).toBe(1)
+      expect(records).toEqual([
+        {
+          start_date: 1638345600,
+          date: 1638385133,
+          pull_request_id: local_pull.getID(),
+          commit_event_id: commit.getID(),
+          commit_sha: commit.getSha(),
+          event: 'un_dev_blocked',
+          actor: 'mcTestyFace',
+          pull_request_event_index: 1
+        }
+      ])
+    })
   })
 
   describe('Validate Interaction Recording', () => {
     test('No Events Recorded if No Interaction Signature', () => {
-      const recorder = new PullHistoryRecorder(pull.getID(), commit)
+      const local_pull = new Pull(mock_pull_request)
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
       const interacted = false
-      const previous_pull_interacted_state = false
       expect(recorder.getPullRecords().length).toBe(0)
 
-      checkAndRecordInteraction(interacted, GitHubMocks.Comment.no_signatures as IssueComment, recorder, previous_pull_interacted_state)
+      checkAndRecordInteraction(interacted, GitHubMocks.Comment.no_signatures as IssueComment, recorder, local_pull)
 
       const records = recorder.getPullRecords()
       expect(records.length).toBe(0)
     })
 
     test('Record First Interaction Event', () => {
-      const recorder = new PullHistoryRecorder(pull.getID(), commit)
+      const local_pull = new Pull(mock_pull_request)
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
       const interacted = true
-      const previous_pull_interacted_state = false
       expect(recorder.getPullRecords().length).toBe(0)
 
-      checkAndRecordInteraction(interacted, GitHubMocks.Comment.interacted as IssueComment, recorder, previous_pull_interacted_state)
+      checkAndRecordInteraction(interacted, GitHubMocks.Comment.interacted as IssueComment, recorder, local_pull)
 
       const records = recorder.getPullRecords()
       expect(records.length).toBe(1)
       expect(records).toEqual([{
         start_date: 1638345600,
         date: 1638385133,
-        pull_request_id: pull.getID(),
+        pull_request_id: local_pull.getID(),
         commit_event_id: commit.getID(),
         commit_sha: commit.getSha(),
         event: 'first_interaction',
@@ -218,19 +303,21 @@ describe('Validate Parsing Pull Timeline Items', () => {
     })
 
     test('Record Interacted Event', () => {
-      const recorder = new PullHistoryRecorder(pull.getID(), commit)
+      const local_pull = new Pull(mock_pull_request)
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
       const interacted = true
-      const previous_pull_interacted_state = true
+
+      local_pull.setInteractedState(true)
       expect(recorder.getPullRecords().length).toBe(0)
 
-      checkAndRecordInteraction(interacted, GitHubMocks.Comment.interacted as IssueComment, recorder, previous_pull_interacted_state)
+      checkAndRecordInteraction(interacted, GitHubMocks.Comment.interacted as IssueComment, recorder, local_pull)
 
       const records = recorder.getPullRecords()
       expect(records.length).toBe(1)
       expect(records).toEqual([{
         start_date: 1638345600,
         date: 1638385133,
-        pull_request_id: pull.getID(),
+        pull_request_id: local_pull.getID(),
         commit_event_id: commit.getID(),
         commit_sha: commit.getSha(),
         event: 'interacted',
@@ -243,165 +330,169 @@ describe('Validate Parsing Pull Timeline Items', () => {
   describe('Validate Comment Parsing Updates Pull States', () => {
     test('No Signatures', () => {
       const local_pull = new Pull(mock_pull_request)
-      const recorder = new PullHistoryRecorder(local_pull.getID())
-      const pull_dev_block_state = false
-      const pull_interacted_state = false
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
 
       expect(local_pull.getCommits().length).toBe(0)
       expect(recorder.getPullRecords().length).toBe(0)
 
-      const { updated_dev_block_state, updated_interacted_state } = handleCommentEvent(pull, GitHubMocks.Comment.no_signatures as IssueComment, recorder, pull_dev_block_state, pull_interacted_state)
+     handleCommentEvent(local_pull, GitHubMocks.Comment.no_signatures as IssueComment, recorder)
 
-      expect(updated_dev_block_state).toBe(false)
-      expect(updated_interacted_state).toBe(false)
+      expect(local_pull.isDevBlocked()).toBe(false)
+      expect(local_pull.wasInteractedWith()).toBe(false)
     })
 
     test('No Signatures with Previous True States', () => {
       const local_pull = new Pull(mock_pull_request)
-      const recorder = new PullHistoryRecorder(local_pull.getID())
-      const pull_dev_block_state = true
-      const pull_interacted_state = true
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
+      local_pull.setDevBlockedState(true)
+      local_pull.setInteractedState(true)
 
       expect(local_pull.getCommits().length).toBe(0)
       expect(recorder.getPullRecords().length).toBe(0)
 
-      const { updated_dev_block_state, updated_interacted_state } = handleCommentEvent(pull, GitHubMocks.Comment.no_signatures as IssueComment, recorder, pull_dev_block_state, pull_interacted_state)
+      handleCommentEvent(local_pull, GitHubMocks.Comment.no_signatures as IssueComment, recorder)
 
-      expect(updated_dev_block_state).toBe(true)
-      expect(updated_interacted_state).toBe(true)
+      expect(local_pull.isDevBlocked()).toBe(true)
+      expect(local_pull.wasInteractedWith()).toBe(true)
     })
 
     test('QAed Signature', () => {
       const local_pull = new Pull(mock_pull_request)
-      const recorder = new PullHistoryRecorder(local_pull.getID())
-      const pull_dev_block_state = false
-      const pull_interacted_state = false
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
+      local_pull.setQAReadyState(true)
 
       expect(local_pull.getCommits().length).toBe(0)
       expect(recorder.getPullRecords().length).toBe(0)
 
-      const { updated_dev_block_state, updated_interacted_state } = handleCommentEvent(pull, GitHubMocks.Comment.qaed as IssueComment, recorder, pull_dev_block_state, pull_interacted_state)
+      handleCommentEvent(local_pull, GitHubMocks.Comment.qaed as IssueComment, recorder)
 
-      expect(updated_dev_block_state).toBe(false)
-      expect(updated_interacted_state).toBe(false)
+      expect(local_pull.isQAReady()).toBe(false)
+      expect(local_pull.isQAed()).toBe(true)
+      expect(local_pull.isDevBlocked()).toBe(false)
+      expect(local_pull.wasInteractedWith()).toBe(false)
     })
 
     test('QAed Signature with Previous True States', () => {
       const local_pull = new Pull(mock_pull_request)
-      const recorder = new PullHistoryRecorder(local_pull.getID())
-      const pull_dev_block_state = true
-      const pull_interacted_state = true
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
+      local_pull.setDevBlockedState(true)
+      local_pull.setInteractedState(true)
 
       expect(local_pull.getCommits().length).toBe(0)
       expect(recorder.getPullRecords().length).toBe(0)
 
-      const { updated_dev_block_state, updated_interacted_state } = handleCommentEvent(pull, GitHubMocks.Comment.qaed as IssueComment, recorder, pull_dev_block_state, pull_interacted_state)
+      handleCommentEvent(local_pull, GitHubMocks.Comment.qaed as IssueComment, recorder)
 
-      expect(updated_dev_block_state).toBe(true)
-      expect(updated_interacted_state).toBe(true)
+      expect(local_pull.isQAReady()).toBe(false)
+      expect(local_pull.isQAed()).toBe(true)
+      expect(local_pull.isDevBlocked()).toBe(true)
+      expect(local_pull.wasInteractedWith()).toBe(true)
     })
 
     test('Dev Blocked Signature', () => {
       const local_pull = new Pull(mock_pull_request)
-      const recorder = new PullHistoryRecorder(local_pull.getID())
-      const pull_dev_block_state = false
-      const pull_interacted_state = false
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
+      local_pull.setQAReadyState(true)
 
       expect(local_pull.getCommits().length).toBe(0)
       expect(recorder.getPullRecords().length).toBe(0)
 
-      const { updated_dev_block_state, updated_interacted_state } = handleCommentEvent(pull, GitHubMocks.Comment.dev_blocked as IssueComment, recorder, pull_dev_block_state, pull_interacted_state)
+      handleCommentEvent(local_pull, GitHubMocks.Comment.dev_blocked as IssueComment, recorder)
 
-      expect(updated_dev_block_state).toBe(true)
-      expect(updated_interacted_state).toBe(false)
+      expect(local_pull.isQAReady()).toBe(false)
+      expect(local_pull.isQAed()).toBe(false)
+      expect(local_pull.isDevBlocked()).toBe(true)
+      expect(local_pull.wasInteractedWith()).toBe(false)
     })
 
     test('Dev Blocked Signature with Previous True States', () => {
       const local_pull = new Pull(mock_pull_request)
-      const recorder = new PullHistoryRecorder(local_pull.getID())
-      const pull_dev_block_state = true
-      const pull_interacted_state = true
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
+      local_pull.setDevBlockedState(true)
+      local_pull.setInteractedState(true)
 
       expect(local_pull.getCommits().length).toBe(0)
       expect(recorder.getPullRecords().length).toBe(0)
 
-      const { updated_dev_block_state, updated_interacted_state } = handleCommentEvent(pull, GitHubMocks.Comment.dev_blocked as IssueComment, recorder, pull_dev_block_state, pull_interacted_state)
+      handleCommentEvent(local_pull, GitHubMocks.Comment.dev_blocked as IssueComment, recorder)
 
-      expect(updated_dev_block_state).toBe(true)
-      expect(updated_interacted_state).toBe(true)
+      expect(local_pull.isQAReady()).toBe(false)
+      expect(local_pull.isQAed()).toBe(false)
+      expect(local_pull.isDevBlocked()).toBe(true)
+      expect(local_pull.wasInteractedWith()).toBe(true)
     })
 
     test('Un Dev Blocked Signature', () => {
       const local_pull = new Pull(mock_pull_request)
-      const recorder = new PullHistoryRecorder(local_pull.getID())
-      const pull_dev_block_state = false
-      const pull_interacted_state = false
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
+      local_pull.setDevBlockedState(true)
+      local_pull.setInteractedState(true)
+
 
       expect(local_pull.getCommits().length).toBe(0)
       expect(recorder.getPullRecords().length).toBe(0)
 
-      const { updated_dev_block_state, updated_interacted_state } = handleCommentEvent(pull, GitHubMocks.Comment.un_dev_blocked as IssueComment, recorder, pull_dev_block_state, pull_interacted_state)
+      handleCommentEvent(local_pull, GitHubMocks.Comment.un_dev_blocked as IssueComment, recorder)
 
-      expect(updated_dev_block_state).toBe(false)
-      expect(updated_interacted_state).toBe(false)
+      expect(local_pull.isQAReady()).toBe(true)
+      expect(local_pull.isQAed()).toBe(false)
+      expect(local_pull.isDevBlocked()).toBe(false)
+      expect(local_pull.wasInteractedWith()).toBe(true)
     })
 
     test('Un Dev Blocked Signature with Previous True States', () => {
       const local_pull = new Pull(mock_pull_request)
-      const recorder = new PullHistoryRecorder(local_pull.getID())
-      const pull_dev_block_state = true
-      const pull_interacted_state = true
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
+      local_pull.setQAStampedState(true)
+      local_pull.setDevBlockedState(true)
+      local_pull.setInteractedState(true)
 
       expect(local_pull.getCommits().length).toBe(0)
       expect(recorder.getPullRecords().length).toBe(0)
 
-      const { updated_dev_block_state, updated_interacted_state } = handleCommentEvent(pull, GitHubMocks.Comment.un_dev_blocked as IssueComment, recorder, pull_dev_block_state, pull_interacted_state)
+      handleCommentEvent(local_pull, GitHubMocks.Comment.un_dev_blocked as IssueComment, recorder)
 
-      expect(updated_dev_block_state).toBe(false)
-      expect(updated_interacted_state).toBe(true)
+      expect(local_pull.isQAReady()).toBe(false)
+      expect(local_pull.isQAed()).toBe(true)
+      expect(local_pull.isDevBlocked()).toBe(false)
+      expect(local_pull.wasInteractedWith()).toBe(true)
     })
     test('Interacted Signature', () => {
       const local_pull = new Pull(mock_pull_request)
-      const recorder = new PullHistoryRecorder(local_pull.getID())
-      const pull_dev_block_state = false
-      const pull_interacted_state = false
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
 
       expect(local_pull.getCommits().length).toBe(0)
       expect(recorder.getPullRecords().length).toBe(0)
 
-      const { updated_dev_block_state, updated_interacted_state } = handleCommentEvent(pull, GitHubMocks.Comment.interacted as IssueComment, recorder, pull_dev_block_state, pull_interacted_state)
+      handleCommentEvent(local_pull, GitHubMocks.Comment.interacted as IssueComment, recorder)
 
-      expect(updated_dev_block_state).toBe(false)
-      expect(updated_interacted_state).toBe(true)
+      expect(local_pull.wasInteractedWith()).toBe(true)
     })
 
     test('Interacted Signature with Previous True States', () => {
       const local_pull = new Pull(mock_pull_request)
-      const recorder = new PullHistoryRecorder(local_pull.getID())
-      const pull_dev_block_state = true
-      const pull_interacted_state = true
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
+      local_pull.setInteractedState(true)
 
       expect(local_pull.getCommits().length).toBe(0)
       expect(recorder.getPullRecords().length).toBe(0)
 
-      const { updated_dev_block_state, updated_interacted_state } = handleCommentEvent(pull, GitHubMocks.Comment.interacted as IssueComment, recorder, pull_dev_block_state, pull_interacted_state)
+      handleCommentEvent(local_pull, GitHubMocks.Comment.interacted as IssueComment, recorder)
 
-      expect(updated_dev_block_state).toBe(true)
-      expect(updated_interacted_state).toBe(true)
+      expect(local_pull.wasInteractedWith()).toBe(true)
     })
   })
 
   describe('Validate PullRequestCommit Parsing', () => {
     const local_pull = new Pull(mock_pull_request)
-    const recorder = new PullHistoryRecorder(local_pull.getID())
+    const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
     const pull_request_event = { ...GitHubMocks.Commit.base }
-    const pull_dev_block_state = false
 
     expect(local_pull.getCommits().length).toBe(0)
     expect(recorder.getPullRecords().length).toBe(0)
 
 
-    handlePullRequestCommitEvent(local_pull, pull_request_event as any, recorder, pull_dev_block_state)
+    handlePullRequestCommitEvent(local_pull, pull_request_event as any, recorder)
 
     test('Commit Added to Pull', () => {
       expect(local_pull.getCommits()).toEqual([new CommitDB(mock_commit)])
@@ -417,7 +508,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
         {
           start_date: 1644825600,
           date: 1644887820,
-          pull_request_id: pull.getID(),
+          pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
           commit_sha: commit.getSha(),
           event: 'qa_ready',
@@ -432,20 +523,18 @@ describe('Validate Parsing Pull Timeline Items', () => {
 
     test('Events have Reference to Prior Commit Event', () => {
       const local_pull = new Pull(mock_pull_request)
-      const recorder = new PullHistoryRecorder(local_pull.getID())
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
       const pull_request_event = { ...GitHubMocks.Commit.base }
-      const pull_dev_block_state = false
-      const pull_interacted_state = false
 
-      handlePullRequestCommitEvent(local_pull, pull_request_event as any, recorder, pull_dev_block_state)
+      handlePullRequestCommitEvent(local_pull, pull_request_event as any, recorder)
 
-      handleCommentEvent(pull, GitHubMocks.Comment.qaed as IssueComment, recorder, pull_dev_block_state, pull_interacted_state)
+      handleCommentEvent(local_pull, GitHubMocks.Comment.qaed as IssueComment, recorder)
 
       expect(recorder.getPullRecords()).toEqual([
         {
           start_date: 1644825600,
           date: 1644887820,
-          pull_request_id: pull.getID(),
+          pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
           commit_sha: commit.getSha(),
           event: 'qa_ready',
@@ -455,7 +544,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
         {
           start_date: 1638345600,
           date: 1638385133,
-          pull_request_id: pull.getID(),
+          pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
           commit_sha: commit.getSha(),
           event: 'qa_stamped',
@@ -465,7 +554,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
         {
           start_date: 1638345600,
           date: 1638385133,
-          pull_request_id: pull.getID(),
+          pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
           commit_sha: commit.getSha(),
           event: 'non_qa_ready',
@@ -477,17 +566,15 @@ describe('Validate Parsing Pull Timeline Items', () => {
 
     test('Events have Reference to a Ghost Commit event', () => {
       const local_pull = new Pull(mock_pull_request)
-      const recorder = new PullHistoryRecorder(local_pull.getID())
-      const pull_dev_block_state = false
-      const pull_interacted_state = false
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
 
-      handleIssueCommentEvent(pull, GitHubMocks.Comment.qaed as IssueComment, recorder, pull_dev_block_state, pull_interacted_state)
+      handleIssueCommentEvent(local_pull, GitHubMocks.Comment.qaed as IssueComment, recorder)
 
       expect(recorder.getPullRecords()).toEqual([
         {
           start_date: 1638345600,
           date: 1638385133,
-          pull_request_id: pull.getID(),
+          pull_request_id: local_pull.getID(),
           commit_event_id: GitHubMocks.Comment.qaed.id,
           commit_sha: 'unknown_starting_commit',
           event: 'qa_stamped',
@@ -497,7 +584,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
         {
           start_date: 1638345600,
           date: 1638385133,
-          pull_request_id: pull.getID(),
+          pull_request_id: local_pull.getID(),
           commit_event_id: GitHubMocks.Comment.qaed.id,
           commit_sha: 'unknown_starting_commit',
           event: 'non_qa_ready',
