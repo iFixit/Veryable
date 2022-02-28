@@ -8,10 +8,23 @@ import {utils} from "../scripts/utils"
 
 const log = logger('db_pull')
 
+
+type PullState = {
+  qa_stamped: boolean,
+  interacted: boolean,
+  dev_blocked: boolean
+  qa_ready: boolean
+}
 export default class Pull {
   pull_request: PullRequest
   commits: CommitDB[] = []
   head_commit: CommitDB
+  pull_state: PullState = {
+    qa_stamped: false,
+    interacted: false,
+    dev_blocked: false,
+    qa_ready: false
+  }
 
   constructor (pull_request: PullRequest, commits: CommitDB[] | null = null, head_commit: CommitDB | null = null) {
     this.pull_request = utils.deepCopy(pull_request);
@@ -86,6 +99,39 @@ export default class Pull {
 
   isQARequired(): boolean{
     return this.pull_request.qa_req > 0 ? true : false;
+  }
+
+  setQARequired(stamps: number): void{
+    this.pull_request.qa_req = stamps
+  }
+
+  wasInteractedWith(): boolean{
+    return this.pull_state.interacted;
+  }
+  setInteractedState(new_interacted_state: boolean): void{
+    this.pull_state.interacted = new_interacted_state
+  }
+
+  isDevBlocked(): boolean{
+    return this.pull_state.dev_blocked
+  }
+  setDevBlockedState(new_dev_blocked_state: boolean): void{
+    this.pull_state.dev_blocked = new_dev_blocked_state
+  }
+
+  isQAed(): boolean{
+    return this.pull_state.qa_stamped
+  }
+
+  setQAStampedState(new_qa_stamped_state: boolean): void{
+    this.pull_state.qa_stamped = new_qa_stamped_state
+  }
+
+  isQAReady(): boolean{
+    return this.pull_state.qa_ready
+  }
+  setQAReadyState(new_qa_ready_state: boolean): void{
+    this.pull_state.qa_ready = new_qa_ready_state
   }
 
   setPullRequest(pull_request: PullRequest): void{

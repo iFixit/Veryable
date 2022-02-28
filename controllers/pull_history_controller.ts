@@ -19,36 +19,25 @@ function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItems[]) {
   // For every Pull we want to keep track of the events
   const recorder = new PullHistoryRecorder(pull.getID())
 
-  // Set the Dev Block state for the Pull to reference for later commits
-  let pull_dev_block_state = false;
-
-  // Set the Interacted state for the Pull to reference for later interactions
-  let pull_interacted_state = false
   timelineItems.forEach(event => {
     switch (event.__typename) {
       case "PullRequestCommit": {
-        handlePullRequestCommitEvent(pull,event,recorder,pull_dev_block_state)
-
-        pull_interacted_state = false
+        handlePullRequestCommitEvent(pull,event,recorder)
+        pull.setInteractedState(false)
+        pull.setQAStampedState(false)
         break;
       }
       case "IssueComment": {
-        const { updated_dev_block_state, updated_interacted_state } = handleIssueCommentEvent(pull, event, recorder, pull_dev_block_state, pull_interacted_state)
-
-        pull_dev_block_state = updated_dev_block_state
-        pull_interacted_state = updated_interacted_state
+        handleIssueCommentEvent(pull, event, recorder)
         break;
       }
       case "PullRequestReview": {
-        const { updated_dev_block_state, updated_interacted_state } = handlePullRequestReviewEvent(pull, event, recorder, pull_dev_block_state, pull_interacted_state)
-
-        pull_dev_block_state = updated_dev_block_state
-        pull_interacted_state = updated_interacted_state
+        handlePullRequestReviewEvent(pull, event, recorder)
         break;
       }
     }
   })
-  const updated_pull = getUpdatedPull(recorder.getPullRecords(), pull, pull_dev_block_state)
+  const updated_pull = getUpdatedPull(recorder.getPullRecords(), pull)
 
   return {
     pull_to_save: updated_pull,
@@ -56,42 +45,54 @@ function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItems[]) {
   }
 }
 
-function checkAndRecordQAedSignature(qaed: boolean, comment: IssueComment | PullRequestReview | PullRequestReviewComment, recorder: PullHistoryRecorder) {
+function checkAndRecordQAedSignature(qaed: boolean, comment: IssueComment | PullRequestReview | PullRequestReviewComment, recorder: PullHistoryRecorder, pull: Pull) {
    if (qaed) {
-    recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'qa_stamped', comment.author?.login || "unkown author")
-    recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'non_qa_ready', comment.author?.login || "unkown author")
+     recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'qa_stamped', comment.author?.login || "unkown author")
+
+     if (!pull.isDevBlocked()) {
+       recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'non_qa_ready', comment.author?.login || "unkown author")
+     }
+
+     pull.setQAReadyState(false)
+     pull.setQAStampedState(true)
   }
 }
 
-function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: IssueComment | PullRequestReview | PullRequestReviewComment, recorder: PullHistoryRecorder, pull_qa_req: boolean) {
+function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: IssueComment | PullRequestReview | PullRequestReviewComment, recorder: PullHistoryRecorder, pull: Pull) {
   switch (dev_block) {
     case true:
       recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'dev_blocked', comment.
         author?.login || "unkown author")
-      //If there is no QA required, then there is no point in recording the event of the commit not being QA ready from a dev block
-      if (pull_qa_req) {
+      pull.setDevBlockedState(true)
+
+      if (pull.isQARequired() && pull.isQAReady()) {
         recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'non_qa_ready', 'dev block change')
+        pull.setQAReadyState(false)
       }
       break
     case false:
       recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'un_dev_blocked', comment.author?.login || "unkown author")
-      if (isCommitQAReady(false, recorder.getCurrentCommit(),pull_qa_req)) {
-        recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt),'qa_ready','dev block change')
+      pull.setDevBlockedState(false)
+
+      if (isCommitQAReady(false, recorder.getCurrentCommit(), pull.isQARequired()) && !pull.isQAed()) {
+        recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'qa_ready', 'dev block change')
+        pull.setQAReadyState(true)
       }
       break
   }
 }
 
-function checkAndRecordInteraction(interacted: boolean, comment: IssueComment | PullRequestReview  | PullRequestReviewComment, recorder: PullHistoryRecorder, previous_pull_interacted_state: boolean): void {
-  if (!previous_pull_interacted_state && interacted) {
-    recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt),'first_interaction',comment.author?.login || 'qa team')
+function checkAndRecordInteraction(interacted: boolean, comment: IssueComment | PullRequestReview  | PullRequestReviewComment, recorder: PullHistoryRecorder, pull: Pull): void {
+  if (!pull.wasInteractedWith() && interacted) {
+    recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'first_interaction', comment.author?.login || 'qa team')
+    pull.setInteractedState(true)
   }
   else if (interacted) {
-    recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt),'interacted',comment.author?.login || 'qa team')
+    recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'interacted', comment.author?.login || 'qa team')
   }
 }
 
-function handlePullRequestCommitEvent(pull: Pull, pull_request_commit_event: PullRequestCommit, recorder: PullHistoryRecorder, pull_dev_block_state: boolean) {
+function handlePullRequestCommitEvent(pull: Pull, pull_request_commit_event: PullRequestCommit, recorder: PullHistoryRecorder) {
   log.info('Pull request commit event %o',pull_request_commit_event)
   const commit = parseCommit(pull, pull_request_commit_event)
   pull.appendCommit(commit)
@@ -102,58 +103,45 @@ function handlePullRequestCommitEvent(pull: Pull, pull_request_commit_event: Pul
 
   // Can check the CI status and Pull Dev Block state for a commit without need to review the comments
   // Need to Check if the Commit is QA Ready
-  if (isCommitQAReady(pull_dev_block_state, commit.getCommit(),pull.isQARequired())) {
+  if (isCommitQAReady(pull.isDevBlocked(), commit.getCommit(),pull.isQARequired())) {
     // Log Event
-    recorder.logEvent(commit.getPushedDate(),'qa_ready','CI')
+    recorder.logEvent(commit.getPushedDate(), 'qa_ready', 'CI')
+    pull.setQAReadyState(true)
   }
 }
 
-function handleIssueCommentEvent(pull: Pull, issue_comment_event: IssueComment, recorder: PullHistoryRecorder, pull_dev_block_state: boolean, pull_interacted_state: boolean) {
+function handleIssueCommentEvent(pull: Pull, issue_comment_event: IssueComment, recorder: PullHistoryRecorder) {
    // It is possible to have a comment before commit events if there is a force-push
     if (hasNoCurrentCommitReference(pull)) {
       setGhostCommitForReference(pull, recorder, issue_comment_event)
     }
-    return handleCommentEvent(pull, issue_comment_event, recorder, pull_dev_block_state, pull_interacted_state)
+    return handleCommentEvent(pull, issue_comment_event, recorder)
 }
 
-function handlePullRequestReviewEvent(pull: Pull, pull_request_review_event: PullRequestReview, recorder: PullHistoryRecorder, pull_dev_block_state: boolean, pull_interacted_state: boolean) {
+function handlePullRequestReviewEvent(pull: Pull, pull_request_review_event: PullRequestReview, recorder: PullHistoryRecorder) {
   if (hasNoCurrentCommitReference(pull)) {
     setGhostCommitForReference(pull, recorder, pull_request_review_event)
   }
 
   if (reviewHasBodyText(pull_request_review_event)) {
-    const { updated_dev_block_state, updated_interacted_state } = handleCommentEvent(pull, pull_request_review_event, recorder, pull_dev_block_state, pull_interacted_state)
-
-    pull_dev_block_state = updated_dev_block_state
-    pull_interacted_state = updated_interacted_state
+    handleCommentEvent(pull, pull_request_review_event, recorder)
   }
 
-  pull_request_review_event.comments.nodes?.map(review_comment => {
-    if (!review_comment) {
-      return
-    }
+  const sanitized_review_comments = utils.removeMaybeNulls(pull_request_review_event.comments.nodes)
 
-    const { updated_dev_block_state, updated_interacted_state } = handleCommentEvent(pull, review_comment, recorder, pull_dev_block_state, pull_interacted_state)
-
-    pull_dev_block_state = updated_dev_block_state
-    pull_interacted_state = updated_interacted_state
+  sanitized_review_comments?.map(review_comment => {
+    handleCommentEvent(pull, review_comment, recorder)
   })
-
-  return { updated_dev_block_state: pull_dev_block_state, updated_interacted_state: pull_interacted_state}
 }
 
-function handleCommentEvent(pull: Pull, comment_event: IssueComment | PullRequestReview  | PullRequestReviewComment, recorder: PullHistoryRecorder, pull_dev_block_state: boolean, pull_interacted_state: boolean) {
+function handleCommentEvent(pull: Pull, comment_event: IssueComment | PullRequestReview  | PullRequestReviewComment, recorder: PullHistoryRecorder) {
   const signatures = parseComment(comment_event, pull.getAuthor())
 
-  checkAndRecordQAedSignature(signatures.qaed, comment_event, recorder)
+  checkAndRecordQAedSignature(signatures.qaed, comment_event, recorder, pull)
 
-  checkAndRecordDevBlockSignature(signatures.dev_block, comment_event, recorder, pull.isQARequired())
+  checkAndRecordDevBlockSignature(signatures.dev_block, comment_event, recorder,pull)
 
-  checkAndRecordInteraction(signatures.interacted, comment_event, recorder, pull_interacted_state)
-
-  return {
-    updated_dev_block_state: signatures.dev_block ?? pull_dev_block_state, updated_interacted_state: signatures.interacted || pull_interacted_state
-  }
+  checkAndRecordInteraction(signatures.interacted, comment_event, recorder, pull)
 }
 
 function hasNoCurrentCommitReference(pull: Pull): boolean {
@@ -184,19 +172,19 @@ function setGhostCommitForReference(pull: Pull, recorder: PullHistoryRecorder, e
   recorder.setCurrentCommitRef(ghost_commit)
 }
 
-function getUpdatedPull(recorder: PullRequestHistory[], pull: Pull, pull_dev_block_state: boolean) {
+function getUpdatedPull(recorder: PullRequestHistory[], pull: Pull) {
   if (recorder.length) {
-    return  parseRecordsAndBackFill(recorder, pull, pull_dev_block_state)
+    return  parseRecordsAndBackFill(recorder, pull)
   }
   return new Pull(pull.getPullRequest(), pull.getCommits(), pull.getHeadCommit())
 }
 
-function parseRecordsAndBackFill(records: PullRequestHistory[], pull: Pull, last_pull_dev_block_state: boolean): Pull {
+function parseRecordsAndBackFill(records: PullRequestHistory[], pull: Pull): Pull {
   const backfilled_commits = backFillCommits(records, pull)
 
   const head_commit = backfilled_commits[pull.getHeadCommit().getID()]
 
-  const backfilled_pull_request = backFillPullRequest(records, pull.getPullRequest(), head_commit, last_pull_dev_block_state)
+  const backfilled_pull_request = backFillPullRequest(records, pull.getPullRequest(), head_commit, pull.isDevBlocked())
 
   return new Pull(backfilled_pull_request, Object.values(backfilled_commits), head_commit)
 }
