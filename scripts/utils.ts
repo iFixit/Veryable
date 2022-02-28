@@ -1,3 +1,4 @@
+import { Maybe } from '@octokit/graphql-schema';
 import {formatISO, getUnixTime, startOfDay, fromUnixTime} from 'date-fns';
 
 export const utils = {
@@ -26,5 +27,13 @@ export const utils = {
              return o;
           }, Object.create(Object.getPrototypeOf(source)))
     : source as T;
+  },
+
+  removeMaybeNulls<Type>(unchecked_nodes: Maybe<Maybe<Type>[]> | undefined):Type[] | undefined {
+  if (unchecked_nodes) {
+    return unchecked_nodes.filter((node): node is Type => {
+      return node !== null
+    })
   }
+}
 }

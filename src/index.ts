@@ -16,6 +16,8 @@ import { parseTimeline } from '../controllers/pull_history_controller'
 import PullHistoryRecorder from '../db/db_pull_history'
 import { saveParsedItems } from '../controllers/save_controller'
 
+import {utils} from '../scripts/utils'
+
 const log = logger('main');
 
 // Automatically run script repeatedly
@@ -30,7 +32,7 @@ async function main() {
   // Iterate through repos defined in the config.ts file
   const setteld_parsed_items = await Promise.allSettled(repos.map(async(repo) => {
     const results = await queryOpenPullsWithTimeline(repo)
-    const sanitized_github_pulls = removeMaybeNulls(results.repository.pullRequests.nodes)
+    const sanitized_github_pulls = utils.removeMaybeNulls(results.repository.pullRequests.nodes)
     return parsePulls(sanitized_github_pulls)
   }))
 
@@ -45,7 +47,7 @@ function parsePulls(github_pulls: GitHubPullRequest[] | undefined):{ pull_to_sav
   const items_to_save: { pull_to_save: Pull, pull_history_to_save: PullHistoryRecorder | null }[] = []
   github_pulls?.forEach(github_pull => {
     const pull = parsePull(github_pull)
-    const sanitized_timeline_items = removeMaybeNulls(github_pull.timelineItems.nodes)
+    const sanitized_timeline_items = utils.removeMaybeNulls(github_pull.timelineItems.nodes)
     if (sanitized_timeline_items) {
       items_to_save.push(parseTimeline(pull, sanitized_timeline_items))
     } else {
@@ -54,14 +56,6 @@ function parsePulls(github_pulls: GitHubPullRequest[] | undefined):{ pull_to_sav
   });
 
   return items_to_save
-}
-
-function removeMaybeNulls<Type>(unchecked_nodes: Maybe<Maybe<Type>[]> | undefined):Type[] | undefined {
-  if (unchecked_nodes) {
-    return unchecked_nodes.filter((node): node is Type => {
-      return node !== null
-    })
-  }
 }
 
 function retrieveValuesOfFulFilledPromises<Type>(settled_promises: PromiseSettledResult<Type>[]) {
