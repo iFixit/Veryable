@@ -1,5 +1,5 @@
 import { Commit, PullRequest, PullRequestHistory } from "@prisma/client";
-import {IssueComment, PullRequest as GitHubPullRequest } from '@octokit/graphql-schema'
+import {IssueComment, PullRequest as GitHubPullRequest, PullRequestReview } from '@octokit/graphql-schema'
 
 export const mock_pull_request: PullRequest = {
   "repo": "iFixit/ifixit",
@@ -129,6 +129,36 @@ const github_comment_interacted: RecursivePartial<IssueComment> = {
   author: { login: 'ardelato'}
 }
 
+
+const github_review_comment: RecursivePartial<PullRequestReview> = {
+  ...github_comment,
+  comments: {}
+}
+const github_review_comment_qaed: RecursivePartial<PullRequestReview> = {
+  ...github_comment_qaed,
+  comments: {}
+}
+const github_review_comment_dev_blocked: RecursivePartial<PullRequestReview> = {
+  ...github_comment_dev_blocked,
+  comments: {}
+}
+const github_review_comment_un_dev_blocked: RecursivePartial<PullRequestReview> = {
+  ...github_comment_dev_blocked,
+  comments: {}
+}
+const github_review_comment_interacted: RecursivePartial<PullRequestReview> = {
+  ...github_comment_interacted,
+  comments: {}
+}
+
+const github_review_comment_threaded: RecursivePartial<PullRequestReview> = {
+  ...github_review_comment,
+  comments: {
+    nodes: [github_comment_qaed,github_comment_dev_blocked, github_comment_un_dev_blocked]
+  }
+}
+
+
 export const GitHubMocks = {
   PullRequest: {
     base: github_pull_request,
@@ -146,5 +176,13 @@ export const GitHubMocks = {
     dev_blocked: github_comment_dev_blocked,
     un_dev_blocked: github_comment_un_dev_blocked,
     interacted: github_comment_interacted
+  },
+  Review: {
+    no_signatures: github_review_comment,
+    qaed: github_review_comment_qaed,
+    dev_blocked: github_review_comment_dev_blocked,
+    un_dev_blocked: github_review_comment_un_dev_blocked,
+    interacted: github_review_comment_interacted,
+    qaed_dev_blocked: github_review_comment_threaded
   }
 }

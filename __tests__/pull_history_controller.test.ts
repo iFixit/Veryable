@@ -1,5 +1,5 @@
-import { IssueComment } from "@octokit/graphql-schema"
-import { checkAndRecordDevBlockSignature, checkAndRecordInteraction, checkAndRecordQAedSignature, handleCommentEvent, handleIssueCommentEvent, handlePullRequestCommitEvent } from "../controllers/pull_history_controller"
+import { IssueComment, PullRequestReview } from "@octokit/graphql-schema"
+import { checkAndRecordDevBlockSignature, checkAndRecordInteraction, checkAndRecordQAedSignature, handleCommentEvent, handleIssueCommentEvent, handlePullRequestCommitEvent, handlePullRequestReviewEvent } from "../controllers/pull_history_controller"
 import CommitDB from "../db/db_commit"
 import Pull from "../db/db_pull"
 import PullHistoryRecorder from "../db/db_pull_history"
@@ -591,6 +591,145 @@ describe('Validate Parsing Pull Timeline Items', () => {
           actor: 'mcTestyFace',
           pull_request_event_index: 2
         }])
+    })
+  })
+
+  describe('Validate PullRequestReview Parsing', () => {
+
+    test('Events have Reference to Prior Commit Event', () => {
+      const local_pull = new Pull(mock_pull_request)
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
+      const pull_request_event = { ...GitHubMocks.Commit.base }
+
+      handlePullRequestCommitEvent(local_pull, pull_request_event as any, recorder)
+
+      handleCommentEvent(local_pull, GitHubMocks.Comment.qaed as PullRequestReview, recorder)
+
+      expect(recorder.getPullRecords()).toEqual([
+        {
+          start_date: 1644825600,
+          date: 1644887820,
+          pull_request_id: local_pull.getID(),
+          commit_event_id: commit.getID(),
+          commit_sha: commit.getSha(),
+          event: 'qa_ready',
+          actor: 'CI',
+          pull_request_event_index: 1
+        },
+        {
+          start_date: 1638345600,
+          date: 1638385133,
+          pull_request_id: local_pull.getID(),
+          commit_event_id: commit.getID(),
+          commit_sha: commit.getSha(),
+          event: 'qa_stamped',
+          actor: 'mcTestyFace',
+          pull_request_event_index: 2
+        },
+        {
+          start_date: 1638345600,
+          date: 1638385133,
+          pull_request_id: local_pull.getID(),
+          commit_event_id: commit.getID(),
+          commit_sha: commit.getSha(),
+          event: 'non_qa_ready',
+          actor: 'mcTestyFace',
+          pull_request_event_index: 3
+        }
+      ])
+    })
+
+    test('Events have Reference to a Ghost Commit event', () => {
+      const local_pull = new Pull(mock_pull_request)
+      const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
+
+      handlePullRequestReviewEvent(local_pull, GitHubMocks.Review.qaed as PullRequestReview, recorder)
+
+      expect(recorder.getPullRecords()).toEqual([
+        {
+          start_date: 1638345600,
+          date: 1638385133,
+          pull_request_id: local_pull.getID(),
+          commit_event_id: GitHubMocks.Comment.qaed.id,
+          commit_sha: 'unknown_starting_commit',
+          event: 'qa_stamped',
+          actor: 'mcTestyFace',
+          pull_request_event_index: 1
+        },
+        {
+          start_date: 1638345600,
+          date: 1638385133,
+          pull_request_id: local_pull.getID(),
+          commit_event_id: GitHubMocks.Comment.qaed.id,
+          commit_sha: 'unknown_starting_commit',
+          event: 'non_qa_ready',
+          actor: 'mcTestyFace',
+          pull_request_event_index: 2
+        }])
+    })
+
+
+    test('Parsing of multiple comments', () => {
+      const local_pull = new Pull(mock_pull_request)
+      const recorder = new PullHistoryRecorder(local_pull.getID())
+      const pull_request_event = { ...GitHubMocks.Commit.base }
+
+      handlePullRequestCommitEvent(local_pull, pull_request_event as any, recorder)
+
+      handlePullRequestReviewEvent(local_pull, GitHubMocks.Review.qaed_dev_blocked as PullRequestReview, recorder)
+
+      expect(recorder.getPullRecords()).toEqual([
+        {
+          start_date: 1644825600,
+          date: 1644887820,
+          pull_request_id: local_pull.getID(),
+          commit_event_id: commit.getID(),
+          commit_sha: commit.getSha(),
+          event: 'qa_ready',
+          actor: 'CI',
+          pull_request_event_index: 1
+        },
+        {
+          start_date: 1638345600,
+          date: 1638385133,
+          pull_request_id: local_pull.getID(),
+          commit_event_id: commit.getID(),
+          commit_sha: commit.getSha(),
+          event: 'qa_stamped',
+          actor: 'mcTestyFace',
+          pull_request_event_index: 2
+        },
+        {
+          start_date: 1638345600,
+          date: 1638385133,
+          pull_request_id: local_pull.getID(),
+          commit_event_id: commit.getID(),
+          commit_sha: commit.getSha(),
+          event: 'non_qa_ready',
+          actor: 'mcTestyFace',
+          pull_request_event_index: 3
+        },
+        {
+          start_date: 1638345600,
+          date: 1638385133,
+          pull_request_id: local_pull.getID(),
+          commit_event_id: commit.getID(),
+          commit_sha: commit.getSha(),
+          event: 'dev_blocked',
+          actor: 'mcTestyFace',
+          pull_request_event_index: 4
+        },
+        {
+          start_date: 1638345600,
+          date: 1638385133,
+          pull_request_id: local_pull.getID(),
+          commit_event_id: commit.getID(),
+          commit_sha: commit.getSha(),
+          event: 'un_dev_blocked',
+          actor: 'mcTestyFace',
+          pull_request_event_index: 5
+        }
+      ])
     })
   })
 })
