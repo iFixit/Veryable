@@ -49,7 +49,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
         commit_event_id: commit.getID(),
         commit_sha: commit.getSha(),
         event: 'non_qa_ready',
-        actor: 'mcTestyFace',
+        actor: 'QAed',
         pull_request_event_index: 2
       }])
     })
@@ -558,7 +558,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           commit_event_id: commit.getID(),
           commit_sha: commit.getSha(),
           event: 'non_qa_ready',
-          actor: 'mcTestyFace',
+          actor: 'QAed',
           pull_request_event_index: 3
         }
       ])
@@ -588,7 +588,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           commit_event_id: GitHubMocks.Comment.qaed.id,
           commit_sha: 'unknown_starting_commit',
           event: 'non_qa_ready',
-          actor: 'mcTestyFace',
+          actor: 'QAed',
           pull_request_event_index: 2
         }])
     })
@@ -633,7 +633,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           commit_event_id: commit.getID(),
           commit_sha: commit.getSha(),
           event: 'non_qa_ready',
-          actor: 'mcTestyFace',
+          actor: 'QAed',
           pull_request_event_index: 3
         }
       ])
@@ -663,7 +663,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           commit_event_id: GitHubMocks.Comment.qaed.id,
           commit_sha: 'unknown_starting_commit',
           event: 'non_qa_ready',
-          actor: 'mcTestyFace',
+          actor: 'QAed',
           pull_request_event_index: 2
         }])
     })
@@ -706,7 +706,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           commit_event_id: commit.getID(),
           commit_sha: commit.getSha(),
           event: 'non_qa_ready',
-          actor: 'mcTestyFace',
+          actor: 'QAed',
           pull_request_event_index: 3
         },
         {

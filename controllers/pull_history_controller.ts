@@ -50,7 +50,7 @@ function checkAndRecordQAedSignature(qaed: boolean, comment: IssueComment | Pull
      recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'qa_stamped', comment.author?.login || "unkown author")
 
      if (!pull.isDevBlocked()) {
-       recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'non_qa_ready', comment.author?.login || "unkown author")
+       recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'non_qa_ready', 'QAed')
      }
 
      pull.setQAReadyState(false)
