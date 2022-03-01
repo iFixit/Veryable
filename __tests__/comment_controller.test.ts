@@ -1,5 +1,5 @@
 import { IssueComment } from "@octokit/graphql-schema";
-import { parseComment, isQAed, isDevBlocked, isInteracted } from "../controllers/comment_controller";
+import { isQAed, isDevBlocked, isInteracted } from "../controllers/comment_controller";
 import { GitHubMocks } from "./fixtures";
 
 describe('Validate Parsing of Signatures in a Comment', () => {
@@ -38,15 +38,6 @@ describe('Validate Parsing of Signatures in a Comment', () => {
 
     test('Interacted by QA Team member but is Pull Author', () => {
       expect(isInteracted(GitHubMocks.Comment.interacted as IssueComment,'ardelato')).toBe(false)
-    })
-  })
-
-  test('Validate Signature Object', () => {
-    const signatures = parseComment(GitHubMocks.Comment.no_signatures as IssueComment, 'mcTestyFace')
-    expect(signatures).toMatchObject({
-      qaed: expect.any(Boolean),
-      dev_block: null,
-      interacted: expect.any(Boolean),
     })
   })
 })

@@ -3,7 +3,7 @@ import prisma from '../prisma/client'
 import Pull from '../db/db_pull'
 import PullHistoryRecorder from '../db/db_pull_history'
 import { isCommitQAReady, parseCommit } from '../controllers/commit_controller'
-import { parseComment } from './comment_controller'
+import { isDevBlocked, isInteracted, isQAed } from './comment_controller'
 
 import {IssueComment, PullRequestCommit, PullRequestReview, PullRequestReviewComment, PullRequestTimelineItems} from "@octokit/graphql-schema"
 import logger from '../src/logger'
@@ -45,7 +45,8 @@ function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItems[]) {
   }
 }
 
-function checkAndRecordQAedSignature(qaed: boolean, comment: IssueComment | PullRequestReview | PullRequestReviewComment, recorder: PullHistoryRecorder, pull: Pull) {
+function checkAndRecordQAedSignature(comment: IssueComment | PullRequestReview | PullRequestReviewComment, recorder: PullHistoryRecorder, pull: Pull) {
+   const qaed = isQAed(comment)
    if (qaed) {
      recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'qa_stamped', comment.author?.login || "unkown author")
 
@@ -58,8 +59,9 @@ function checkAndRecordQAedSignature(qaed: boolean, comment: IssueComment | Pull
   }
 }
 
-function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: IssueComment | PullRequestReview | PullRequestReviewComment, recorder: PullHistoryRecorder, pull: Pull) {
-  switch (dev_block) {
+function checkAndRecordDevBlockSignature(comment: IssueComment | PullRequestReview | PullRequestReviewComment, recorder: PullHistoryRecorder, pull: Pull) {
+  const dev_blocked = isDevBlocked(comment)
+  switch (dev_blocked) {
     case true:
       recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'dev_blocked', comment.
         author?.login || "unkown author")
@@ -68,7 +70,7 @@ function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: Iss
         recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'non_qa_ready', 'dev block change')
       }
 
-        pull.setQAReadyState(false)
+      pull.setQAReadyState(false)
       pull.setDevBlockedState(true)
       break
     case false:
@@ -84,7 +86,8 @@ function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: Iss
   }
 }
 
-function checkAndRecordInteraction(interacted: boolean, comment: IssueComment | PullRequestReview  | PullRequestReviewComment, recorder: PullHistoryRecorder, pull: Pull): void {
+function checkAndRecordInteraction(comment: IssueComment | PullRequestReview | PullRequestReviewComment, recorder: PullHistoryRecorder, pull: Pull): void {
+  const interacted = isInteracted(comment, pull.getAuthor())
   if (!pull.wasInteractedWith() && interacted) {
     recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'first_interaction', comment.author?.login || 'qa team')
     pull.setInteractedState(true)
@@ -95,7 +98,6 @@ function checkAndRecordInteraction(interacted: boolean, comment: IssueComment | 
 }
 
 function handlePullRequestCommitEvent(pull: Pull, pull_request_commit_event: PullRequestCommit, recorder: PullHistoryRecorder) {
-  log.info('Pull request commit event %o',pull_request_commit_event)
   const commit = parseCommit(pull, pull_request_commit_event)
   pull.appendCommit(commit)
   if (commit.getSha() === pull.getHeadCommitSha()) {
@@ -137,13 +139,11 @@ function handlePullRequestReviewEvent(pull: Pull, pull_request_review_event: Pul
 }
 
 function handleCommentEvent(pull: Pull, comment_event: IssueComment | PullRequestReview  | PullRequestReviewComment, recorder: PullHistoryRecorder) {
-  const signatures = parseComment(comment_event, pull.getAuthor())
+  checkAndRecordQAedSignature(comment_event, recorder, pull)
 
-  checkAndRecordQAedSignature(signatures.qaed, comment_event, recorder, pull)
+  checkAndRecordDevBlockSignature(comment_event, recorder,pull)
 
-  checkAndRecordDevBlockSignature(signatures.dev_block, comment_event, recorder,pull)
-
-  checkAndRecordInteraction(signatures.interacted, comment_event, recorder, pull)
+  checkAndRecordInteraction(comment_event, recorder, pull)
 }
 
 function hasNoCurrentCommitReference(pull: Pull): boolean {

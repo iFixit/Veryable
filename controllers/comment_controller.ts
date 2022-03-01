@@ -6,14 +6,6 @@ import { IssueComment, PullRequestReview, PullRequestReviewComment} from "@octok
 import config from '../config/config'
 const { qa_team, signatures } = config
 
-function parseComment(comment: IssueComment | PullRequestReview  | PullRequestReviewComment, pull_request_author: string): { qaed: boolean, dev_block: boolean | null, interacted: boolean }{
-  return {
-    qaed: isQAed(comment),
-    dev_block: isDevBlocked(comment),
-    interacted: isInteracted(comment,pull_request_author)
-  }
-}
-
 
 function isQAed(comment: IssueComment | PullRequestReview  | PullRequestReviewComment): boolean {
   const regex = new RegExp(signatures.QA + signatures.emoji, 'i')
@@ -36,4 +28,4 @@ function isInteracted(comment: IssueComment | PullRequestReview  | PullRequestRe
   return qa_team.includes(comment.author?.login ?? '') && pull_request_author !== comment.author?.login
 }
 
-export { parseComment, isQAed, isDevBlocked, isInteracted}
+export { isQAed, isDevBlocked, isInteracted }
