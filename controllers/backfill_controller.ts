@@ -6,12 +6,13 @@ import logger from '../src/logger'
 const log = logger('backfill_controller')
 
 
-export function backFillCommits(records: PullRequestHistory[], pull: Pull): { [commit_sha: string]: CommitDB } {
+function backFillCommits(records: PullRequestHistory[], pull: Pull): { [commit_sha: string]: CommitDB } {
   let current_commit_id: string | null = null;
   let current_commit_state = returnDefaultCommitState();
-  const commits: { [commit_event_id: string]: Commit } = generateCommitsDictionary(pull.getCommits())
-  const backfilled_commits: { [commit_event_id: string]: CommitDB} = {}
 
+  const commits: { [commit_event_id: string]: Commit } = generateCommitsDictionary(pull.getCommits())
+
+  const backfilled_commits: { [commit_event_id: string]: CommitDB} = {}
 
   records.forEach(record => {
     current_commit_id = current_commit_id ?? record.commit_event_id
@@ -48,6 +49,7 @@ export function backFillCommits(records: PullRequestHistory[], pull: Pull): { [c
         break;
     }
   })
+
   if (current_commit_id) {
     backfilled_commits[current_commit_id] = new CommitDB({
       ...commits[current_commit_id],
@@ -61,7 +63,7 @@ export function backFillCommits(records: PullRequestHistory[], pull: Pull): { [c
   return backfilled_commits
 }
 
-export function backFillPullRequest(records: PullRequestHistory[], pull_request: PullRequest, head_commit: CommitDB, last_pull_dev_block_state: boolean): PullRequest{
+function backFillPullRequest(records: PullRequestHistory[], pull_request: PullRequest, head_commit: CommitDB, last_pull_dev_block_state: boolean): PullRequest{
   const agg_qa_ready_count = records.filter(record => record.event === 'qa_ready').length;
   const agg_dev_block_count = records.filter(record => record.event === 'dev_blocked').length;
   const agg_qa_stamped_count = records.filter(record => record.event === 'qa_stamped').length;
@@ -104,3 +106,6 @@ function returnDefaultCommitState(): {
     qa_stamped: false
   }
 }
+
+
+export {backFillCommits, backFillPullRequest, generateCommitsDictionary, returnDefaultCommitState}
