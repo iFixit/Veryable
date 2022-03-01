@@ -25,7 +25,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
     test('Record QAed Event and Non QA Ready', () => {
       const local_pull = new Pull(mock_pull_request)
       const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
-      const qaed = true
+      local_pull.setQAReadyState(true)
       expect(recorder.getPullRecords().length).toBe(0)
 
       checkAndRecordQAedSignature(qaed, GitHubMocks.Comment.qaed as IssueComment, recorder, local_pull)
@@ -59,7 +59,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
       const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
       const qaed = true
 
-      local_pull.setDevBlockedState(true)
+      local_pull.setQAReadyState(false)
       expect(recorder.getPullRecords().length).toBe(0)
 
       checkAndRecordQAedSignature(qaed, GitHubMocks.Comment.qaed as IssueComment, recorder, local_pull)
@@ -567,6 +567,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
     test('Events have Reference to a Ghost Commit event', () => {
       const local_pull = new Pull(mock_pull_request)
       const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
+      local_pull.setQAReadyState(true)
 
       handleIssueCommentEvent(local_pull, GitHubMocks.Comment.qaed as IssueComment, recorder)
 
@@ -642,6 +643,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
     test('Events have Reference to a Ghost Commit event', () => {
       const local_pull = new Pull(mock_pull_request)
       const recorder = new PullHistoryRecorder(local_pull.getID(), commit)
+      local_pull.setQAReadyState(true)
 
       handlePullRequestReviewEvent(local_pull, GitHubMocks.Review.qaed as PullRequestReview, recorder)
 

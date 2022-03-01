@@ -49,7 +49,7 @@ function checkAndRecordQAedSignature(qaed: boolean, comment: IssueComment | Pull
    if (qaed) {
      recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'qa_stamped', comment.author?.login || "unkown author")
 
-     if (!pull.isDevBlocked()) {
+     if (pull.isQAReady()) {
        recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'non_qa_ready', 'QAed')
      }
 
@@ -63,21 +63,23 @@ function checkAndRecordDevBlockSignature(dev_block: boolean | null, comment: Iss
     case true:
       recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'dev_blocked', comment.
         author?.login || "unkown author")
-      pull.setDevBlockedState(true)
 
       if (pull.isQARequired() && pull.isQAReady()) {
         recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'non_qa_ready', 'dev block change')
-        pull.setQAReadyState(false)
       }
+
+        pull.setQAReadyState(false)
+      pull.setDevBlockedState(true)
       break
     case false:
       recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'un_dev_blocked', comment.author?.login || "unkown author")
-      pull.setDevBlockedState(false)
 
-      if (isCommitQAReady(false, recorder.getCurrentCommit(), pull.isQARequired()) && !pull.isQAed()) {
+      if (!pull.isQAed() && isCommitQAReady(false, recorder.getCurrentCommit(), pull.isQARequired())) {
         recorder.logEvent(utils.getUnixTimeFromISO(comment.createdAt), 'qa_ready', 'dev block change')
         pull.setQAReadyState(true)
       }
+
+      pull.setDevBlockedState(false)
       break
   }
 }
