@@ -17,7 +17,7 @@ function backFillCommits(records: PullRequestHistory[], pull: Pull): { [commit_s
   records.forEach(record => {
     current_commit_id = current_commit_id ?? record.commit_event_id
 
-    if (current_commit_id !== record.commit_sha) {
+    if (current_commit_id !== record.commit_event_id) {
       backfilled_commits[current_commit_id] = new CommitDB({
         ...commits[current_commit_id],
         ...current_commit_state
