@@ -1,18 +1,19 @@
 import { Maybe } from '@octokit/graphql-schema';
-import {formatISO, getUnixTime, startOfDay, fromUnixTime} from 'date-fns';
+import {DateTime} from 'luxon'
 
 export const utils = {
+
   getUnixTimeFromISO(iso_date: string): number{
-    return getUnixTime(new Date(iso_date))
+    const date = DateTime.fromISO(iso_date);
+    return date.toSeconds()
   },
 
   getISOTimeFromUnix(unix_date: number): string{
-    return formatISO(fromUnixTime(unix_date))
+    return DateTime.fromSeconds(unix_date,{zone: 'UTC'}).toISO({suppressMilliseconds: true});
   },
 
-  // Will be zeroed to local time -- +8HRS for PST
   getStartOfDayInUnixTime(unix_date: number): number{
-    return getUnixTime(startOfDay(fromUnixTime(unix_date)))
+    return DateTime.fromSeconds(unix_date,{zone: 'UTC'}).startOf('day').toSeconds()
   },
 
   deepCopy<T>(source: T): T {

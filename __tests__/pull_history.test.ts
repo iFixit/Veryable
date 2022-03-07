@@ -24,7 +24,7 @@ describe("Pull History Recorder Class", () => {
 
     expect(recorder.getPullRecords()).toEqual([
       {
-        start_date: 1636531200,
+        start_date: 1636588800,
         date: 1636608908,
         pull_request_id: mock_pull_request.pull_request_id,
         commit_event_id: mock_commit.commit_event_id,
@@ -34,7 +34,7 @@ describe("Pull History Recorder Class", () => {
         pull_request_event_index: 1
       },
       {
-        start_date: 1636531200,
+        start_date: 1636588800,
         date: 1636609102,
         pull_request_id: mock_pull_request.pull_request_id,
         commit_event_id: mock_commit.commit_event_id,
@@ -71,7 +71,7 @@ describe("Pull History Recorder Class", () => {
 
     expect(recorder.getPullRecords()).toEqual([
       {
-        start_date: 1636531200,
+        start_date: 1636588800,
         date: 1636608908,
         pull_request_id: mock_pull_request.pull_request_id,
         commit_event_id: mock_commit.commit_event_id,
@@ -81,7 +81,7 @@ describe("Pull History Recorder Class", () => {
         pull_request_event_index: 1
       },
       {
-        start_date: 1636531200,
+        start_date: 1636588800,
         date: 1636609102,
         pull_request_id: mock_pull_request.pull_request_id,
         commit_event_id: mock_commit.commit_event_id,
@@ -91,7 +91,7 @@ describe("Pull History Recorder Class", () => {
         pull_request_event_index: 2
       },
       {
-        start_date: 1643011200,
+        start_date: 1642982400,
         date: 1643050892,
         pull_request_id: mock_pull_request.pull_request_id,
         commit_event_id: new_commit.getID(),

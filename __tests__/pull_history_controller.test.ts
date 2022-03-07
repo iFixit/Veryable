@@ -32,7 +32,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
       const records = recorder.getPullRecords()
       expect(records.length).toBe(2)
       expect(records).toEqual([{
-        start_date: 1638345600,
+        start_date: 1638316800,
         date: 1638385133,
         pull_request_id: local_pull.getID(),
         commit_event_id: commit.getID(),
@@ -42,7 +42,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
         pull_request_event_index: 1
       },
       {
-        start_date: 1638345600,
+        start_date: 1638316800,
         date: 1638385133,
         pull_request_id: local_pull.getID(),
         commit_event_id: commit.getID(),
@@ -66,7 +66,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
 
       expect(records.length).toBe(1)
       expect(records).toEqual([{
-        start_date: 1638345600,
+        start_date: 1638316800,
         date: 1638385133,
         pull_request_id: local_pull.getID(),
         commit_event_id: commit.getID(),
@@ -106,7 +106,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
       const records = recorder.getPullRecords()
       expect(records.length).toBe(1)
       expect(records).toEqual([{
-        start_date: 1638345600,
+        start_date: 1638316800,
         date: 1638385133,
         pull_request_id: local_pull.getID(),
         commit_event_id: commit.getID(),
@@ -130,7 +130,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
       expect(records.length).toBe(2)
       expect(records).toEqual([
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -140,7 +140,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           pull_request_event_index: 1
         },
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -163,7 +163,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
       expect(records.length).toBe(1)
       expect(records).toEqual([
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -188,7 +188,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
       const records = recorder.getPullRecords()
       expect(records.length).toBe(1)
       expect(records).toEqual([{
-        start_date: 1638345600,
+        start_date: 1638316800,
         date: 1638385133,
         pull_request_id: local_pull.getID(),
         commit_event_id: commit.getID(),
@@ -211,7 +211,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
       expect(records.length).toBe(2)
       expect(records).toEqual([
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -221,7 +221,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           pull_request_event_index: 1
         },
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -247,7 +247,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
       expect(records.length).toBe(1)
       expect(records).toEqual([
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -284,7 +284,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
       const records = recorder.getPullRecords()
       expect(records.length).toBe(1)
       expect(records).toEqual([{
-        start_date: 1638345600,
+        start_date: 1638316800,
         date: 1638385133,
         pull_request_id: local_pull.getID(),
         commit_event_id: commit.getID(),
@@ -307,7 +307,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
       const records = recorder.getPullRecords()
       expect(records.length).toBe(1)
       expect(records).toEqual([{
-        start_date: 1638345600,
+        start_date: 1638316800,
         date: 1638385133,
         pull_request_id: local_pull.getID(),
         commit_event_id: commit.getID(),
@@ -498,7 +498,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
       expect(recorder.getPullRecords().length).toBe(1)
       expect(recorder.getPullRecords()).toEqual([
         {
-          start_date: 1644825600,
+          start_date: 1644883200,
           date: 1644887820,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -524,7 +524,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
 
       expect(recorder.getPullRecords()).toEqual([
         {
-          start_date: 1644825600,
+          start_date: 1644883200,
           date: 1644887820,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -534,7 +534,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           pull_request_event_index: 1
         },
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -544,7 +544,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           pull_request_event_index: 2
         },
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -565,7 +565,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
 
       expect(recorder.getPullRecords()).toEqual([
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: GitHubMocks.Comment.qaed.id,
@@ -575,7 +575,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           pull_request_event_index: 1
         },
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: GitHubMocks.Comment.qaed.id,
@@ -600,7 +600,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
 
       expect(recorder.getPullRecords()).toEqual([
         {
-          start_date: 1644825600,
+          start_date: 1644883200,
           date: 1644887820,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -610,7 +610,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           pull_request_event_index: 1
         },
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -620,7 +620,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           pull_request_event_index: 2
         },
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -641,7 +641,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
 
       expect(recorder.getPullRecords()).toEqual([
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: GitHubMocks.Comment.qaed.id,
@@ -651,7 +651,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           pull_request_event_index: 1
         },
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: GitHubMocks.Comment.qaed.id,
@@ -674,7 +674,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
 
       expect(recorder.getPullRecords()).toEqual([
         {
-          start_date: 1644825600,
+          start_date: 1644883200,
           date: 1644887820,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -684,7 +684,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           pull_request_event_index: 1
         },
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -694,7 +694,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           pull_request_event_index: 2
         },
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -704,7 +704,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           pull_request_event_index: 3
         },
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
@@ -714,7 +714,7 @@ describe('Validate Parsing Pull Timeline Items', () => {
           pull_request_event_index: 4
         },
         {
-          start_date: 1638345600,
+          start_date: 1638316800,
           date: 1638385133,
           pull_request_id: local_pull.getID(),
           commit_event_id: commit.getID(),
