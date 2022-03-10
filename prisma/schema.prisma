@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["interactiveTransactions"]
 }
 
@@ -17,18 +17,18 @@ datasource db {
 }
 
 model Commit {
-  commit_event_id String            @id @db.VarChar(255)
-  sha             String            @db.VarChar(40)
-  qa_ready        Boolean?          @default(false)
-  interacted      Boolean?          @default(false)
-  dev_blocked     Boolean?          @default(false)
-  qa_stamped      Boolean?          @default(false)
-  ci_status       commit_ci_status?
-  committed_at    Int
-  pushed_at       Int?
-  pull_request_id String?           @db.VarChar(255)
-  pull_request    PullRequest?      @relation("qa__commitsToqa__pull_requests", fields: [pull_request_id], references: [pull_request_id], onDelete: Cascade, onUpdate: NoAction, map: "qa__commits_ibfk_1")
-  pull_request_head_ref PullRequestCommit? @relation("qa__commitsToqa__pull_request_commit")
+  commit_event_id       String               @id @db.VarChar(255)
+  sha                   String               @db.VarChar(40)
+  qa_ready              Boolean?             @default(false)
+  interacted            Boolean?             @default(false)
+  dev_blocked           Boolean?             @default(false)
+  qa_stamped            Boolean?             @default(false)
+  ci_status             commit_ci_status?
+  committed_at          Int
+  pushed_at             Int?
+  pull_request_id       String?              @db.VarChar(255)
+  pull_request          PullRequest?         @relation("qa__commitsToqa__pull_requests", fields: [pull_request_id], references: [pull_request_id], onDelete: Cascade, onUpdate: NoAction, map: "qa__commits_ibfk_1")
+  pull_request_head_ref PullRequestCommit?   @relation("qa__commitsToqa__pull_request_commit")
   commit_history        PullRequestHistory[] @relation("qa__commit_historyToqa__commits")
 
   @@unique([sha, pull_request_id])
@@ -47,30 +47,30 @@ model Day {
 }
 
 model PullRequest {
-  pull_request_id  String             @id @db.VarChar(255)
-  repo             String         @default("") @db.VarChar(100)
-  pull_number      Int            @db.UnsignedInt
-  state            pull_request_state
-  title            String         @db.VarChar(255)
-  head_ref         String         @db.Char(40)
-  head_commit_id   String         @db.Char(255)
-  qa_req           Int            @default(1)
-  created_at       Int?           @db.UnsignedInt
-  updated_at       Int?           @db.UnsignedInt
-  closed_at        Int?           @db.UnsignedInt
-  merged_at        Int?           @db.UnsignedInt
-  closes           Int?           @db.UnsignedInt
-  author           String             @db.VarChar(40)
-  agg_interacted_count Int                @default(0)
-  agg_qa_ready_count   Int                @default(0)
-  agg_dev_block_count  Int                @default(0)
-  agg_qa_stamped_count Int                @default(0)
-  qa_ready         Boolean?           @default(false)
-  interacted       Boolean?           @default(false)
-  dev_blocked      Boolean?           @default(false)
-  qa_stamped       Boolean?           @default(false)
-  commits              Commit[]           @relation("qa__commitsToqa__pull_requests")
-  head_commit          PullRequestCommit? @relation("qa__pull_request_commitToqa__pull_requests")
+  pull_request_id      String               @id @db.VarChar(255)
+  repo                 String               @default("") @db.VarChar(100)
+  pull_number          Int                  @db.UnsignedInt
+  state                pull_request_state
+  title                String               @db.VarChar(255)
+  head_ref             String               @db.Char(40)
+  head_commit_id       String               @db.Char(255)
+  qa_req               Int                  @default(1)
+  created_at           Int?                 @db.UnsignedInt
+  updated_at           Int?                 @db.UnsignedInt
+  closed_at            Int?                 @db.UnsignedInt
+  merged_at            Int?                 @db.UnsignedInt
+  closes               Int?                 @db.UnsignedInt
+  author               String               @db.VarChar(40)
+  agg_interacted_count Int                  @default(0)
+  agg_qa_ready_count   Int                  @default(0)
+  agg_dev_block_count  Int                  @default(0)
+  agg_qa_stamped_count Int                  @default(0)
+  qa_ready             Boolean?             @default(false)
+  interacted           Boolean?             @default(false)
+  dev_blocked          Boolean?             @default(false)
+  qa_stamped           Boolean?             @default(false)
+  commits              Commit[]             @relation("qa__commitsToqa__pull_requests")
+  head_commit          PullRequestCommit?   @relation("qa__pull_request_commitToqa__pull_requests")
   pull_request_history PullRequestHistory[]
 
   @@unique([repo, pull_number])
@@ -127,4 +127,6 @@ enum pull_request_history_event {
   dev_blocked
   un_dev_blocked
   qa_stamped
+  closed
+  merged
 }

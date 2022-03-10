@@ -113,6 +113,8 @@ Enum pull_request_history_event {
   dev_blocked
   un_dev_blocked
   qa_stamped
+  closed
+  merged
 }
 
 Ref: Commit.pull_request_id > PullRequest.pull_request_id [delete: Cascade]

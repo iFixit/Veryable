@@ -1,3 +1,4 @@
+import { pull_request_history_event } from "@prisma/client"
 import prisma from '../prisma/client'
 
 import Pull from '../db/db_pull'
@@ -5,7 +6,7 @@ import PullHistoryRecorder from '../db/db_pull_history'
 import { isCommitQAReady, parseCommit } from '../controllers/commit_controller'
 import { isDevBlocked, isInteracted, isQAed } from './comment_controller'
 
-import {IssueComment, PullRequestCommit, PullRequestReview, PullRequestReviewComment, PullRequestTimelineItems} from "@octokit/graphql-schema"
+import {ClosedEvent, IssueComment, MergedEvent, PullRequestCommit, PullRequestReview, PullRequestReviewComment, PullRequestTimelineItems} from "@octokit/graphql-schema"
 import logger from '../src/logger'
 const log = logger('pull_parser_timeline')
 
@@ -33,6 +34,14 @@ function parseTimeline(pull: Pull, timelineItems: PullRequestTimelineItems[]) {
       }
       case "PullRequestReview": {
         handlePullRequestReviewEvent(pull, event, recorder)
+        break;
+      }
+      case "MergedEvent": {
+        handleMergedClosedEvent(pull, event, recorder, 'merged' as pull_request_history_event);
+        break;
+      }
+      case "ClosedEvent": {
+        handleMergedClosedEvent(pull, event, recorder, 'closed' as pull_request_history_event);
         break;
       }
     }
@@ -112,6 +121,14 @@ function handlePullRequestCommitEvent(pull: Pull, pull_request_commit_event: Pul
     recorder.logEvent(commit.getPushedDate(), 'qa_ready', 'CI')
     pull.setQAReadyState(true)
   }
+}
+
+function handleMergedClosedEvent(pull: Pull, merged_closed_event: MergedEvent | ClosedEvent, recorder: PullHistoryRecorder, eventType: pull_request_history_event) {
+  recorder.logEvent(utils.getUnixTimeFromISO(merged_closed_event.createdAt), eventType, merged_closed_event.actor?.login ?? 'unknown author')
+
+  recorder.logEvent(utils.getUnixTimeFromISO(merged_closed_event.createdAt), 'non_qa_ready', eventType + ' pull request')
+
+  pull.setQAReadyState(false);
 }
 
 function handleIssueCommentEvent(pull: Pull, issue_comment_event: IssueComment, recorder: PullHistoryRecorder) {

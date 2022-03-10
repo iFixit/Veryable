@@ -168,6 +168,8 @@ timelineItems(
     PULL_REQUEST_COMMIT
     PULL_REQUEST_REVIEW
     ISSUE_COMMENT
+    CLOSED_EVENT
+    MERGED_EVENT
   ]
 ) {
   nodes {
@@ -207,7 +209,21 @@ timelineItems(
       bodyText
       createdAt
     }
-    __typename
+    ... on ClosedEvent {
+      id
+      actor {
+        login
+      }
+      createdAt
+    }
+    ... on MergedEvent{
+      id
+      actor {
+          login
+      }
+      createdAt
+    }
+   __typename
   }
 }
 `
