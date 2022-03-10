@@ -5,7 +5,8 @@
     "removeComments": true, /* Remove comments */
     "sourceMap": true,
     "outDir": "dist",
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "strictNullChecks": true // Needed for PrismaMock
   },
-  "exclude": ["./dist/**/*", "scripts/**/*", "db/db_issue.ts"],
+  "exclude": ["./dist/**/*", "scripts/**/*", "db/db_issue.ts", "__tests__/**"],
 }

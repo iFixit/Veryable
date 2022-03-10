@@ -7,6 +7,7 @@ module.exports = {
   testMatch: [
     "<rootDir>/__tests__/**/?(*.)(spec|test).ts",
   ],
+  setupFilesAfterEnv:["<rootDir>/__tests__/prismaMock.ts"],
   collectCoverageFrom: [
     "**/*.{ts,tsx}",
     "!<rootDir>/__tests__/__helper.ts",

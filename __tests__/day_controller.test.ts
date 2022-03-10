@@ -1,101 +1,41 @@
-import Pull from "../db/db_pull"
-import DayMetric from "../db/db_day"
-import {updateDayMetrics} from "../controllers/day_controller"
+import {addInteractionsByDay, addPullCountsByDay, addPullsAddedByDay, addUniquePullsAddedByDay} from "../controllers/day_controller"
 
-import { utils } from '../scripts/utils'
+import { prismaMock } from "./prismaMock"
+import { interactions, interaction_day_counts, unique_pulls_added, unique_pulls_added_counts, pulls_added, pulls_added_counts, pull_counts, pull_counts_counts } from "./fixtures"
 
-jest.mock('../db/db_pull')
+describe('Day Controller', () => {
+  describe('Extract Counts from DB', () => {
+   test('Add Interactions', async () => {
+     prismaMock.pullRequestHistory.groupBy = jest.fn().mockResolvedValueOnce(interactions)
 
-const today_unix = 1628060400
-const yesterday_unix = 1627974000
+     const multi_day_metrics = {}
+     await addInteractionsByDay(multi_day_metrics)
+     expect(multi_day_metrics).toMatchObject(interaction_day_counts)
+   })
 
-jest.spyOn(utils, 'getDates').mockImplementation(() => [today_unix, yesterday_unix]);
+    test('Add Unique Pulls', async () => {
+    prismaMock.pullRequestHistory.findMany.mockResolvedValueOnce(unique_pulls_added)
 
-describe('DayController', () => {
+      const multi_day_metrics = {}
+      await addUniquePullsAddedByDay(multi_day_metrics)
 
-  test('Pulls added should increase pull count and pulls added', async () => {
-    const testDay = new DayMetric()
-
-     testDay.metrics = {
-      pull_count: 0,
-      pulls_added: 0,
-      unique_pulls_added: 0,
-      pulls_interacted: 0,
-      date: 0
-     }
-
-    jest.spyOn(testDay, 'getDayValues').mockReturnValue(
-      {
-        pull_count: 0,
-        pulls_added: 0,
-        unique_pulls_added: 0,
-        pulls_interacted: 0,
-        date: today_unix
-      }
-    )
-
-    jest.spyOn(testDay,'save').mockImplementation(() => Promise.resolve())
-
-    const mockQAPullCount = jest.fn().mockReturnValue(10)
-    const mockQAUniqueCount = jest.fn().mockReturnValue(1)
-    const mockInterationCount = jest.fn().mockReturnValue(1)
-
-    Pull.getQAReadyPullCount = mockQAPullCount
-    Pull.getQAReadyUniquePullCount = mockQAUniqueCount
-    Pull.getInteractionsCount = mockInterationCount
-
-    await updateDayMetrics(testDay)
-
-    expect(testDay.metrics).toMatchObject({
-      pull_count: 10,
-      pulls_added: 10,
-      unique_pulls_added: 1,
-      pulls_interacted: 1,
-      date: today_unix
+      expect(multi_day_metrics).toMatchObject(unique_pulls_added_counts)
     })
 
-  });
+    test('Add Pulls Added', async () => {
+      prismaMock.pullRequestHistory.groupBy = jest.fn().mockResolvedValueOnce(pulls_added)
 
-   test('Pulls decreased should decrease pull count and pulls added is the same', async () => {
-    const testDay = new DayMetric()
-
-     testDay.metrics = {
-      pull_count: 0,
-      pulls_added: 0,
-      unique_pulls_added: 0,
-      pulls_interacted: 0,
-      date: 0
-     }
-
-    jest.spyOn(testDay, 'getDayValues').mockReturnValue(
-      {
-        pull_count: 10,
-        pulls_added: 2,
-        unique_pulls_added: 0,
-        pulls_interacted: 0,
-        date: today_unix
-      }
-    )
-
-    jest.spyOn(testDay,'save').mockImplementation(() => Promise.resolve())
-
-    const mockQAPullCount = jest.fn().mockReturnValue(8)
-    const mockQAUniqueCount = jest.fn().mockReturnValue(1)
-    const mockInterationCount = jest.fn().mockReturnValue(1)
-
-    Pull.getQAReadyPullCount = mockQAPullCount
-    Pull.getQAReadyUniquePullCount = mockQAUniqueCount
-    Pull.getInteractionsCount = mockInterationCount
-
-    await updateDayMetrics(testDay)
-
-    expect(testDay.metrics).toMatchObject({
-      pull_count: 8,
-      pulls_added: 2,
-      unique_pulls_added: 1,
-      pulls_interacted: 1,
-      date: today_unix
+      const multi_day_metrics = {}
+      await addPullsAddedByDay(multi_day_metrics)
+      expect(multi_day_metrics).toMatchObject(pulls_added_counts)
     })
 
-  });
+    test('Add Pull Counts', async () => {
+      prismaMock.pullRequestHistory.findMany.mockResolvedValueOnce(pull_counts)
+
+      const multi_day_metrics = {}
+      await addPullCountsByDay(multi_day_metrics)
+      expect(multi_day_metrics).toMatchObject(pull_counts_counts)
+    })
+ })
 })
