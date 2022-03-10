@@ -1,28 +1,24 @@
 import config from '../config/config'
 const { repos } = config
 
-import DayMetric from '../db/db_day'
-const DAY = new DayMetric()
-
 import Pull from '../db/db_pull'
-import { updateDayMetrics } from '../controllers/day_controller';
 import { parsePull } from '../controllers/pull_controller'
 
 import logger from './logger'
-import { PullRequest as GitHubPullRequest, Maybe } from '@octokit/graphql-schema';
+import { PullRequest as GitHubPullRequest } from '@octokit/graphql-schema';
 
-import { queryOpenPullsWithTimeline } from './ghgraphql'
+import { queryOpenPullsWithTimeline, queryPullsWithTimeline } from './ghgraphql'
 import { parseTimeline } from '../controllers/pull_history_controller'
 import PullHistoryRecorder from '../db/db_pull_history'
 import { saveParsedItems } from '../controllers/save_controller'
 
 import {utils} from '../scripts/utils'
+import { updateDayMetrics } from '../controllers/day_controller'
 
 const log = logger('main');
 
-// Automatically run script repeatedly
 (async () => {
-  main()
+  await main()
   setInterval(main, 60 * 1000) //Run every 60 seconds
 })()
 
@@ -30,17 +26,19 @@ async function main() {
   log.info('Running script...\n')
 
   // Iterate through repos defined in the config.ts file
-  const setteld_parsed_items = await Promise.allSettled(repos.map(async(repo) => {
-    const results = await queryOpenPullsWithTimeline(repo)
+  const promises = repos.map(async (repo) => {
+    const results = await queryPullsWithTimeline(repo)
     const sanitized_github_pulls = utils.removeMaybeNulls(results.repository.pullRequests.nodes)
     return parsePulls(sanitized_github_pulls)
-  }))
+  })
 
+  const setteld_parsed_items = await Promise.allSettled(promises)
   const fulfilled_parsed_items = retrieveValuesOfFulFilledPromises(setteld_parsed_items).flat(1)
 
   await saveParsedItems(fulfilled_parsed_items)
-  await updateDayMetrics(DAY)
-  log.info('Finished script...\n')
+  await updateDayMetrics();
+
+  log.info('Finished the script...\n')
 }
 
 function parsePulls(github_pulls: GitHubPullRequest[] | undefined):{ pull_to_save: Pull, pull_history_to_save: PullHistoryRecorder | null }[] {

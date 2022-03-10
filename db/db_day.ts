@@ -31,6 +31,26 @@ export default class DayMetric
   {
     return utils.deepCopy(this.metrics);
   }
+
+  setUniquePullsAdded(unique_pulls_added: number): void{
+    this.metrics.unique_pulls_added = unique_pulls_added
+  }
+
+  setPullsAdded(pulls_added: number): void{
+    this.metrics.pulls_added = pulls_added
+  }
+
+  setPullsInteracted(interactions: number): void{
+    this.metrics.pulls_interacted = interactions
+  }
+
+  setPullCount(end_of_day_pull_count: number): void{
+    this.metrics.pull_count = end_of_day_pull_count
+  }
+
+  incrementPullCount(): void{
+    this.metrics.pull_count+=1
+  }
 }
 
 
