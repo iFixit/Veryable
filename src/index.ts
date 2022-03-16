@@ -16,7 +16,7 @@ const log = logger('main');
 
 (async () => {
   await main()
-  setInterval(main, 60 * 1000) //Run every 60 seconds
+  setInterval(main, 60 * 60 * 1000) //Run every hour
 })()
 
 async function main() {
