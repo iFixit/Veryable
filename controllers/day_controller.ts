@@ -1,3 +1,4 @@
+import { PromisePool } from "@supercharge/promise-pool"
 import logger from '../src/logger';
 const log = logger('day_controller');
 
@@ -18,10 +19,10 @@ export async function updateDayMetrics() {
   await addPullCountsByDay(multi_day_metrics)
 
   const metrics = Object.values(multi_day_metrics)
-  for (const metric of metrics) {
-    await metric.save();
-  }
-  log.info('Updated Day Metrics')
+
+  return PromisePool.for(metrics).process(day_metric => {
+    return day_metric.save()
+  })
 }
 
 async function addPullsAddedByDay(multi_day_metrics: { [start_date: string]: DayMetric }) {
@@ -65,8 +66,6 @@ async function addInteractionsByDay(multi_day_metrics: { [start_date: string]: D
     }
   })
 
-  console.log('Interactions returned is %o',interactions)
-
   interactions.forEach(day_count => {
     if (!multi_day_metrics[day_count.start_date]) {
       multi_day_metrics[day_count.start_date] = createNewDayMetric(day_count.start_date)
@@ -104,20 +103,22 @@ async function addPullCountsByDay(multi_day_metrics: { [start_date: string]: Day
       event: { in: [ 'qa_ready', 'non_qa_ready',] }
     },
     orderBy: {
-      date: 'asc'
+      date: 'desc'
     }
   })
 
-  log.data('Returned Pull Count Query: %o',ungrouped_pulls)
+  // log.data('Returned Pull Count Query: %o',ungrouped_pulls)
 
   const grouped_pulls = ungrouped_pulls.reduce(reduceByPullRequest, {})
 
-  log.data('Reduced Events: %o',grouped_pulls)
+  // log.data('Reduced Events: %o', grouped_pulls)
+
   for (const pull in grouped_pulls) {
-    log.data('Parsing Pull ID %o with events: %o',pull,grouped_pulls[pull])
+
     const pull_events = grouped_pulls[pull]
+
     parseEventDays(pull_events, multi_day_metrics)
-    log.data('End of Pull Parsing for metrics of %o',multi_day_metrics)
+
   }
 }
 
@@ -126,25 +127,22 @@ function parseEventDays(events, multi_day_metrics) {
   let previous_qa_ready_date = 0
 
   events.forEach(record => {
-    log.data('Parsing Event %o', record)
+
     if (record.event === 'qa_ready' && !previous_qa_ready) {
-      log.data('Entered New QA Ready Event')
+
       checkAndAppendNewDay(multi_day_metrics, record.start_date)
       multi_day_metrics[record.start_date].incrementPullCount();
-      log.data('Incrementing Pull Count for %o', record.start_date)
+
       previous_qa_ready = true
       previous_qa_ready_date = record.start_date
     }
     else if (record.event === 'qa_ready' && previous_qa_ready) {
-      log.data('Entered QA Ready Event with Prior QA')
       incrementPullCountUpToDate(previous_qa_ready_date, record.start_date, multi_day_metrics)
       checkAndAppendNewDay(multi_day_metrics, record.start_date)
       multi_day_metrics[record.start_date].incrementPullCount()
-      log.data('Incrementing Pull Count for %o', record.start_date)
       previous_qa_ready_date = record.start_date
     }
     else if (record.event == 'non_qa_ready' && previous_qa_ready) {
-      log.data('Non QA Ready Event only increment up to date')
       incrementPullCountUpToDate(previous_qa_ready_date, record.start_date, multi_day_metrics)
 
       previous_qa_ready = false
@@ -154,14 +152,12 @@ function parseEventDays(events, multi_day_metrics) {
   const today = utils.getStartOfDayInUnixTime(DateTime.now().toSeconds())
 
   if (previous_qa_ready) {
-    log.data('Incrementing Pull Count up today from %o', previous_qa_ready_date)
     incrementPullCountUpToDate(previous_qa_ready_date, today, multi_day_metrics)
   }
 }
 
 function incrementPullCountUpToDate(start_date, end_date, multi_day_metrics) {
   const day_difference = differenceInDays(start_date,end_date)
-  log.data('Incrementing Counts from %o up to %o for a total of %o days',start_date,end_date,day_difference)
 
   for (let day = 1; day < day_difference; day++) {
     const date = addDays(start_date, day)
@@ -173,7 +169,6 @@ function incrementPullCountUpToDate(start_date, end_date, multi_day_metrics) {
 
 function checkAndAppendNewDay(multi_day_metrics, date) {
   if (!multi_day_metrics[date]) {
-      log.data('Appending new day '+date)
       multi_day_metrics[date] = createNewDayMetric(date)
   }
 }
@@ -211,7 +206,7 @@ function reduceByPullRequest(events_by_pull_request_id: { [pull_request_id: stri
    if (!events_by_pull_request_id[event.pull_request_id]) {
     events_by_pull_request_id[event.pull_request_id] = []
   }
-  events_by_pull_request_id[event.pull_request_id].push(event)
+  events_by_pull_request_id[event.pull_request_id].unshift(event)
   return events_by_pull_request_id
 }
 

@@ -1,3 +1,4 @@
+import { PromisePool } from "@supercharge/promise-pool"
 import { Commit, PullRequestHistory, pull_request_history_event } from "@prisma/client";
 import prisma from "../prisma/client"
 
@@ -18,25 +19,24 @@ export default class PullHistoryRecorder {
     this.current_head_commit = current_head_commit ? utils.deepCopy(current_head_commit) :new CommitDB();
   }
 
-  async save(): Promise<void> {
-    log.data('Saving events %O', this.pull_records)
-    await Promise.allSettled(this.pull_records.map(async event => {
+  async save(){
+    return PromisePool.for(this.pull_records).process(async record => {
       try {
         await prisma.pullRequestHistory.upsert({
           where: {
             date_pull_request_id_event: {
-              date: event.date,
-              pull_request_id: event.pull_request_id,
-              event: event.event
+               date: record.date,
+               pull_request_id: record.pull_request_id,
+               event: record.event
             }
           },
-          update: event,
-          create: event
+           update: record,
+           create: record
         })
       } catch (err) {
-        log.error('Failed to save event %O\n%s', event, err)
+        log.error('Failed to save record %O\n%s', record, err)
       }
-    }))
+    })
   }
 
   setCurrentCommitRef(commit: CommitDB) {

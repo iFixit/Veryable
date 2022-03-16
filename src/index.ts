@@ -15,6 +15,7 @@ import { saveParsedItems } from '../controllers/save_controller'
 import {utils} from '../scripts/utils'
 import { updateDayMetrics } from '../controllers/day_controller'
 
+import {PromisePool} from '@supercharge/promise-pool'
 const log = logger('main');
 
 (async () => {
@@ -26,18 +27,17 @@ async function main() {
   log.info('Running script...\n')
 
   // Iterate through repos defined in the config.ts file
-  const promises = repos.map(async (repo) => {
-    const results = await queryPullsWithTimeline(repo)
+  const settled_promises = await PromisePool.for(repos).process(async repo => {
+    const results = await queryOpenPullsWithTimeline(repo)
     const sanitized_github_pulls = utils.removeMaybeNulls(results.repository.pullRequests.nodes)
     return parsePulls(sanitized_github_pulls)
   })
 
-  const setteld_parsed_items = await Promise.allSettled(promises)
-  const fulfilled_parsed_items = retrieveValuesOfFulFilledPromises(setteld_parsed_items).flat(1)
+  const fulfilled_parsed_items = settled_promises.results.flat(1)
 
   await saveParsedItems(fulfilled_parsed_items)
   await updateDayMetrics();
-
+  log.info('Updated day metrics')
   log.info('Finished the script...\n')
 }
 
