@@ -8,8 +8,26 @@ import { utils } from '../scripts/utils'
 
 import logger from '../src/logger'
 import { PullRequest as GitHubPullRequest } from '@octokit/graphql-schema';
+import { parseTimeline } from "./pull_history_controller"
+import PullHistoryRecorder from "../db/db_pull_history"
 
 const log = logger('pullParser')
+
+function parsePulls(github_pulls: GitHubPullRequest[] | undefined):{ pull_to_save: Pull, pull_history_to_save: PullHistoryRecorder | null }[] {
+  const items_to_save: { pull_to_save: Pull, pull_history_to_save: PullHistoryRecorder | null }[] = []
+  github_pulls?.forEach(github_pull => {
+    const pull = parsePull(github_pull)
+    const sanitized_timeline_items = utils.removeMaybeNulls(github_pull.timelineItems.nodes)
+    if (sanitized_timeline_items) {
+      items_to_save.push(parseTimeline(pull, sanitized_timeline_items))
+    } else {
+      items_to_save.push({pull_to_save:pull, pull_history_to_save: null})
+    }
+  });
+
+  return items_to_save
+}
+
 
 function parsePull(github_pull: GitHubPullRequest): Pull {
   log.data(`Parsing Pull #${github_pull.number} ${github_pull.title}`)
@@ -74,4 +92,4 @@ function qaRequired(github_pull: GitHubPullRequest): number {
   return parseInt(qa.groups.qa_req);
 }
 
-export { parsePull, grabValues, closesDeclared, qaRequired}
+export { parsePulls, parsePull, grabValues, closesDeclared, qaRequired}

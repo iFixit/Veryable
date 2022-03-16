@@ -1,15 +1,11 @@
 import config from '../config/config'
 const { repos } = config
 
-import Pull from '../db/db_pull'
-import { parsePull } from '../controllers/pull_controller'
+import { parsePulls } from '../controllers/pull_controller'
 
 import logger from './logger'
-import { PullRequest as GitHubPullRequest } from '@octokit/graphql-schema';
 
 import { queryOpenPullsWithTimeline, queryPullsWithTimeline } from './ghgraphql'
-import { parseTimeline } from '../controllers/pull_history_controller'
-import PullHistoryRecorder from '../db/db_pull_history'
 import { saveParsedItems } from '../controllers/save_controller'
 
 import {utils} from '../scripts/utils'
@@ -39,25 +35,4 @@ async function main() {
   await updateDayMetrics();
   log.info('Updated day metrics')
   log.info('Finished the script...\n')
-}
-
-function parsePulls(github_pulls: GitHubPullRequest[] | undefined):{ pull_to_save: Pull, pull_history_to_save: PullHistoryRecorder | null }[] {
-  const items_to_save: { pull_to_save: Pull, pull_history_to_save: PullHistoryRecorder | null }[] = []
-  github_pulls?.forEach(github_pull => {
-    const pull = parsePull(github_pull)
-    const sanitized_timeline_items = utils.removeMaybeNulls(github_pull.timelineItems.nodes)
-    if (sanitized_timeline_items) {
-      items_to_save.push(parseTimeline(pull, sanitized_timeline_items))
-    } else {
-      items_to_save.push({pull_to_save:pull, pull_history_to_save: null})
-    }
-  });
-
-  return items_to_save
-}
-
-function retrieveValuesOfFulFilledPromises<Type>(settled_promises: PromiseSettledResult<Type>[]) {
-  const fulfilled_promises = settled_promises.filter((promise) => promise.status === 'fulfilled') as PromiseFulfilledResult<Type>[]
-
-  return fulfilled_promises.map((promise) => promise.value)
 }
