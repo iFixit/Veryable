@@ -48,15 +48,13 @@ export default class Pull {
     return [repo, pull_request.pull_number]
   }
 
-  // Insert / Update Pull Request into the DB
   async save(): Promise<void> {
     try {
-      this.pull_request = await prisma.pullRequest.upsert({
-        where: {
-          pull_request_id: this.pull_request.pull_request_id
-        },
-        update: this.pull_request,
-        create: this.pull_request,
+      if (await this.existsInDB()) {
+        await this.deleteFromDB();
+      }
+      this.pull_request = await prisma.pullRequest.create({
+        data: this.pull_request
       })
     } catch (e) {
       log.error(
@@ -64,6 +62,47 @@ export default class Pull {
         this.pull_request.pull_number,
         this.pull_request.title,
         e
+      )
+      throw e
+    }
+  }
+
+  async existsInDB(): Promise<boolean> {
+    try {
+      const result = await prisma.pullRequest.findUnique({
+        where: {
+          pull_request_id: this.pull_request.pull_request_id
+        }
+      })
+      if (result) {
+        log.info('Pull exists, purging to create clean history')
+        return true
+      }
+      return false
+    } catch (e) {
+      log.error(
+        "Failed to find PullRequest #%d '%s\n\t%s",
+          this.pull_request.pull_number,
+          this.pull_request.title,
+          e
+      )
+      throw e
+    }
+  }
+
+  async deleteFromDB(): Promise<void> {
+    try {
+      await prisma.pullRequest.delete({
+        where: {
+          pull_request_id: this.pull_request.pull_request_id
+        }
+      })
+    } catch (e) {
+      log.error(
+        "Failed to delete PullRequest #%d '%s\n\t%s",
+          this.pull_request.pull_number,
+          this.pull_request.title,
+          e
       )
       throw e
     }
