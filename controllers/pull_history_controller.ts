@@ -126,7 +126,9 @@ function handlePullRequestCommitEvent(pull: Pull, pull_request_commit_event: Pul
 function handleMergedClosedEvent(pull: Pull, merged_closed_event: MergedEvent | ClosedEvent, recorder: PullHistoryRecorder, eventType: pull_request_history_event) {
   recorder.logEvent(utils.getUnixTimeFromISO(merged_closed_event.createdAt), eventType, merged_closed_event.actor?.login ?? 'unknown author')
 
-  recorder.logEvent(utils.getUnixTimeFromISO(merged_closed_event.createdAt), 'non_qa_ready', eventType + ' pull request')
+  if (pull.isQAReady()) {
+    recorder.logEvent(utils.getUnixTimeFromISO(merged_closed_event.createdAt), 'non_qa_ready', eventType + ' pull request')
+  }
 
   pull.setQAReadyState(false);
 }
