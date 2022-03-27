@@ -1,21 +1,29 @@
-// Plan is to run this once to update all Pulls current in the DB that are still marked as OPEN yet the live Pull has been CLOSED or MERGED
-import { PullRequest} from "@prisma/client"
-import Pull from '../db/db_pull'
-import { queryPull } from '../src/ghgraphql'
-import { parsePull } from '../controllers/pull_controller'
-
-
+import { queryPullsWithTimeline } from "../src/ghgraphql"
 import logger from '../src/logger'
-export default async function ():Promise<void> {
-  const db_pulls: PullRequest[] = await Pull.getDBPulls();
-  const log = logger('refreshPull');
 
-  db_pulls.forEach(async (db_pull:PullRequest) => {
-    const github_pull = await queryPull(...Pull.getGraphQLValues(db_pull));
-    if (github_pull.repository.pullRequest) {
-      parsePull(github_pull.repository.pullRequest, db_pull);
-    }
-  });
+import config from '../config/config'
+import { PromisePool } from "@supercharge/promise-pool/dist/promise-pool";
+import { utils } from "./utils";
+import { parsePulls } from "../controllers/pull_controller";
+import { saveParsedItems } from "../controllers/save_controller";
+import { updateDayMetrics } from "../controllers/day_controller";
+const { repos } = config
 
-  log.info('Done refreshing Pulls');
+const log = logger('refreshPulls');
+
+export default async function (): Promise<void> {
+  log.info('Running script...\n')
+
+  const settled_promises = await PromisePool.for(repos).process(async repo => {
+    const results = await queryPullsWithTimeline(repo)
+    const sanitized_github_pulls = utils.removeMaybeNulls(results.repository.pullRequests.nodes)
+    return parsePulls(sanitized_github_pulls)
+  })
+
+  const fulfilled_parsed_items = settled_promises.results.flat(1)
+
+  await saveParsedItems(fulfilled_parsed_items)
+  await updateDayMetrics();
+  log.info('Updated day metrics')
+  log.info('Finished the script...\n')
 }

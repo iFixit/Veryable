@@ -72,7 +72,7 @@ export default {
   GET_PULLS_TIMELINES: (repo: string, owner: string, limitsize: number) => `
   {
     repository(name: "${repo}", owner: "${owner}") {
-      pullRequests(first: ${limitsize}, orderBy: {field: CREATED_AT, direction: DESC} ) {
+      pullRequests(states: [CLOSED, MERGED], first: ${limitsize}, orderBy: {field: CREATED_AT, direction: DESC} ) {
         nodes {
           ${PULL_INFO_WITH_TIMELINE}
           }

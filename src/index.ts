@@ -5,7 +5,7 @@ import { parsePulls } from '../controllers/pull_controller'
 
 import logger from './logger'
 
-import { queryOpenPullsWithTimeline, queryPullsWithTimeline } from './ghgraphql'
+import { queryOpenPullsWithTimeline } from './ghgraphql'
 import { saveParsedItems } from '../controllers/save_controller'
 
 import {utils} from '../scripts/utils'
